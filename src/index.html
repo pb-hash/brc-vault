@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- No network access at all: this page cannot load or send anything. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src '__SCRIPT_HASH__'; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="x-dns-prefetch-control" content="off">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#f5f6f8">
+<title>BRC Vault</title>
+<link rel="icon" href="/*__FAVICON__*/">
+<style>
+/*__FONTS__*/
+:root {
+  --canvas: #f5f6f8;
+  --surface: #ffffff;
+  --sunken: #f0f2f5;
+  --ink: #101318;
+  --ink-2: #3a414c;
+  --muted: #69717d;
+  --hairline: #e3e6eb;
+  --hairline-strong: #d3d8df;
+  --brand: #5956fd;
+  --brand-deep: #4340e0;
+  --brand-tint: #eeeeff;
+  --vault: #0d7a5f;
+  --vault-bright: #15a37f;
+  --vault-tint: #e6f4ef;
+  --danger: #b8321c;
+  --danger-tint: #fbece8;
+  --caution: #8c5800;
+  --caution-tint: #fbf3e2;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-card: 0 1px 2px rgba(16, 19, 24, 0.04), 0 8px 24px -6px rgba(16, 19, 24, 0.08), 0 32px 64px -24px rgba(16, 19, 24, 0.12);
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--canvas); color: var(--ink); font: 400 16px/1.55 var(--sans); font-feature-settings: "ss01"; }
+button, input, textarea { font: inherit; color: inherit; }
+::selection { background: var(--brand-tint); }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { width: min(100% - 2.5rem, 46rem); margin-inline: auto; }
+
+/* ---------- Top bar ---------- */
+.topbar { position: sticky; top: 0; z-index: 5; background: rgba(245, 246, 248, 0.82); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid transparent; }
+.topbar.is-scrolled { border-bottom-color: var(--hairline); }
+.topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 3.75rem; }
+.brand { display: flex; align-items: center; gap: 0.6rem; color: #353535; }
+.brand .mark { width: 2.15rem; height: 2.15rem; display: block; flex: none; }
+/* Wordmark: BRC light, VAULT bold, tracked tight, as in the logo. */
+.wordmark { font-size: 1.22rem; line-height: 1; letter-spacing: -0.066em; text-transform: uppercase; white-space: nowrap; }
+.wordmark .wm-light { font-weight: 408; }
+.wordmark .wm-bold { font-weight: 662; }
+.status-pill { display: inline-flex; align-items: center; gap: 0.45rem; height: 2rem; padding: 0 0.8rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--hairline); font-size: 0.82rem; font-weight: 500; color: var(--ink-2); }
+.status-pill .dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--muted); }
+.status-pill[data-state="offline"] .dot { background: var(--vault-bright); box-shadow: 0 0 0 3px var(--vault-tint); }
+
+/* ---------- Hero ---------- */
+.hero { padding: 4.5rem 0 2.5rem; }
+.hero h1 { margin: 0; font-weight: 600; font-size: clamp(2.5rem, 7vw, 3.85rem); line-height: 1.02; letter-spacing: -0.045em; max-width: 13ch; }
+.hero p { margin: 1.25rem 0 0; font-size: 1.15rem; line-height: 1.55; color: var(--muted); max-width: 34rem; letter-spacing: -0.005em; }
+.hero p strong { color: var(--ink); font-weight: 500; }
+
+/* ---------- Main card ---------- */
+.card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); border: 1px solid rgba(16, 19, 24, 0.05); overflow: hidden; }
+.card-head { padding: 1.25rem 1.5rem 0; }
+
+.segmented { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; background: var(--sunken); border-radius: 12px; position: relative; }
+.segmented button { appearance: none; border: 0; background: transparent; height: 2.6rem; border-radius: 9px; font-weight: 500; font-size: 0.95rem; color: var(--muted); cursor: pointer; position: relative; z-index: 1; transition: color 0.2s var(--ease); }
+.segmented button[aria-selected="true"] { color: var(--ink); }
+.segmented button[aria-selected="true"] { color: var(--ink); }
+.segmented .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); background: var(--surface); border-radius: 9px; box-shadow: 0 1px 2px rgba(16,19,24,.08), 0 2px 8px rgba(16,19,24,.06); transition: transform 0.35s var(--ease); }
+.segmented[data-active="restore"] .thumb { transform: translateX(100%); }
+
+.panel { padding: 0.5rem 1.5rem 1.75rem; }
+.panel-lede { margin: 1.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
+.panel-lede strong { color: var(--ink); font-weight: 500; }
+
+/* ---------- Stepper: an ordered process, so the steps are numbered ---------- */
+.steps { list-style: none; margin: 1.5rem 0 0; padding: 0; }
+.step { position: relative; display: grid; grid-template-columns: 2rem 1fr; column-gap: 1rem; padding-bottom: 1.9rem; }
+.step:last-child { padding-bottom: 0.25rem; }
+.step::before { content: ""; position: absolute; left: calc(1rem - 0.5px); top: 2.25rem; bottom: 0.25rem; width: 1px; background: var(--hairline); }
+.step:last-child::before { display: none; }
+.node { width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center; font-size: 0.85rem; font-weight: 600; font-variant-numeric: tabular-nums; background: var(--surface); border: 1px solid var(--hairline-strong); color: var(--muted); transition: background 0.3s var(--ease), border-color 0.3s var(--ease), color 0.3s var(--ease); }
+.node svg { width: 0.95rem; height: 0.95rem; display: none; }
+.step[data-state="active"] .node { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 0 0 4px var(--brand-tint); }
+.step[data-state="done"] .node { background: var(--vault); border-color: var(--vault); color: #fff; }
+.step[data-state="done"] .node span { display: none; }
+.step[data-state="done"] .node svg { display: block; }
+.step[data-state="done"]::before { background: var(--vault); opacity: 0.35; }
+.step h2 { margin: 0.2rem 0 0; font-size: 1.08rem; font-weight: 600; letter-spacing: -0.015em; line-height: 1.4; }
+.step-sub { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.93rem; }
+.step[data-state="waiting"] h2, .step[data-state="waiting"] .step-sub { color: #9aa1ab; }
+.step[data-state="waiting"] .step-content, .step[data-collapsed] .step-content { display: none; }
+.step-summary { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.9rem; }
+.step:not([data-collapsed]) .step-summary { display: none; }
+.link-btn { appearance: none; border: 0; background: none; padding: 0 0 0 0.6rem; margin-left: 0.4rem; border-left: 1px solid var(--hairline-strong); font: inherit; font-size: 0.88rem; font-weight: 500; color: var(--brand-deep); cursor: pointer; }
+.link-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Inputs ---------- */
+.drop { display: flex; align-items: center; gap: 0.9rem; padding: 1rem 1.1rem; border: 1px dashed var(--hairline-strong); border-radius: var(--radius-md); background: var(--canvas); cursor: pointer; transition: border-color 0.2s var(--ease), background 0.2s var(--ease); position: relative; }
+.drop:hover { border-color: #b9c0ca; background: #f1f3f6; }
+.drop.is-over { border-color: var(--brand); background: var(--brand-tint); }
+.drop:focus-within { outline: 2px solid var(--brand); outline-offset: 3px; }
+.drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.drop-icon { flex: none; width: 2.5rem; height: 2.5rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--hairline); display: grid; place-items: center; color: var(--ink-2); }
+.drop-icon svg { width: 1.15rem; height: 1.15rem; }
+.drop-text { font-size: 0.93rem; color: var(--muted); line-height: 1.4; }
+.drop-text strong { display: block; color: var(--ink); font-weight: 500; font-size: 0.97rem; }
+
+.disclosure { margin-top: 0.75rem; }
+.disclosure summary { cursor: pointer; list-style: none; color: var(--muted); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.35rem; }
+.disclosure summary::-webkit-details-marker { display: none; }
+.disclosure summary::before { content: ""; width: 0.4rem; height: 0.4rem; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform 0.2s var(--ease); margin-right: 0.15rem; }
+.disclosure[open] summary::before { transform: rotate(45deg); }
+.disclosure summary:hover { color: var(--ink); }
+.disclosure textarea { display: block; width: 100%; margin-top: 0.6rem; min-height: 5.5rem; resize: vertical; padding: 0.75rem 0.85rem; font: 0.85rem/1.5 var(--mono); border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface); }
+
+.field { display: block; margin-top: 1rem; }
+.field > span { display: block; font-size: 0.86rem; font-weight: 500; color: var(--ink-2); margin-bottom: 0.4rem; }
+.input-wrap { position: relative; }
+.field input { display: block; width: 100%; height: 2.9rem; padding: 0 3.6rem 0 0.95rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface); font-size: 1rem; transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+.field input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px var(--brand-tint); }
+.reveal { position: absolute; right: 0.4rem; top: 50%; transform: translateY(-50%); height: 2.1rem; padding: 0 0.65rem; border: 0; border-radius: 6px; background: transparent; font-size: 0.8rem; font-weight: 500; color: var(--muted); cursor: pointer; }
+.reveal:hover { background: var(--sunken); color: var(--ink); }
+
+.meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 0.6rem; }
+.meter i { height: 4px; border-radius: 2px; background: var(--hairline); transition: background 0.25s var(--ease); }
+.meter[data-level="1"] i:nth-child(-n+1) { background: var(--danger); }
+.meter[data-level="2"] i:nth-child(-n+2) { background: #d08a12; }
+.meter[data-level="3"] i:nth-child(-n+3) { background: var(--vault-bright); }
+.meter[data-level="4"] i { background: var(--vault); }
+
+.check { display: flex; gap: 0.7rem; align-items: flex-start; margin-top: 1.1rem; padding: 0.85rem 0.95rem; background: var(--caution-tint); border-radius: var(--radius-sm); font-size: 0.9rem; color: #5c3d06; cursor: pointer; }
+.check-plain { background: var(--sunken); color: var(--ink-2); }
+.check-danger { background: var(--danger-tint); color: #6e1e12; }
+.check input { flex: none; margin: 0.15rem 0 0; width: 1.05rem; height: 1.05rem; accent-color: var(--ink); }
+
+/* ---------- Data display ---------- */
+.kv { margin-top: 0.9rem; border: 1px solid var(--hairline); border-radius: var(--radius-md); overflow: hidden; }
+.kv-row { display: grid; grid-template-columns: 6rem 1fr; gap: 1rem; padding: 0.75rem 1rem; font-size: 0.9rem; align-items: baseline; }
+.kv-row + .kv-row { border-top: 1px solid var(--hairline); }
+.kv-row dt { color: var(--muted); }
+.kv-row dd { margin: 0; color: var(--ink); }
+.mono { font-family: var(--mono); font-size: 0.77rem; letter-spacing: -0.01em; word-break: break-all; line-height: 1.55; }
+.ok-text { color: var(--vault); font-weight: 500; }
+
+/* ---------- Buttons ---------- */
+.actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.1rem; }
+.btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.85rem; padding: 0 1.25rem; border-radius: 10px; font-size: 0.95rem; font-weight: 500; letter-spacing: -0.005em; cursor: pointer; border: 1px solid transparent; transition: background 0.2s var(--ease), transform 0.12s var(--ease), box-shadow 0.2s var(--ease), opacity 0.2s; }
+.btn svg { width: 1.05rem; height: 1.05rem; }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary { background: var(--ink); color: #fff; box-shadow: 0 1px 2px rgba(16,19,24,.2), inset 0 1px 0 rgba(255,255,255,.08); }
+.btn-primary:hover:not(:disabled) { background: #262b33; }
+.btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--hairline-strong); }
+.btn-secondary:hover:not(:disabled) { background: var(--canvas); }
+.btn-ghost { background: transparent; color: var(--muted); height: auto; padding: 0.4rem 0; }
+.btn-ghost:hover { color: var(--ink); }
+.btn-danger-quiet { background: var(--surface); color: var(--danger); border-color: #ecc6be; }
+.btn-danger-quiet:hover { background: var(--danger-tint); }
+.btn:disabled { opacity: 0.32; cursor: not-allowed; }
+.btn-block { width: 100%; height: 3.1rem; font-size: 1rem; }
+
+/* ---------- Progress ---------- */
+.progress { margin-top: 1rem; height: 4px; border-radius: 2px; background: var(--sunken); overflow: hidden; }
+.progress > i { display: block; height: 100%; width: 40%; background: var(--brand); border-radius: 2px; animation: indeterminate 1.1s cubic-bezier(.45,.05,.55,.95) infinite; will-change: transform; }
+@keyframes indeterminate { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+/* ---------- Messages ---------- */
+.msg { margin: 0.7rem 0 0; font-size: 0.88rem; display: flex; gap: 0.45rem; align-items: baseline; }
+.msg[data-tone="good"] { color: var(--vault); }
+.msg[data-tone="bad"] { color: var(--danger); font-weight: 500; }
+.msg[data-tone="warn"] { color: var(--caution); }
+.msg[data-tone="info"] { color: var(--muted); }
+
+/* ---------- Success: the one orchestrated moment ---------- */
+.success { margin-top: 0.4rem; text-align: center; padding: 1.5rem 0 0.25rem; }
+/* ---------- The logo moment: the brand mark comes to life on lock and unlock ---------- */
+.logo-moment { position: relative; display: inline-flex; flex-direction: column; align-items: center; gap: 0.7rem; color: #353535; }
+.lm-mark { position: relative; width: 5rem; height: 5rem; }
+.lm-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.lm-mark .lm-dot, .lm-mark .lm-v { transform-box: fill-box; transform-origin: 50% 100%; }
+.lm-ring { position: absolute; inset: 0; border-radius: 26%; border: 2px solid var(--brand); opacity: 0; pointer-events: none; }
+.lm-word { font-size: 1.32rem; line-height: 1; letter-spacing: -0.066em; white-space: nowrap; }
+.lm-word i { display: inline-block; font-style: normal; }
+.lm-word .wm-light i { font-weight: 408; }
+.lm-word .wm-bold i { font-weight: 662; }
+
+/* Lock: the ball drops into its seat, squashes on impact, and settles; the V
+   thunks, an outline pulses out, and a wave runs left to right through the name. */
+.success.is-in .logo-moment[data-variant="lock"] .lm-dot { animation: lm-drop 0.95s 0.08s both; }
+.success.is-in .logo-moment[data-variant="lock"] .lm-v { animation: lm-thunk 0.36s ease-out 0.6s both; }
+.success.is-in .logo-moment[data-variant="lock"] .lm-ring { animation: lm-ring 0.9s cubic-bezier(.2, .7, .2, 1) 0.6s forwards; }
+.success.is-in .logo-moment[data-variant="lock"] .lm-word i { animation: lm-wave 0.55s cubic-bezier(.3, 0, .2, 1) calc(0.66s + var(--i) * 45ms) both; }
+
+/* Unlock: the ball presses down, then lifts out of its seat and floats; the wave runs back. */
+.success.is-in .logo-moment[data-variant="unlock"] .lm-dot { animation: lm-lift 0.8s cubic-bezier(.3, 0, .2, 1) 0.08s both; }
+.success.is-in .logo-moment[data-variant="unlock"] .lm-word i { animation: lm-wave 0.55s cubic-bezier(.3, 0, .2, 1) calc(0.3s + (7 - var(--i)) * 45ms) both; }
+.logo-moment[data-variant="unlock"] .lm-dot { transform: translateY(-150px); }
+
+@keyframes lm-drop {
+  0% { transform: translateY(-235px) scale(0.86); opacity: 0; animation-timing-function: cubic-bezier(.55, 0, .9, .45); }
+  14% { opacity: 1; }
+  55% { transform: translateY(0) scale(1); animation-timing-function: ease-out; }
+  63% { transform: translateY(12px) scale(1.15, 0.84); animation-timing-function: ease-out; }
+  77% { transform: translateY(-24px) scale(0.96, 1.05); animation-timing-function: ease-in; }
+  89% { transform: translateY(0) scale(1.04, 0.96); animation-timing-function: ease-out; }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes lm-lift {
+  0% { transform: translateY(0) scale(1); }
+  20% { transform: translateY(10px) scale(1.13, 0.86); }
+  62% { transform: translateY(-168px) scale(0.95, 1.06); }
+  82% { transform: translateY(-142px) scale(1.02, 0.98); }
+  100% { transform: translateY(-150px) scale(1); }
+}
+@keyframes lm-thunk { 0% { transform: scale(1); } 40% { transform: scale(1.035, 0.955); } 100% { transform: scale(1); } }
+@keyframes lm-ring { from { opacity: 0.55; transform: scale(0.92); } to { opacity: 0; transform: scale(1.5); } }
+@keyframes lm-wave {
+  0% { transform: translateY(0); color: inherit; }
+  38% { transform: translateY(-7px); color: var(--brand); }
+  100% { transform: translateY(0); color: inherit; }
+}
+.success-compact { padding: 0.5rem 0 1rem; }
+.success-compact .lm-mark { width: 4rem; height: 4rem; }
+.success-compact .lm-word { font-size: 1.08rem; }
+.success-compact h3 { margin-top: 0.75rem; font-size: 1.25rem; }
+.success h3 { margin: 1rem 0 0; font-size: 1.45rem; font-weight: 600; letter-spacing: -0.03em; }
+.success > p { margin: 0.35rem auto 0; max-width: 28rem; color: var(--muted); font-size: 0.95rem; }
+.success .kv { text-align: left; }
+.success .actions { justify-content: center; }
+.success .actions .btn { flex: 1 1 13rem; }
+
+.tips { margin: 1.25rem 0 0; padding: 0; list-style: none; text-align: left; display: grid; gap: 0.55rem; }
+.tips li { display: grid; grid-template-columns: 1.25rem 1fr; gap: 0.6rem; font-size: 0.9rem; color: var(--ink-2); }
+.tips li svg { width: 1.1rem; height: 1.1rem; margin-top: 0.15rem; color: var(--vault); }
+.tips li.caution { color: #5c3d06; }
+.tips li.caution svg { color: var(--caution); }
+
+.divider { height: 1px; background: var(--hairline); margin: 1.75rem -1.5rem 0; }
+.risky { margin-top: 1.1rem; }
+.risky p { font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
+.risky p strong { color: var(--danger); font-weight: 500; }
+
+.foot-actions { display: flex; align-items: center; gap: 1.1rem; }
+.sound-toggle { display: inline-flex; align-items: center; gap: 0.4rem; }
+.sound-toggle svg { width: 1.05rem; height: 1.05rem; }
+.sound-toggle .wave { transition: opacity 0.2s var(--ease); }
+.sound-toggle[aria-pressed="false"] .wave { opacity: 0; }
+.sound-toggle .mute { opacity: 0; transition: opacity 0.2s var(--ease); }
+.sound-toggle[aria-pressed="false"] .mute { opacity: 1; }
+.card-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.9rem 1.5rem; border-top: 1px solid var(--hairline); background: #fbfbfc; font-size: 0.85rem; color: var(--muted); }
+
+/* ---------- Trust row ---------- */
+.trust { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.75rem; margin: 3.5rem 0 0; }
+.trust-item svg { width: 1.35rem; height: 1.35rem; color: var(--ink); }
+.trust-item h3 { margin: 0.8rem 0 0; font-size: 0.97rem; font-weight: 600; letter-spacing: -0.01em; }
+.trust-item p { margin: 0.3rem 0 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
+
+/* ---------- Technical details ---------- */
+.tech { margin: 3.5rem 0 0; border-top: 1px solid var(--hairline); }
+.tech > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; font-weight: 600; letter-spacing: -0.01em; }
+.tech > summary::-webkit-details-marker { display: none; }
+.tech > summary::after { content: "+"; font-weight: 400; font-size: 1.4rem; color: var(--muted); line-height: 1; }
+.tech[open] > summary::after { content: "–"; }
+.tech-body { padding-bottom: 1rem; color: var(--ink-2); font-size: 0.92rem; }
+.tech-body h4 { margin: 1.25rem 0 0.35rem; font-size: 0.92rem; }
+.tech-body p { margin: 0.4rem 0 0; }
+.tech-body pre { margin: 0.75rem 0 0; padding: 1rem; overflow-x: auto; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-md); font: 0.78rem/1.6 var(--mono); }
+.tech-body code { font-family: var(--mono); font-size: 0.85em; overflow-wrap: anywhere; background: var(--sunken); padding: 0.05rem 0.3rem; border-radius: 4px; }
+
+.frame-warning { margin: 1.25rem 0 0; padding: 0.85rem 1rem; border-radius: var(--radius-md); background: var(--caution-tint); color: #5c3d06; font-size: 0.92rem; }
+/* ---------- Intake: choose a file or paste ---------- */
+.intake { margin-top: 0.9rem; }
+.intake-choices { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.6rem; }
+#r-intake .intake-choices { grid-template-columns: 1fr 1fr; }
+#r-intake .intake-choices .drop { grid-column: 1 / -1; }
+.intake[data-mode="scan"] .intake-choices { display: none; }
+.scan-panel { border: 1px solid var(--hairline-strong); border-radius: var(--radius-md); background: var(--surface); overflow: hidden; }
+.scan-view { position: relative; background: #0d1015; aspect-ratio: 4 / 3; max-height: 22rem; width: 100%; overflow: hidden; }
+.scan-view video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.scan-frame { position: absolute; left: 50%; top: 50%; width: min(62%, 15rem); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 18px; box-shadow: 0 0 0 9999px rgba(13, 16, 21, 0.45); outline: 2px solid rgba(255, 255, 255, 0.85); outline-offset: -2px; }
+.scan-frame::after { content: ""; position: absolute; left: 8%; right: 8%; top: 50%; height: 2px; background: var(--brand); box-shadow: 0 0 12px 2px rgba(89, 86, 253, .7); animation: scan-line 1.8s ease-in-out infinite alternate; }
+@keyframes scan-line { from { transform: translateY(-110px); } to { transform: translateY(110px); } }
+.scan-panel .paste-hint { margin: 0; }
+.scan-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; padding: 1.5rem; text-align: center; color: #e8eaee; background: #0d1015; }
+.scan-overlay svg { width: 2rem; height: 2rem; opacity: 0.8; }
+.scan-overlay p { margin: 0; max-width: 26rem; font-size: 0.95rem; line-height: 1.5; }
+.scan-overlay .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.35); }
+.scan-overlay .btn-secondary:hover { background: rgba(255,255,255,.08); }
+.scan-overlay-actions { display: none; }
+.scan-view[data-state="live"] .scan-overlay { display: none; }
+.scan-view:not([data-state="live"]) .scan-frame { display: none; }
+.scan-view[data-state="problem"] .scan-overlay-actions { display: flex; }
+.intake[data-mode="paste"] .intake-choices, .intake[data-mode="loaded"] .intake-choices { display: none; }
+.loaded-chip { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.6rem 0.6rem 0.75rem; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--canvas); }
+.loaded-chip .drop-icon { width: 2.1rem; height: 2.1rem; border-radius: 8px; color: var(--vault); }
+.chip-name { flex: 1; min-width: 0; font-size: 0.92rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.intake .drop { margin-top: 0; }
+.choice { appearance: none; display: flex; align-items: center; gap: 0.9rem; padding: 1rem 1.1rem; text-align: left; border: 1px solid var(--hairline-strong); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; font: inherit; color: inherit; transition: border-color 0.2s var(--ease), background 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.12s var(--ease); }
+.choice:hover { border-color: #b9c0ca; box-shadow: 0 1px 2px rgba(16,19,24,.06), 0 4px 12px -4px rgba(16,19,24,.1); }
+.choice:active { transform: scale(0.99); }
+.choice:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.paste-panel { border: 1px solid var(--hairline-strong); border-radius: var(--radius-md); background: var(--surface); overflow: hidden; transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+.paste-panel:focus-within { border-color: var(--brand); box-shadow: 0 0 0 4px var(--brand-tint); }
+.paste-panel textarea { display: block; width: 100%; min-height: 7rem; resize: vertical; border: 0; outline: none; padding: 0.95rem 1rem; font: 0.84rem/1.6 var(--mono); background: transparent; color: var(--ink); }
+.paste-panel textarea::placeholder { color: #a3a9b2; }
+.paste-note { margin: 0; padding: 0 1rem 0.8rem; font-size: 0.85rem; color: var(--muted); }
+.paste-bar { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.55rem 0.5rem 1rem; border-top: 1px solid var(--hairline); background: #fbfbfc; }
+.paste-hint { flex: 1; min-width: 0; font-size: 0.82rem; color: var(--muted); }
+kbd { display: inline-block; min-width: 1.35rem; padding: 0.05rem 0.35rem; border: 1px solid var(--hairline-strong); border-bottom-width: 2px; border-radius: 5px; background: var(--surface); font: 500 0.75rem/1.4 var(--sans); color: var(--ink-2); text-align: center; }
+.btn-sm { height: 2.2rem; padding: 0 0.95rem; font-size: 0.88rem; border-radius: 8px; }
+.btn-quiet { background: transparent; color: var(--ink-2); }
+.btn-quiet:hover { background: var(--sunken); color: var(--ink); }
+
+/* ---------- Addresses: easy to compare, one click to copy ---------- */
+.addr-cell { display: flex; align-items: flex-start; gap: 0.5rem; }
+.addr { flex: 1; min-width: 0; color: var(--muted); word-break: normal; }
+.addr .g { display: inline-block; margin-right: 0.55em; }
+.addr .g:last-child { margin-right: 0; }
+.addr strong { color: var(--ink); font-weight: 600; }
+.copy { flex: none; appearance: none; width: 1.9rem; height: 1.9rem; margin: -0.3rem -0.3rem 0 0; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; }
+.copy svg { width: 1rem; height: 1rem; }
+.copy:hover { background: var(--sunken); color: var(--ink); }
+
+/* ---------- Password strength label ---------- */
+.meter-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.6rem; }
+.meter-row .meter { flex: 1; margin-top: 0; }
+.meter-label { flex: none; min-width: 4.5rem; text-align: right; font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+.meter-label[data-level="1"] { color: var(--danger); }
+.meter-label[data-level="2"] { color: #a86c08; }
+.meter-label[data-level="3"], .meter-label[data-level="4"] { color: var(--vault); }
+
+/* ---------- Busy buttons ---------- */
+.spin { width: 1rem; height: 1rem; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: #fff; animation: spin 0.75s linear infinite; will-change: transform; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn.is-busy:disabled { opacity: 1; cursor: progress; }
+
+/* ---------- Toast ---------- */
+.toast { position: fixed; left: 50%; bottom: max(1.5rem, env(safe-area-inset-bottom)); z-index: 60; display: flex; align-items: center; gap: 0.55rem; padding: 0.7rem 1.05rem 0.7rem 0.85rem; border-radius: 999px; background: var(--ink); color: #fff; font-size: 0.9rem; font-weight: 500; box-shadow: 0 12px 32px -8px rgba(16,19,24,.45); transform: translate(-50%, 0.75rem); opacity: 0; transition: opacity 0.25s var(--ease), transform 0.35s var(--ease); pointer-events: none; }
+.toast svg { width: 1rem; height: 1rem; color: #7fe0bd; }
+.toast.is-in { opacity: 1; transform: translate(-50%, 0); }
+
+/* Whole-card drop target while a file is dragged over the page */
+body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-tint); }
+
+@media (max-width: 40rem) {
+  .intake-choices { grid-template-columns: 1fr; }
+  .paste-panel .paste-hint { display: none; }
+}
+.site-foot { margin: 2.5rem 0 3.5rem; font-size: 0.83rem; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+
+
+@media (max-width: 40rem) {
+  .hero { padding: 2.75rem 0 1.75rem; }
+  .card-head, .panel { padding-left: 1.1rem; padding-right: 1.1rem; }
+  .divider { margin-left: -1.1rem; margin-right: -1.1rem; }
+  .card-foot { padding-left: 1.1rem; padding-right: 1.1rem; }
+  .trust { grid-template-columns: 1fr; gap: 1.5rem; }
+  .kv-row { grid-template-columns: 1fr; gap: 0.15rem; }
+  .status-pill .label-long { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lm-ring { display: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; transition-delay: 0s !important; animation: none !important; }
+  .progress > i { width: 100%; opacity: 0.35; }
+}
+
+/* ---------- Paper sheet: shared by the on-screen preview and the printout ---------- */
+#print-sheet { font: 10.5pt/1.45 var(--sans); color: #000; }
+.ps-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 5mm; border-bottom: 0.8pt solid #000; }
+.ps-brand { display: flex; align-items: center; gap: 3mm; color: #000; --brand: #5956fd; }
+.ps-brand .mark { width: 10mm; height: 10mm; }
+.ps-brand .wordmark { font-size: 15pt; }
+.ps-kind { text-align: right; font-size: 9pt; color: #333; }
+.ps-kind strong { display: block; font-size: 15pt; color: #000; letter-spacing: -0.03em; font-weight: 600; }
+.ps-alarm { margin-top: 5mm; padding: 3.5mm 4mm; border: 1.6pt solid #000; border-radius: 2.5mm; font-weight: 600; font-size: 11pt; }
+.ps-panel { margin-top: 6mm; display: grid; grid-template-columns: 38mm 1fr; gap: 7mm; padding: 5mm; border: 0.6pt solid #9a9a9a; border-radius: 3mm; break-inside: avoid; }
+.ps-panel.is-key { grid-template-columns: 50mm 1fr; }
+.ps-qr svg { display: block; width: 100%; height: auto; }
+.ps-label { font-size: 8pt; font-weight: 600; text-transform: none; color: #333; letter-spacing: 0.01em; }
+.ps-panel h2 { margin: 0.5mm 0 0; font-size: 12.5pt; font-weight: 600; letter-spacing: -0.02em; }
+.ps-note { margin: 1mm 0 3mm; font-size: 9pt; color: #333; }
+.ps-mono { margin: 0; font: 9.6pt/1.65 var(--mono); letter-spacing: 0.01em; word-break: break-word; font-feature-settings: "zero"; }
+.ps-check { color: #555; }
+.ps-steps { margin-top: 6mm; display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; break-inside: avoid; }
+.ps-steps h3 { margin: 0 0 1.5mm; font-size: 10.5pt; font-weight: 600; }
+.ps-steps ol { margin: 0; padding-left: 4.5mm; font-size: 9.5pt; }
+.ps-steps li + li { margin-top: 0.8mm; }
+.ps-warn { margin: 0; font-size: 9.5pt; }
+.ps-foot { margin-top: 9mm; padding-top: 3mm; border-top: 0.6pt solid #9a9a9a; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6mm; font-size: 8.5pt; color: #333; }
+.ps-line { display: block; margin-top: 5mm; border-bottom: 0.6pt solid #000; }
+
+/* ---------- Paper preview (on screen) ---------- */
+.paper-preview { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; background: rgba(16, 19, 24, 0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.pp-bar { flex: none; display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1.25rem; background: var(--surface); border-bottom: 1px solid var(--hairline); box-shadow: 0 2px 12px rgba(16,19,24,.08); }
+.pp-title { margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+.pp-hint { margin: 0; font-size: 0.85rem; color: var(--muted); }
+.pp-hint[data-tone="warn"] { color: var(--caution); font-weight: 500; }
+.pp-text { flex: 1; min-width: 0; }
+.pp-actions { display: flex; gap: 0.5rem; flex: none; }
+.pp-scroll { flex: 1; overflow: auto; padding: 2rem 1rem 3rem; }
+.pp-paper { width: 8.5in; max-width: none; min-height: 11in; margin: 0 auto; background: #fff; padding: 13mm 14mm; border-radius: 4px; box-shadow: 0 20px 60px -10px rgba(0,0,0,.45); }
+body.is-previewing { overflow: hidden; }
+@media (max-width: 40rem) {
+  .pp-bar { flex-wrap: wrap; }
+  .pp-actions { width: 100%; }
+  .pp-actions .btn { flex: 1; }
+}
+
+/* ---------- Print: only the paper sheet, when one is open ---------- */
+@page { size: letter; margin: 13mm 14mm; }
+@media print {
+  body { background: #fff; color: #000; font-feature-settings: normal; }
+  body.is-previewing .app { display: none !important; }
+  body.is-previewing { overflow: visible; }
+  .paper-preview { position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; display: block; }
+  .pp-bar { display: none !important; }
+  .pp-scroll { overflow: visible; padding: 0; }
+  .pp-paper { width: auto; min-height: 0; padding: 0; box-shadow: none; border-radius: 0; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar" id="topbar">
+    <div class="wrap">
+      <div class="brand" aria-label="BRC Vault">
+        <svg class="mark" viewBox="/*__MARK_VIEW__*/" aria-hidden="true">/*__MARK__*/</svg>
+        <span class="wordmark" aria-hidden="true"><span class="wm-light">BRC</span><span class="wm-bold">Vault</span></span>
+      </div>
+      <span class="status-pill" id="connection" role="status"><span class="dot" aria-hidden="true"></span><span class="connection-text"></span></span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="frame-warning" id="frame-warning" role="status" hidden>You're viewing BRC Vault inside another app's preview, which can block printing and downloads. Save brc-vault.html and open it directly in Chrome, Safari, Edge, or Firefox.</p>
+    <section class="hero">
+      <h1>Your BrowserCoin, safely backed up.</h1>
+      <p>Lock your wallet with a password, print a paper copy, and restore it whenever you need to. <strong>Everything happens on this page. Nothing is uploaded.</strong></p>
+    </section>
+
+    <section class="card" aria-label="BRC Vault">
+      <div class="card-head">
+        <div class="segmented" role="tablist" aria-label="What do you want to do?" id="segmented" data-active="backup">
+          <span class="thumb" aria-hidden="true"></span>
+          <button role="tab" id="tab-backup" data-tab="backup" aria-controls="panel-backup">Back up</button>
+          <button role="tab" id="tab-restore" data-tab="restore" aria-controls="panel-restore">Restore</button>
+        </div>
+      </div>
+
+      <!-- ===================== Back up ===================== -->
+      <div class="panel" role="tabpanel" id="panel-backup" aria-labelledby="tab-backup">
+        <p class="panel-lede">Start with your wallet file. In BrowserCoin, open <strong>Settings</strong> and choose <strong>Export key</strong>.</p>
+        <ol class="steps">
+          <li class="step" id="b-step1" data-state="active">
+            <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Load your wallet</h2>
+              <p class="step-summary">Wallet <span class="mono" id="b-sum-address"></span> <button type="button" class="link-btn" data-restart="b">Back up a different wallet</button></p>
+              <div class="step-content">
+<div class="intake" id="b-intake" data-mode="file">
+                  <div class="intake-choices">
+                    <label class="drop" id="b-drop">
+                      <input type="file" id="b-file" accept=".json,application/json,text/plain" aria-label="Choose your wallet file">
+                      <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2.5H5.5a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V7z"/><path d="M11.5 2.5V7H16"/><path d="M10 14.5v-5M7.75 11.75 10 9.5l2.25 2.25"/></svg></span>
+                      <span class="drop-text"><strong>Choose wallet file</strong>or drag it here</span>
+                    </label>
+                    <button type="button" class="choice" id="b-paste-open">
+                      <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="10" height="14" rx="1.8"/><path d="M7.75 3.5V3a1 1 0 0 1 1-1h2.5a1 1 0 0 1 1 1v.5"/><path d="M7.75 8.5h4.5M7.75 11.5h4.5M7.75 14.5h2.5"/></svg></span>
+                      <span class="drop-text"><strong>Paste instead</strong>file text or a key</span>
+                    </button>
+                  </div>
+                  <div class="loaded-chip" id="b-chip" hidden>
+                    <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2.5H5.5a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V7z"/><path d="M11.5 2.5V7H16"/><path d="M7 12.5l2 2 4-4.5"/></svg></span>
+                    <span class="chip-name" id="b-chip-name"></span>
+                    <button type="button" class="btn btn-quiet btn-sm" data-intake-change="b">Change</button>
+                  </div>
+                  <div class="paste-panel" id="b-paste-panel" hidden>
+                    <textarea id="b-paste" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the wallet file's contents, or a private key" aria-label="Paste wallet file contents or private key"></textarea>
+                    <div class="paste-bar">
+                      <span class="paste-hint"><kbd class="kbd-mod">Ctrl</kbd> <kbd>V</kbd> to paste. It's read right away.</span>
+                      <button type="button" class="btn btn-quiet btn-sm" data-intake-back="b">Use a file</button>
+                      <button type="button" class="btn btn-primary btn-sm" id="b-paste-go">Continue</button>
+                    </div>
+                  </div>
+                </div>
+                <p class="msg" id="b-load-msg" role="status" hidden></p>
+                <dl class="kv" id="b-loaded" hidden>
+                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                  <div class="kv-row"><dt>Check</dt><dd class="ok-text">The key matches this address</dd></div>
+                </dl>
+                <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span>I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
+              </div>
+            </div>
+          </li>
+
+          <li class="step" id="b-step2" data-state="waiting">
+            <div class="node" aria-hidden="true"><span>2</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Choose a password</h2>
+              <p class="step-sub">You'll need it to restore this backup. It can't be reset or recovered.</p>
+              <p class="step-summary">Password set and tested</p>
+              <div class="step-content">
+                <label class="field"><span>Password</span>
+                  <span class="input-wrap"><input type="password" id="b-password" autocomplete="new-password" spellcheck="false"><button type="button" class="reveal" data-reveal="b-password b-confirm" aria-label="Show password">Show</button></span></label>
+                <div class="meter-row"><div class="meter" id="b-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span class="meter-label" id="b-meter-label" aria-live="polite"></span></div>
+                <label class="field"><span>Confirm password</span>
+                  <span class="input-wrap"><input type="password" id="b-confirm" autocomplete="new-password" spellcheck="false"></span></label>
+                <p class="msg" id="b-pw-hint" role="status" hidden></p>
+                <label class="check"><input type="checkbox" id="b-understand"><span>I understand that if I forget this password, the backup can't be opened and the coins are lost.</span></label>
+              </div>
+            </div>
+          </li>
+
+          <li class="step" id="b-step3" data-state="waiting">
+            <div class="node" aria-hidden="true"><span>3</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Lock and save</h2>
+              <div class="step-content">
+                <div class="actions"><button type="button" class="btn btn-primary btn-block" id="b-make" disabled>Lock wallet</button></div>
+                <div class="progress" id="b-progress" hidden><i></i></div>
+                <p class="msg" id="b-make-msg" role="status" hidden></p>
+
+                <div class="success" id="b-done" hidden>
+                  <div class="logo-moment" data-variant="lock"><div class="lm-mark"><span class="lm-ring" aria-hidden="true"></span><svg viewBox="/*__MARK_VIEW__*/" aria-hidden="true">/*__MARK_MOMENT__*/</svg></div><span class="lm-word" aria-hidden="true"><span class="wm-light"><i style="--i:0">B</i><i style="--i:1">R</i><i style="--i:2">C</i></span><span class="wm-bold"><i style="--i:3">V</i><i style="--i:4">A</i><i style="--i:5">U</i><i style="--i:6">L</i><i style="--i:7">T</i></span></span></div>
+                  <h3>Wallet locked</h3>
+                  <p>Your backup was test-opened with your password before saving. Keep it one or both ways.</p>
+                  <dl class="kv">
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
+                  </dl>
+                  <div class="actions">
+                    <button type="button" class="btn btn-primary" id="b-download"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download backup file</button>
+                    <button type="button" class="btn btn-secondary" id="b-print"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print paper backup</button>
+                  </div>
+                  <p class="msg" id="b-saved-msg" role="status" hidden></p>
+                  <ul class="tips">
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Keep at least two copies in different places.</li>
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Store the password separately, for example in a password manager.</li>
+                    <li class="caution"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 17.5 16.5h-15z"/><path d="M10 8.5v3.5M10 14.25v.25"/></svg><span id="b-tip-delete">Your unlocked wallet file is still in your Downloads folder. Delete it once your backup is safe.</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="divider"></div>
+        <details class="disclosure risky">
+          <summary>Print an unprotected paper wallet instead</summary>
+          <p>This prints the private key itself, with no password. <strong>Anyone who sees or photographs the paper can take the coins.</strong> Only use it if the paper will be locked away, for example in a safe.</p>
+          <label class="check check-danger"><input type="checkbox" id="b-plain-ok"><span>I understand. I'll print to a printer connected directly to this computer, not "Save as PDF" or a network or cloud printer, which can keep a copy of the key.</span></label>
+          <div class="actions"><button type="button" class="btn btn-danger-quiet" id="b-print-plain" disabled>Print unprotected paper wallet</button></div>
+        </details>
+      </div>
+
+      <!-- ===================== Restore ===================== -->
+      <div class="panel" role="tabpanel" id="panel-restore" aria-labelledby="tab-restore" hidden>
+        <p class="panel-lede">Turn a BRC Vault backup back into a wallet file BrowserCoin can import.</p>
+        <ol class="steps">
+          <li class="step" id="r-step1" data-state="active">
+            <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Load your backup</h2>
+              <p class="step-summary">Backup read <button type="button" class="link-btn" data-restart="r">Load a different backup</button></p>
+              <div class="step-content">
+<div class="intake" id="r-intake" data-mode="file">
+                  <div class="intake-choices">
+                    <label class="drop" id="r-drop">
+                      <input type="file" id="r-file" accept=".json,application/json,text/plain" aria-label="Choose your backup file">
+                      <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2.5H5.5a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V7z"/><path d="M11.5 2.5V7H16"/><path d="M10 14.5v-5M7.75 11.75 10 9.5l2.25 2.25"/></svg></span>
+                      <span class="drop-text"><strong>Choose backup file</strong>or drag it here</span>
+                    </label>
+                    <button type="button" class="choice" id="r-scan-open">
+                      <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M13 3h2a2 2 0 0 1 2 2v2M17 13v2a2 2 0 0 1-2 2h-2M7 17H5a2 2 0 0 1-2-2v-2"/><path d="M7 7h2.5v2.5H7zM10.5 10.5H13V13h-2.5zM10.5 7H13M7 13h2.5"/></svg></span>
+                      <span class="drop-text"><strong>Scan paper backup</strong>with your camera</span>
+                    </button>
+                    <button type="button" class="choice" id="r-paste-open">
+                      <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="10" height="14" rx="1.8"/><path d="M7.75 3.5V3a1 1 0 0 1 1-1h2.5a1 1 0 0 1 1 1v.5"/><path d="M7.75 8.5h4.5M7.75 11.5h4.5M7.75 14.5h2.5"/></svg></span>
+                      <span class="drop-text"><strong>Type a paper code</strong>or paste one</span>
+                    </button>
+                  </div>
+                  <div class="loaded-chip" id="r-chip" hidden>
+                    <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2.5H5.5a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V7z"/><path d="M11.5 2.5V7H16"/><path d="M7 12.5l2 2 4-4.5"/></svg></span>
+                    <span class="chip-name" id="r-chip-name"></span>
+                    <button type="button" class="btn btn-quiet btn-sm" data-intake-change="r">Change</button>
+                  </div>
+                  <div class="scan-panel" id="r-scan-panel" hidden>
+                    <div class="scan-view" data-state="starting"><video id="r-scan-video" playsinline muted aria-label="Camera view"></video><span class="scan-frame" aria-hidden="true"></span>
+                      <div class="scan-overlay" id="r-scan-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.5"/></svg><p id="r-scan-overlay-text">Starting the camera…</p><div class="scan-overlay-actions"><button type="button" class="btn btn-secondary btn-sm" id="r-scan-to-type">Type the code instead</button></div></div>
+                    </div>
+                    <div class="paste-bar">
+                      <span class="paste-hint msg" id="r-scan-hint" role="status"></span>
+                      <button type="button" class="btn btn-quiet btn-sm" data-scan-cancel>Cancel</button>
+                    </div>
+                  </div>
+                  <div class="paste-panel" id="r-paste-panel" hidden>
+                    <textarea id="r-paste" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="BRCVAULT1: [FADA]
+…" aria-label="Type or paste a paper backup code"></textarea>
+                    <p class="paste-note">Type every line of the locked backup code, including the check in brackets. The wallet address on the paper is not a key.</p>
+                    <div class="paste-bar">
+                      <span class="paste-hint"><kbd class="kbd-mod">Ctrl</kbd> <kbd>V</kbd> to paste. It's read right away.</span>
+                      <button type="button" class="btn btn-quiet btn-sm" data-intake-back="r">Use a file</button>
+                      <button type="button" class="btn btn-primary btn-sm" id="r-paste-go">Continue</button>
+                    </div>
+                  </div>
+                </div>
+                <p class="msg" id="r-load-msg" role="status" hidden></p>
+                <dl class="kv" id="r-loaded" hidden>
+                  <div class="kv-row"><dt id="r-address-label">In backup</dt><dd class="addr-cell"><span class="mono addr" id="r-address"></span><button type="button" class="copy" data-copy="r-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                  <div class="kv-row" id="r-address-note"><dt>Check</dt><dd>Confirmed after you unlock</dd></div>
+                </dl>
+                <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a paper copy of this backup</button></div>
+              </div>
+            </div>
+          </li>
+
+          <li class="step" id="r-step2" data-state="waiting">
+            <div class="node" aria-hidden="true"><span>2</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Unlock with your password</h2>
+              <p class="step-summary" id="r-sum-unlock">Unlocked</p>
+              <div class="step-content">
+                <label class="field"><span>Password</span>
+                  <span class="input-wrap"><input type="password" id="r-password" autocomplete="current-password" spellcheck="false"><button type="button" class="reveal" data-reveal="r-password" aria-label="Show password">Show</button></span></label>
+                <div class="actions"><button type="button" class="btn btn-primary btn-block" id="r-unlock">Unlock backup</button></div>
+                <div class="progress" id="r-progress" hidden><i></i></div>
+                <p class="msg" id="r-unlock-msg" role="status" hidden></p>
+              </div>
+            </div>
+          </li>
+
+          <li class="step" id="r-step3" data-state="waiting">
+            <div class="node" aria-hidden="true"><span>3</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Import into BrowserCoin</h2>
+              <div class="step-content">
+                <div id="r-done" hidden>
+                  <div class="success success-compact" id="r-success">
+                    <div class="logo-moment" data-variant="unlock"><div class="lm-mark"><span class="lm-ring" aria-hidden="true"></span><svg viewBox="/*__MARK_VIEW__*/" aria-hidden="true">/*__MARK_MOMENT__*/</svg></div><span class="lm-word" aria-hidden="true"><span class="wm-light"><i style="--i:0">B</i><i style="--i:1">R</i><i style="--i:2">C</i></span><span class="wm-bold"><i style="--i:3">V</i><i style="--i:4">A</i><i style="--i:5">U</i><i style="--i:6">L</i><i style="--i:7">T</i></span></span></div>
+                    <h3>Backup unlocked</h3>
+                  </div>
+                  <dl class="kv">
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Check</dt><dd class="ok-text">The key matches this address</dd></div>
+                  </dl>
+                  <p class="msg" id="r-done-msg" role="status" hidden></p>
+                  <label class="check check-plain"><input type="checkbox" id="r-ok-address"><span>This is the wallet address I expected.</span></label>
+                  <label class="check"><input type="checkbox" id="r-ok-replace"><span>I understand that <strong>importing</strong> this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.</span></label>
+                  <div class="actions"><button type="button" class="btn btn-primary btn-block" id="r-download" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download wallet file</button></div>
+                  <ul class="tips">
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Downloading only saves a file. Nothing changes in BrowserCoin until you open Settings, choose Import key, and pick that file.</li>
+                    <li class="caution"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 17.5 16.5h-15z"/><path d="M10 8.5v3.5M10 14.25v.25"/></svg>The downloaded file isn't password-protected. Delete it after importing.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="card-foot">
+        <span>Your key never leaves this tab.</span>
+        <div class="foot-actions">
+          <button type="button" class="btn btn-ghost sound-toggle" id="sound-toggle" aria-pressed="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5h3l4-3.5v12l-4-3.5h-3z"/><path class="wave" d="M13.5 7.5a3.5 3.5 0 0 1 0 5M15.75 5.5a6.5 6.5 0 0 1 0 9"/><path class="mute" d="M13.5 8l4 4M17.5 8l-4 4"/></svg><span id="sound-label">Sound on</span></button>
+          <button type="button" class="btn btn-ghost" id="clear-all">Clear page</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust" aria-label="Why it's safe">
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8.5a14 14 0 0 1 19 0M5.5 12a9.5 9.5 0 0 1 13 0M8.5 15.3a5 5 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1"/><path d="M3 3l18 18"/></svg>
+        <h3>Works offline</h3>
+        <p>Save this page and open it with Wi‑Fi off. It runs the same either way.</p>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8 4.5 5.8v5.4c0 4.6 3.1 8.4 7.5 10 4.4-1.6 7.5-5.4 7.5-10V5.8z"/><path d="M8.8 12.2l2.2 2.2 4.3-4.6"/></svg>
+        <h3>Never sends your key</h3>
+        <p>There's no server, and the page is locked down to block network requests. For the strongest guarantee, use it offline.</p>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5M13.5 4.5l-3 15"/></svg>
+        <h3>Open source</h3>
+        <p>Every line is readable, MIT licensed, and built on audited cryptography libraries.</p>
+      </div>
+    </section>
+
+    <details class="tech">
+      <summary>Technical details</summary>
+      <div class="tech-body">
+        <p>Your password is stretched with scrypt (N = 2<sup>17</sup>, r = 8, p = 1, which needs 128 MB of memory per guess), then the 32-byte private key is encrypted with AES-256-GCM. Every backup is decrypted once as a self-check before you can save it, and every restored key is checked against its address. Backups are fully validated when loaded, and only settings from N = 2<sup>14</sup> to 2<sup>18</sup> with r = 8, p = 1 are accepted, so a crafted backup can't freeze the page.</p>
+        <p>The page's security policy allows only its own script, identified by its SHA-256 hash, and blocks network requests. Peer-to-peer connections are disabled at startup.</p>
+        <h4>Backup file, version 1</h4>
+<pre>{
+  "type": "brc-vault-backup",
+  "version": 1,
+  "address": "&lt;64 hex: the wallet's public key&gt;",
+  "kdf": { "name": "scrypt", "logN": 17, "r": 8, "p": 1, "dkLen": 32,
+           "salt": "&lt;32 hex: 16 random bytes&gt;" },
+  "cipher": { "name": "aes-256-gcm", "iv": "&lt;24 hex: 12 random bytes&gt;" },
+  "ciphertext": "&lt;96 hex: encrypted key + 16-byte tag&gt;",
+  "created": "YYYY-MM-DD",
+  "note": "…"
+}</pre>
+        <p>Key = scrypt(password normalized to NFKC, salt, N = 2^logN, r, p, 32). Ciphertext = AES-256-GCM(key, iv, private key) with associated data <code>brc-vault-backup|1|address|scrypt|logN|r|p|dkLen|salt|iv</code>, so changing any field makes decryption fail.</p>
+        <p>The paper code is the same backup on one line, in upper case: <code>BRCVAULT1:ADDRESS:LOGN:R:P:SALT:IV:CIPHERTEXT</code>, and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the <code>BRCVAULT1:</code> prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as <code>BRCKEY1:KEY</code> so it can't be mistaken for an address.</p>
+        <h4>Credits</h4>
+        <p>Built with @noble/ed25519 and @noble/hashes by Paul Miller (MIT), qrcode-generator by Kazuhiko Arase (MIT), jsQR by Cosmo Wolfe (Apache 2.0), and the Geist typefaces by Vercel (SIL Open Font License). BRC Vault is a community project and isn't made by the BrowserCoin developers.</p>
+      </div>
+    </details>
+
+    <footer class="site-foot">
+      <span>BRC Vault, version 1, build /*__BUILD__*/</span>
+      <span>Free and open source under the MIT License</span>
+    </footer>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg><span id="toast-text"></span></div>
+
+<div class="paper-preview" id="paper-preview" role="dialog" aria-modal="true" aria-labelledby="pp-title" hidden>
+  <div class="pp-bar">
+    <div class="pp-text">
+      <h2 class="pp-title" id="pp-title">Paper backup preview</h2>
+      <p class="pp-hint" id="pp-hint" role="status">Check it looks right, then print.</p>
+    </div>
+    <div class="pp-actions">
+      <button type="button" class="btn btn-secondary" id="pp-close">Close</button>
+      <button type="button" class="btn btn-primary" id="pp-print"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print</button>
+    </div>
+  </div>
+  <div class="pp-scroll"><div class="pp-paper"><div id="print-sheet"></div></div></div>
+</div>
+
+<script>
+/*__APP__*/
+</script>
+</body>
+</html>
