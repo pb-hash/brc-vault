@@ -6,6 +6,11 @@ Offline, password-protected backups and paper wallets for BrowserCoin (BRC).
 BRC Vault is a single web page, dist/brc-vault.html. Open it in any modern
 browser, with the internet off if you like. It never uploads anything.
 
+Use it online:  https://pb-hash.github.io/brc-vault/
+Or download it: https://github.com/pb-hash/brc-vault/releases (brc-vault.html),
+                save it, and open the saved file with Wi-Fi off.
+Tested in Chrome on desktop and Safari on iPhone.
+
 What it does
 ------------
 Back up:  load the wallet file from BrowserCoin (browsercoin.org/app, then
