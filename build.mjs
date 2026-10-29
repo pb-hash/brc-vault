@@ -81,7 +81,7 @@ const markView = readFileSync('brand/brc-vault-mark.svg', 'utf8').match(/viewBox
 const favicon = 'data:image/svg+xml,' + encodeURIComponent(readFileSync('brand/brc-vault-mark-white.svg', 'utf8').trim());
 
 let html = readFileSync('src/index.html', 'utf8')
-  .replace('/*__MARK__*/', () => markInner)
+  .replaceAll('/*__MARK__*/', () => markInner)
   .replaceAll('/*__MARK_MOMENT__*/', () => markMoment)
   .replaceAll('/*__MARK_VIEW__*/', () => markView)
   .replace('/*__FAVICON__*/', () => favicon)
