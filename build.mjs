@@ -65,13 +65,16 @@ let html = readFileSync('src/index.html', 'utf8')
   .replaceAll('/*__MARK_MOMENT__*/', () => markMoment)
   .replaceAll('/*__MARK_VIEW__*/', () => markView)
   .replace('/*__FAVICON__*/', () => favicon)
-  .replace('/*__BUILD__*/', () => new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC')
   .replace('/*__FONTS__*/', () => fonts)
   .replace('/*__APP__*/', () => header + js);
 // Lock the page down to exactly this one script: no other script can run, not even injected markup.
 const scriptBody = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const scriptHash = createHash('sha256').update(scriptBody, 'utf8').digest('base64');
 html = html.replace("'__SCRIPT_HASH__'", `'sha256-${scriptHash}'`);
+// The build label comes from the code itself, not the clock, so anyone who
+// rebuilds from the same source gets a byte-for-byte identical file and hash.
+const buildId = createHash('sha256').update(scriptBody, 'utf8').digest('hex').slice(0, 8);
+html = html.replace('/*__BUILD__*/', () => buildId);
 if ((html.match(/<script/g) || []).length !== 1) throw new Error('Expected exactly one script tag');
 
 mkdirSync('dist', { recursive: true });

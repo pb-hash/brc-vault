@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- No network access at all: this page cannot load or send anything. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-wNzWNC18vUxG5khQSuPJQ3lmzYSt2RkiYwA1rt6QnTQ='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-jRwymfpTJ5WwlYeIz7LoMDP0rgh0hIiKW5LCQzYa9cY='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="x-dns-prefetch-control" content="off">
 <meta name="color-scheme" content="light">
@@ -422,7 +422,9 @@ body.is-previewing { overflow: hidden; }
 }
 
 /* ---------- Print: only the paper sheet, when one is open ---------- */
-@page { size: letter; margin: 13mm 14mm; }
+/* No page margin, so browsers have no room to add their own header and footer
+   (page title, date, and the file path, which can include your user name). */
+@page { size: letter; margin: 0; }
 @media print {
   body { background: #fff; color: #000; font-feature-settings: normal; }
   body.is-previewing .app { display: none !important; }
@@ -430,7 +432,7 @@ body.is-previewing { overflow: hidden; }
   .paper-preview { position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; display: block; }
   .pp-bar { display: none !important; }
   .pp-scroll { overflow: visible; padding: 0; }
-  .pp-paper { width: auto; min-height: 0; padding: 0; box-shadow: none; border-radius: 0; }
+  .pp-paper { width: auto; min-height: 0; padding: 13mm 14mm; box-shadow: none; border-radius: 0; }
 }
 </style>
 </head>
@@ -624,7 +626,6 @@ body.is-previewing { overflow: hidden; }
                   <div class="kv-row"><dt id="r-address-label">In backup</dt><dd class="addr-cell"><span class="mono addr" id="r-address"></span><button type="button" class="copy" data-copy="r-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row" id="r-address-note"><dt>Check</dt><dd>Confirmed after you unlock</dd></div>
                 </dl>
-                <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a paper copy of this backup</button></div>
               </div>
             </div>
           </li>
@@ -652,16 +653,17 @@ body.is-previewing { overflow: hidden; }
                 <div id="r-done" hidden>
                   <div class="success success-compact" id="r-success">
                     <div class="logo-moment" data-variant="unlock"><div class="lm-mark"><span class="lm-ring" aria-hidden="true"></span><svg viewBox="307.6 90.0 1316.0 1316.0" aria-hidden="true"><rect class="lm-box" x="361.5" y="143.9" width="1208.2" height="1208.2" rx="198.7" fill="none" stroke="currentColor" stroke-width="107.8"/><path class="lm-v" fill="currentColor" d="M544.8 415.0L868.2 1150.0L1063.0 1150.0L1386.4 415.0L1121.0 415.0A185.7 185.7 0 0 1 1134.1 594.6L965.6 958.7L797.1 594.6A185.7 185.7 0 0 1 810.2 415.0Z"/><circle class="lm-dot" cx="965.6" cy="516.6" r="114.0" fill="var(--brand)"/></svg></div><span class="lm-word" aria-hidden="true"><span class="wm-light"><i style="--i:0">B</i><i style="--i:1">R</i><i style="--i:2">C</i></span><span class="wm-bold"><i style="--i:3">V</i><i style="--i:4">A</i><i style="--i:5">U</i><i style="--i:6">L</i><i style="--i:7">T</i></span></span></div>
-                    <h3>Backup unlocked</h3>
+                    <h3 id="r-done-title">Backup unlocked</h3>
                   </div>
                   <dl class="kv">
                     <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
-                    <div class="kv-row"><dt>Check</dt><dd class="ok-text">The key matches this address</dd></div>
+                    <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="r-done-check">The key matches this address</dd></div>
                   </dl>
                   <p class="msg" id="r-done-msg" role="status" hidden></p>
                   <label class="check check-plain"><input type="checkbox" id="r-ok-address"><span>This is the wallet address I expected.</span></label>
                   <label class="check"><input type="checkbox" id="r-ok-replace"><span>I understand that <strong>importing</strong> this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.</span></label>
                   <div class="actions"><button type="button" class="btn btn-primary btn-block" id="r-download" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download wallet file</button></div>
+                  <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a new paper copy of this backup</button></div>
                   <ul class="tips">
                     <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Downloading only saves a file. Nothing changes in BrowserCoin until you open Settings, choose Import key, and pick that file.</li>
                     <li class="caution"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 17.5 16.5h-15z"/><path d="M10 8.5v3.5M10 14.25v.25"/></svg>The downloaded file isn't password-protected. Delete it after importing.</li>
@@ -725,7 +727,7 @@ body.is-previewing { overflow: hidden; }
     </details>
 
     <footer class="site-foot">
-      <span>BRC Vault, version 1, build 2026-10-29 15:27 UTC</span>
+      <span>BRC Vault, version 1, build 8d1c3299</span>
       <span>Free and open source under the MIT License</span>
     </footer>
   </main>
@@ -733,7 +735,7 @@ body.is-previewing { overflow: hidden; }
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg><span id="toast-text"></span></div>
 
-<div class="paper-preview" id="paper-preview" role="dialog" aria-modal="true" aria-labelledby="pp-title" hidden>
+<div class="paper-preview" id="paper-preview" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="pp-title" hidden>
   <div class="pp-bar">
     <div class="pp-text">
       <h2 class="pp-title" id="pp-title">Paper backup preview</h2>
@@ -4707,28 +4709,44 @@ body.is-previewing { overflow: hidden; }
   function stripPaperChecks(text) {
     const t = String(text);
     if (!t.includes("[")) return t;
-    const re = /([^[\]]*)\[\s*([0-9a-fA-F]{4})\s*\]/g;
-    let m;
+    const CHECK = /\[\s*([0-9a-fA-F]{4})\s*\]/y;
+    const missing = () => new Error("Part of the code is missing its check in brackets. Copy every line, including the [XXXX] at the end.");
+    let pos = 0;
     let line = 0;
     let joined = "";
-    let consumed = 0;
-    while ((m = re.exec(t)) !== null) {
+    for (let open = t.indexOf("[", pos); open !== -1; open = t.indexOf("[", pos)) {
+      const content = t.slice(pos, open);
+      CHECK.lastIndex = open;
+      const m = CHECK.exec(t);
+      if (!m || content.includes("]")) throw missing();
       line++;
-      if (lineCheck(m[1]) !== m[2].toUpperCase()) {
-        throw new Error(`Line ${line} of the backup code has a typo: it doesn't match its check [${m[2].toUpperCase()}]. Compare that line with the paper, watching for 0/D and 8/B.`);
+      if (lineCheck(content) !== m[1].toUpperCase()) {
+        throw new Error(`Line ${line} of the code has a typo: it doesn't match its check [${m[1].toUpperCase()}]. Compare that line with the paper, watching for 0/D and 8/B.`);
       }
-      joined += m[1];
-      consumed = re.lastIndex;
+      joined += content;
+      pos = CHECK.lastIndex;
     }
-    if (line === 0 || t.slice(consumed).trim() !== "") {
-      throw new Error("Part of the backup code is missing its check in brackets. Copy every line, including the [XXXX] at the end.");
-    }
+    if (line === 0 || t.slice(pos).trim() !== "") throw missing();
     return joined;
   }
+  function keyToCode(wallet) {
+    return `${KEY_PREFIX}:${bytesToHex2(wallet.privateKey)}:${wallet.address.slice(0, 8)}`.toUpperCase();
+  }
+  function keyCodeLines(code) {
+    const [prefix, key, check] = code.split(":");
+    return [
+      `${prefix}:`,
+      chunkForPaper(key.slice(0, 32)),
+      `${chunkForPaper(key.slice(32))}:`,
+      chunkForPaper(check)
+    ].map((text) => ({ text, check: lineCheck(text) }));
+  }
+  var MAX_INPUT_LENGTH = 64 * 1024;
   function chunkForPaper(code, size = 4) {
     return code.match(new RegExp(`.{1,${size}}`, "g")).join(" ");
   }
   function identifyInput(text) {
+    if (String(text).length > MAX_INPUT_LENGTH) throw new Error("This is far too long to be a wallet, a backup or a key.");
     const t = String(text).trim().replace(/^(BRCVAULT1|BRCKEY1)[ \t]+(?=[0-9A-Fa-f])/i, (m, p) => `${p.toUpperCase()}:`);
     if (!t) throw new Error("Nothing to read yet.");
     const squashed = t.toUpperCase().replace(/\s+/g, "");
@@ -4736,9 +4754,23 @@ body.is-previewing { overflow: hidden; }
       return { kind: "vault-backup", backup: compactToBackup(stripPaperChecks(t)) };
     }
     if (squashed.startsWith(KEY_PREFIX + ":")) {
-      const hex2 = squashed.slice(KEY_PREFIX.length + 1).toLowerCase();
-      if (!/^[0-9a-f]{64}$/.test(hex2)) throw new Error("This private key code is damaged. It should have 64 characters after BRCKEY1:.");
-      return { kind: "private-key", wallet: walletFromPrivateKeyHex(hex2), ambiguous: false };
+      const parts = stripPaperChecks(t).replace(/\s+/g, "").toLowerCase().split(":");
+      if (parts.length > 3 || !/^[0-9a-f]{64}$/.test(parts[1] || "")) {
+        throw new Error("This private key code is damaged. It should have 64 characters after BRCKEY1:.");
+      }
+      const wallet = walletFromPrivateKeyHex(parts[1]);
+      if (parts.length === 3) {
+        if (!parts[2]) {
+          wipeWallet(wallet);
+          throw new Error("The last line of the code, the address check after the final colon, is missing.");
+        }
+        if (wallet.address.slice(0, 8) !== parts[2]) {
+          wipeWallet(wallet);
+          throw new Error("This private key has a typo: it doesn't match the address check at the end of the code. Compare it with the paper, watching for 0/D and 8/B.");
+        }
+        return { kind: "private-key", wallet, ambiguous: false, checked: true };
+      }
+      return { kind: "private-key", wallet, ambiguous: false, checked: false };
     }
     if (t.startsWith("{")) {
       const parsed = parseJsonLoose(t);
@@ -4933,10 +4965,10 @@ body.is-previewing { overflow: hidden; }
         setMessage(msgEl, e.message, "bad");
       }
     };
+    const scanPanel = $(`#${prefix}-scan-panel`);
     const setMode = (mode, name) => {
-      if (intake.dataset.mode === "scan" && mode !== "scan") stopScan();
+      if (scanPanel && mode !== "scan") stopScan();
       intake.dataset.mode = mode;
-      const scanPanel = $(`#${prefix}-scan-panel`);
       if (scanPanel) show(scanPanel, mode === "scan");
       show($(`#${prefix}-paste-panel`), mode === "paste");
       show($(`#${prefix}-chip`), mode === "loaded");
@@ -4956,7 +4988,7 @@ body.is-previewing { overflow: hidden; }
       scanOpen.addEventListener("click", () => {
         setMessage(msgEl, "");
         setMode("scan");
-        startScan((text) => onText(text, "Scanned paper backup"), $(`#${prefix}-scan-hint`));
+        startScan((text) => onText(text, /^BRCKEY1/i.test(text.trim()) ? "Scanned paper wallet" : "Scanned paper backup"), $(`#${prefix}-scan-hint`));
       });
       $(`#${prefix}-scan-panel [data-scan-cancel]`).addEventListener("click", () => {
         setMode("file");
@@ -5007,6 +5039,7 @@ body.is-previewing { overflow: hidden; }
     const it = activeIntake();
     const text = e.clipboardData?.getData("text") ?? "";
     if (!it || !text.trim()) return;
+    if (it === intakes.b && backup.wallet || it === intakes.r && restore.pending) return;
     e.preventDefault();
     it.onText(text);
   });
@@ -5209,7 +5242,7 @@ body.is-previewing { overflow: hidden; }
     show(el, true);
     await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 40)));
   }
-  var generation = 0;
+  var gen = { backup: 0, restore: 0 };
   for (const name of ["RTCPeerConnection", "webkitRTCPeerConnection", "RTCDataChannel", "RTCSessionDescription"]) {
     try {
       Object.defineProperty(window, name, { value: void 0, writable: false, configurable: false });
@@ -5227,7 +5260,10 @@ body.is-previewing { overflow: hidden; }
   window.addEventListener("offline", renderConnection);
   window.addEventListener("scroll", () => $("#topbar").classList.toggle("is-scrolled", window.scrollY > 8), { passive: true });
   function selectTab(name) {
-    if (name !== "restore" && intakes.r && intakes.r.mode() === "scan") intakes.r.setMode("file");
+    if (name !== "restore") {
+      if (intakes.r && intakes.r.mode() === "scan") intakes.r.setMode("file");
+      stopScan();
+    }
     $("#segmented").dataset.active = name;
     $$('[role="tab"]').forEach((t) => {
       const on = t.dataset.tab === name;
@@ -5266,8 +5302,15 @@ body.is-previewing { overflow: hidden; }
     if (pw.length >= 16 || classes >= 3) return 3;
     return 2;
   }
-  var scanner = { stream: null, raf: 0, onCode: null, canvas: null };
+  var scanner = { stream: null, raf: 0, onCode: null, canvas: null, token: 0 };
+  function scanProblem(text) {
+    const t = String(text).trim();
+    if (/^(BRCVAULT1|BRCKEY1)[:\s]/i.test(t)) return null;
+    if (/^(0x)?[0-9a-fA-F]{64}$/.test(t)) return "That's the wallet address QR code, which can't restore anything. Hold up the larger locked backup QR code instead.";
+    return "That QR code isn't from a BRC Vault paper backup. Hold up the locked backup QR code.";
+  }
   function stopScan() {
+    scanner.token++;
     cancelAnimationFrame(scanner.raf);
     scanner.raf = 0;
     if (scanner.stream) scanner.stream.getTracks().forEach((t) => t.stop());
@@ -5284,6 +5327,8 @@ body.is-previewing { overflow: hidden; }
   }
   async function startScan(onCode, hintEl) {
     stopScan();
+    const my = scanner.token;
+    const wanted = () => my === scanner.token && !document.hidden && intakes.r?.mode() === "scan";
     scanner.onCode = onCode;
     setMessage(hintEl, "Starting the camera\u2026", "info");
     setScanState("starting", "Starting the camera\u2026");
@@ -5302,15 +5347,17 @@ body.is-previewing { overflow: hidden; }
       return;
     }
     const slow = setTimeout(() => {
-      if (!scanner.stream) setScanState("starting", "Waiting for camera access. Look for a prompt near the address bar and choose Allow.");
+      if (my === scanner.token && !scanner.stream) setScanState("starting", "Waiting for camera access. Look for a prompt near the address bar and choose Allow.");
     }, 2500);
+    let stream;
     try {
-      scanner.stream = await navigator.mediaDevices.getUserMedia({
+      stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false
       });
     } catch (e) {
       clearTimeout(slow);
+      if (my !== scanner.token) return;
       const blocked = e && (e.name === "NotAllowedError" || e.name === "SecurityError");
       if (framed) problem("The camera can't be used inside this preview. Save brc-vault.html and open it directly in Chrome or Safari, then allow camera access.");
       else if (blocked) problem("Camera access is blocked for this page. Allow the camera in your browser settings, then try again, or type the code instead.");
@@ -5318,19 +5365,29 @@ body.is-previewing { overflow: hidden; }
       return;
     }
     clearTimeout(slow);
+    if (!wanted()) {
+      stream.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    scanner.stream = stream;
     const video = $("#r-scan-video");
-    video.srcObject = scanner.stream;
+    video.srcObject = stream;
     try {
       await video.play();
     } catch {
     }
+    if (!wanted()) {
+      if (my === scanner.token) stopScan();
+      return;
+    }
     setScanState("live");
-    setMessage(hintEl, "Hold the locked backup QR code inside the square.", "info");
+    setMessage(hintEl, "Hold the locked backup QR code up to the camera.", "info");
+    let lastProblem = "";
     scanner.canvas = scanner.canvas || document.createElement("canvas");
     const ctx = scanner.canvas.getContext("2d", { willReadFrequently: true });
     let last = 0;
     const tick = (now) => {
-      if (!scanner.stream) return;
+      if (my !== scanner.token || !scanner.stream) return;
       scanner.raf = requestAnimationFrame(tick);
       if (now - last < 120 || video.readyState < 2 || !video.videoWidth) return;
       last = now;
@@ -5342,6 +5399,14 @@ body.is-previewing { overflow: hidden; }
       ctx.drawImage(video, 0, 0, w, h2);
       const found = (0, import_jsqr.default)(ctx.getImageData(0, 0, w, h2).data, w, h2, { inversionAttempts: "attemptBoth" });
       if (found && found.data) {
+        const problem2 = scanProblem(found.data);
+        if (problem2) {
+          if (problem2 !== lastProblem) {
+            lastProblem = problem2;
+            setMessage(hintEl, problem2, "warn");
+          }
+          return;
+        }
         stopScan();
         ctx.clearRect(0, 0, w, h2);
         scanner.onCode(found.data);
@@ -5353,7 +5418,9 @@ body.is-previewing { overflow: hidden; }
     intakes.r.setMode("paste");
   });
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden && scanner.stream && intakes.r) intakes.r.setMode("file");
+    if (!document.hidden) return;
+    if (intakes.r && intakes.r.mode() === "scan") intakes.r.setMode("file");
+    stopScan();
   });
   var backup = { wallet: null, result: null, kind: null, busy: false };
   function resetBackupOutput() {
@@ -5373,7 +5440,7 @@ body.is-previewing { overflow: hidden; }
   }
   function loadWalletForBackup(text, source) {
     const msg = $("#b-load-msg");
-    generation++;
+    gen.backup++;
     wipeWallet(backup.wallet);
     backup.wallet = null;
     resetBackupOutput();
@@ -5444,7 +5511,7 @@ body.is-previewing { overflow: hidden; }
     primeAudio();
     const btn = $("#b-make");
     const msg = $("#b-make-msg");
-    const myGen = generation;
+    const myGen = gen.backup;
     const wallet = backup.wallet;
     backup.busy = true;
     btn.disabled = true;
@@ -5456,7 +5523,10 @@ body.is-previewing { overflow: hidden; }
       const result = await encryptWallet(wallet, password);
       const check = await decryptBackup(result, password);
       wipeWallet(check);
-      if (myGen !== generation) return;
+      if (myGen !== gen.backup) {
+        setMessage(msg, "");
+        return;
+      }
       if (check.address !== wallet.address) throw new Error("Self-check failed. No backup was made.");
       backup.result = result;
       $("#b-password").value = "";
@@ -5478,7 +5548,7 @@ body.is-previewing { overflow: hidden; }
       $("#b-download").focus({ preventScroll: true });
       done.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
     } catch (e) {
-      if (myGen === generation) setMessage(msg, e.message, "bad");
+      setMessage(msg, myGen === gen.backup ? e.message : "", "bad");
     } finally {
       backup.busy = false;
       setBusy(btn, null);
@@ -5506,7 +5576,7 @@ body.is-previewing { overflow: hidden; }
   });
   var restore = { pending: null, wallet: null, busy: false };
   function resetRestore() {
-    generation++;
+    gen.restore++;
     show($("#r-reprint-row"), false);
     $("#r-success").classList.remove("is-in");
     delete $("#r-step1").dataset.collapsed;
@@ -5537,7 +5607,6 @@ body.is-previewing { overflow: hidden; }
         $("#r-address-label").textContent = "In backup";
         renderAddress($("#r-address"), id.backup.address);
         show($("#r-address-note"), true);
-        show($("#r-reprint-row"), true);
         setMessage(msg, id.rescued ? "This file had been changed by another app, such as a text editor. BRC Vault recovered the backup from it; unlocking will confirm it." : "", "info");
         setStep("#r-step2", "active");
         $("#r-password").focus();
@@ -5546,17 +5615,17 @@ body.is-previewing { overflow: hidden; }
         renderAddress($("#r-address"), id.wallet.address);
         show($("#r-address-note"), false);
         setStep("#r-step2", "done");
-        finishRestore(id.wallet, id.ambiguous);
+        finishRestore(id.wallet, id.ambiguous || id.checked === false);
       }
     } catch (e) {
       resetRestore();
-      if (intakes.r.mode() === "loaded") intakes.r.setMode("file");
+      if (intakes.r.mode() === "loaded" || intakes.r.mode() === "scan") intakes.r.setMode("file");
       setMessage(msg, e.message, "bad");
     }
   }
   wireIntake("r", loadForRestore, $("#r-load-msg"), () => !restore.busy && !restore.wallet);
   $("#r-reprint").addEventListener("click", () => {
-    if (!restore.pending) return;
+    if (!restore.pending || !restore.wallet || restore.wallet.address !== restore.pending.address) return;
     openPaperPreview(encryptedSheet({ ...restore.pending, created: `copy printed ${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}` }), "encrypted");
   });
   $("#r-unlock").addEventListener("click", async () => {
@@ -5564,7 +5633,7 @@ body.is-previewing { overflow: hidden; }
     const btn = $("#r-unlock");
     const msg = $("#r-unlock-msg");
     if (!restore.pending || restore.busy) return;
-    const myGen = generation;
+    const myGen = gen.restore;
     const pending = restore.pending;
     restore.busy = true;
     btn.disabled = true;
@@ -5573,7 +5642,7 @@ body.is-previewing { overflow: hidden; }
     await startBusy($("#r-progress"));
     try {
       const wallet = await decryptBackup(pending, $("#r-password").value);
-      if (myGen !== generation) {
+      if (myGen !== gen.restore) {
         wipeWallet(wallet);
         return;
       }
@@ -5581,7 +5650,7 @@ body.is-previewing { overflow: hidden; }
       setStep("#r-step2", "done");
       finishRestore(wallet, false);
     } catch (e) {
-      if (myGen === generation) setMessage(msg, e.message, "bad");
+      if (myGen === gen.restore) setMessage(msg, e.message, "bad");
     } finally {
       restore.busy = false;
       btn.disabled = false;
@@ -5593,13 +5662,16 @@ body.is-previewing { overflow: hidden; }
     if (e.key === "Enter") $("#r-unlock").click();
   });
   function finishRestore(wallet, ambiguous) {
-    show($("#r-reprint-row"), false);
     restore.wallet = wallet;
-    $("#r-sum-unlock").textContent = restore.pending ? "Unlocked with your password" : "No password needed";
+    const unlocked = Boolean(restore.pending);
+    show($("#r-reprint-row"), unlocked);
+    $("#r-done-title").textContent = unlocked ? "Backup unlocked" : "Wallet ready";
+    $("#r-done-check").textContent = unlocked ? "The key matches the address in the backup" : "Address worked out from this key";
+    $("#r-sum-unlock").textContent = unlocked ? "Unlocked with your password" : "No password needed";
     $("#r-step1").dataset.collapsed = "";
     $("#r-step2").dataset.collapsed = "";
     setMessage($("#r-load-msg"), "");
-    setMessage($("#r-done-msg"), ambiguous ? "A 64-character code can be a private key or a wallet address, and they look the same. If the address below isn't yours, you entered an address. Use the private key or the locked backup code instead." : "", "warn");
+    setMessage($("#r-done-msg"), ambiguous ? "Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn't your address, use your locked backup code or the full BRCKEY1 code from your paper wallet." : "", "warn");
     renderAddress($("#r-done-address"), wallet.address);
     if (restore.pending) playLockMoment($("#r-success"), "unlock");
     else $("#r-success").classList.add("is-in");
@@ -5624,8 +5696,9 @@ body.is-previewing { overflow: hidden; }
   function sheetHead(kind, sub) {
     return `<header class="ps-head"><div class="ps-brand" aria-label="BRC Vault">${LOGO()}</div><div class="ps-kind"><strong>${escapeHtml(kind)}</strong>${escapeHtml(sub)}</div></header>`;
   }
-  function sheetFoot(created) {
-    return `<footer class="ps-foot"><div>Made ${escapeHtml(created)}</div><div>Stored at<span class="ps-line"></span></div><div>Password kept by<span class="ps-line"></span></div></footer>`;
+  function sheetFoot(created, withPassword = true) {
+    const pw = withPassword ? '<div>Password kept by<span class="ps-line"></span></div>' : "<div></div>";
+    return `<footer class="ps-foot"><div>Made ${escapeHtml(created)}</div><div>Stored at<span class="ps-line"></span></div>${pw}</footer>`;
   }
   function encryptedSheet(result) {
     const code = backupToCompact(result);
@@ -5668,8 +5741,8 @@ body.is-previewing { overflow: hidden; }
     ${sheetFoot(result.created)}`;
   }
   function plainSheet(wallet) {
-    const keyHex = bytesToHex2(wallet.privateKey).toUpperCase();
-    const keyCode = `${KEY_PREFIX}:${keyHex}`;
+    const keyCode = keyToCode(wallet);
+    const keyLines = keyCodeLines(keyCode).map((l) => `<span class="ps-codeline">${escapeHtml(l.text)} <span class="ps-check">[${escapeHtml(l.check)}]</span></span>`).join("<br>");
     return `
     ${sheetHead("Paper wallet", "Not password-protected")}
     <p class="ps-alarm">Anyone who sees or photographs this page can take every coin in this wallet.</p>
@@ -5687,8 +5760,8 @@ body.is-previewing { overflow: hidden; }
       <div>
         <div class="ps-label">Never share</div>
         <h2>Private key</h2>
-        <p class="ps-note">This is the wallet itself.</p>
-        <p class="ps-mono sheet-code">${escapeHtml(KEY_PREFIX)}:<br>${twoLines(keyHex)}</p>
+        <p class="ps-note">This is the wallet itself. Type every line with its check in brackets; the last line checks the key against the address.</p>
+        <p class="ps-mono sheet-code">${keyLines}</p>
       </div>
     </section>
     <section class="ps-steps">
@@ -5696,12 +5769,12 @@ body.is-previewing { overflow: hidden; }
         <h3>To get your coins back</h3>
         <ol>
           <li>Open BRC Vault and choose Restore.</li>
-          <li>Choose Scan paper backup and hold this sheet up to the camera, or type the key including BRCKEY1: at the start.</li>
+          <li>Choose Scan paper backup and hold this sheet up to the camera, or type every line of the private key code, including BRCKEY1: and the checks in brackets.</li>
           <li>Download the wallet file and use Import key in BrowserCoin Settings.</li>
         </ol>
       </div>
     </section>
-    ${sheetFoot((/* @__PURE__ */ new Date()).toISOString().slice(0, 10))}`;
+    ${sheetFoot((/* @__PURE__ */ new Date()).toISOString().slice(0, 10), false)}`;
   }
   var previewReturnFocus = null;
   var printWatch = null;
@@ -5745,7 +5818,8 @@ body.is-previewing { overflow: hidden; }
     }, 1500);
   });
   $("#pp-close").addEventListener("click", closePaperPreview);
-  $("#paper-preview").addEventListener("keydown", (e) => {
+  document.addEventListener("keydown", (e) => {
+    if ($("#paper-preview").hidden) return;
     if (e.key === "Escape") {
       e.preventDefault();
       closePaperPreview();
@@ -5754,6 +5828,11 @@ body.is-previewing { overflow: hidden; }
     if (e.key !== "Tab") return;
     const items = [$("#pp-close"), $("#pp-print")];
     const i = items.indexOf(document.activeElement);
+    if (i === -1) {
+      e.preventDefault();
+      items[e.shiftKey ? items.length - 1 : 0].focus();
+      return;
+    }
     if (e.shiftKey && i <= 0) {
       e.preventDefault();
       items[items.length - 1].focus();
@@ -5763,7 +5842,7 @@ body.is-previewing { overflow: hidden; }
     }
   });
   function restartBackup() {
-    generation++;
+    gen.backup++;
     wipeWallet(backup.wallet);
     backup.wallet = null;
     backup.result = null;
@@ -5797,7 +5876,8 @@ body.is-previewing { overflow: hidden; }
     else restartRestore();
   }));
   $("#clear-all").addEventListener("click", () => {
-    generation++;
+    gen.backup++;
+    stopScan();
     wipeWallet(backup.wallet);
     backup.wallet = null;
     backup.result = null;

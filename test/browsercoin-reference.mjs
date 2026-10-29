@@ -1,5 +1,5 @@
 // Reference copy of BrowserCoin's wallet behaviour, written from its source
-// (src/crypto/keys.ts and src/storage/wallet.ts, MIT licensed) so tests can check
+// (src/crypto/keys.ts and src/storage/wallet.ts; the repository has no license file) so tests can check
 // that BRC Vault reads and writes exactly what BrowserCoin's Export/Import expect.
 import * as ed from '@noble/ed25519';
 import { sha512 } from '@noble/hashes/sha2';

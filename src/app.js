@@ -72,10 +72,12 @@ function wireIntake(prefix, onText, msgEl, isOpen) {
     if (!file) return;
     try { onText(await readSmallFile(file), file.name); } catch (e) { setMessage(msgEl, e.message, 'bad'); }
   };
+  const scanPanel = $(`#${prefix}-scan-panel`);
   const setMode = (mode, name) => {
-    if (intake.dataset.mode === 'scan' && mode !== 'scan') stopScan();
+    // Always stop the camera when the scanner closes, even if it is still
+    // waiting for permission and has not started yet.
+    if (scanPanel && mode !== 'scan') stopScan();
     intake.dataset.mode = mode;
-    const scanPanel = $(`#${prefix}-scan-panel`);
     if (scanPanel) show(scanPanel, mode === 'scan');
     show($(`#${prefix}-paste-panel`), mode === 'paste');
     show($(`#${prefix}-chip`), mode === 'loaded');
@@ -91,7 +93,7 @@ function wireIntake(prefix, onText, msgEl, isOpen) {
     scanOpen.addEventListener('click', () => {
       setMessage(msgEl, '');
       setMode('scan');
-      startScan((text) => onText(text, 'Scanned paper backup'), $(`#${prefix}-scan-hint`));
+      startScan((text) => onText(text, /^BRCKEY1/i.test(text.trim()) ? 'Scanned paper wallet' : 'Scanned paper backup'), $(`#${prefix}-scan-hint`));
     });
     $(`#${prefix}-scan-panel [data-scan-cancel]`).addEventListener('click', () => { setMode('file'); scanOpen.focus(); });
   }
@@ -129,6 +131,9 @@ document.addEventListener('paste', (e) => {
   const it = activeIntake();
   const text = e.clipboardData?.getData('text') ?? '';
   if (!it || !text.trim()) return;
+  // Once a wallet or backup is loaded, a stray paste (say, a password pasted
+  // while focus wasn't in the field) must not replace it.
+  if ((it === intakes.b && backup.wallet) || (it === intakes.r && restore.pending)) return;
   e.preventDefault();
   it.onText(text);
 });
@@ -334,8 +339,8 @@ async function startBusy(el) {
   await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 40)));
 }
 
-/** Bumped whenever the page state is reset, so slow work that finishes late is ignored. */
-let generation = 0;
+/** Bumped whenever a flow is reset, so slow work that finishes late is ignored. One per flow. */
+const gen = { backup: 0, restore: 0 };
 
 // ---------------------------------------------------------------------------
 // Belt and braces: the page's security policy blocks network requests, but it
@@ -368,7 +373,10 @@ window.addEventListener('scroll', () => $('#topbar').classList.toggle('is-scroll
 // ---------------------------------------------------------------------------
 
 function selectTab(name) {
-  if (name !== 'restore' && intakes.r && intakes.r.mode() === 'scan') intakes.r.setMode('file');
+  if (name !== 'restore') {
+    if (intakes.r && intakes.r.mode() === 'scan') intakes.r.setMode('file');
+    stopScan();
+  }
   $('#segmented').dataset.active = name;
   $$('[role="tab"]').forEach((t) => {
     const on = t.dataset.tab === name;
@@ -417,9 +425,18 @@ function strength(pw) {
 // code is read, the scanner is closed, or the tab is hidden.
 // ---------------------------------------------------------------------------
 
-const scanner = { stream: null, raf: 0, onCode: null, canvas: null };
+const scanner = { stream: null, raf: 0, onCode: null, canvas: null, token: 0 };
+
+/** Codes the scanner accepts. Anything else is named and ignored, and scanning carries on. */
+function scanProblem(text) {
+  const t = String(text).trim();
+  if (/^(BRCVAULT1|BRCKEY1)[:\s]/i.test(t)) return null;
+  if (/^(0x)?[0-9a-fA-F]{64}$/.test(t)) return "That's the wallet address QR code, which can't restore anything. Hold up the larger locked backup QR code instead.";
+  return "That QR code isn't from a BRC Vault paper backup. Hold up the locked backup QR code.";
+}
 
 function stopScan() {
+  scanner.token++; // anything still starting up sees this and shuts itself down
   cancelAnimationFrame(scanner.raf);
   scanner.raf = 0;
   if (scanner.stream) scanner.stream.getTracks().forEach((t) => t.stop());
@@ -435,6 +452,8 @@ function setScanState(state, text) {
 
 async function startScan(onCode, hintEl) {
   stopScan();
+  const my = scanner.token;
+  const wanted = () => my === scanner.token && !document.hidden && intakes.r?.mode() === 'scan';
   scanner.onCode = onCode;
   setMessage(hintEl, 'Starting the camera…', 'info');
   setScanState('starting', 'Starting the camera…');
@@ -449,15 +468,17 @@ async function startScan(onCode, hintEl) {
   }
   // If the browser is waiting on a permission prompt, say where to look.
   const slow = setTimeout(() => {
-    if (!scanner.stream) setScanState('starting', 'Waiting for camera access. Look for a prompt near the address bar and choose Allow.');
+    if (my === scanner.token && !scanner.stream) setScanState('starting', 'Waiting for camera access. Look for a prompt near the address bar and choose Allow.');
   }, 2500);
+  let stream;
   try {
-    scanner.stream = await navigator.mediaDevices.getUserMedia({
+    stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
       audio: false,
     });
   } catch (e) {
     clearTimeout(slow);
+    if (my !== scanner.token) return; // the scanner was closed meanwhile
     const blocked = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
     if (framed) problem("The camera can't be used inside this preview. Save brc-vault.html and open it directly in Chrome or Safari, then allow camera access.");
     else if (blocked) problem('Camera access is blocked for this page. Allow the camera in your browser settings, then try again, or type the code instead.');
@@ -465,16 +486,21 @@ async function startScan(onCode, hintEl) {
     return;
   }
   clearTimeout(slow);
+  // Closed, hidden or restarted while waiting for permission: switch it straight off.
+  if (!wanted()) { stream.getTracks().forEach((t) => t.stop()); return; }
+  scanner.stream = stream;
   const video = $('#r-scan-video');
-  video.srcObject = scanner.stream;
+  video.srcObject = stream;
   try { await video.play(); } catch { /* autoplay with a live stream normally succeeds after a click */ }
+  if (!wanted()) { if (my === scanner.token) stopScan(); return; }
   setScanState('live');
-  setMessage(hintEl, 'Hold the locked backup QR code inside the square.', 'info');
+  setMessage(hintEl, 'Hold the locked backup QR code up to the camera.', 'info');
+  let lastProblem = '';
   scanner.canvas = scanner.canvas || document.createElement('canvas');
   const ctx = scanner.canvas.getContext('2d', { willReadFrequently: true });
   let last = 0;
   const tick = (now) => {
-    if (!scanner.stream) return;
+    if (my !== scanner.token || !scanner.stream) return;
     scanner.raf = requestAnimationFrame(tick);
     if (now - last < 120 || video.readyState < 2 || !video.videoWidth) return;
     last = now;
@@ -486,6 +512,11 @@ async function startScan(onCode, hintEl) {
     ctx.drawImage(video, 0, 0, w, h);
     const found = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'attemptBoth' });
     if (found && found.data) {
+      const problem = scanProblem(found.data);
+      if (problem) {
+        if (problem !== lastProblem) { lastProblem = problem; setMessage(hintEl, problem, 'warn'); }
+        return;
+      }
       stopScan();
       ctx.clearRect(0, 0, w, h);
       scanner.onCode(found.data);
@@ -497,7 +528,9 @@ async function startScan(onCode, hintEl) {
 $('#r-scan-to-type').addEventListener('click', () => { intakes.r.setMode('paste'); });
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && scanner.stream && intakes.r) intakes.r.setMode('file');
+  if (!document.hidden) return;
+  if (intakes.r && intakes.r.mode() === 'scan') intakes.r.setMode('file');
+  stopScan();
 });
 
 // ---------------------------------------------------------------------------
@@ -526,7 +559,7 @@ function backupKeyConfirmed() {
 
 function loadWalletForBackup(text, source) {
   const msg = $('#b-load-msg');
-  generation++;
+  gen.backup++;
   core.wipeWallet(backup.wallet);
   backup.wallet = null;
   resetBackupOutput();
@@ -596,7 +629,7 @@ $('#b-make').addEventListener('click', async () => {
   primeAudio();
   const btn = $('#b-make');
   const msg = $('#b-make-msg');
-  const myGen = generation;
+  const myGen = gen.backup;
   const wallet = backup.wallet;
   backup.busy = true;
   btn.disabled = true;
@@ -609,7 +642,7 @@ $('#b-make').addEventListener('click', async () => {
     // Prove the backup opens before handing it over.
     const check = await core.decryptBackup(result, password);
     core.wipeWallet(check);
-    if (myGen !== generation) return; // the page was cleared or another wallet loaded meanwhile
+    if (myGen !== gen.backup) { setMessage(msg, ''); return; } // cleared, or another wallet loaded meanwhile
     if (check.address !== wallet.address) throw new Error('Self-check failed. No backup was made.');
     backup.result = result;
     $('#b-password').value = '';
@@ -631,7 +664,7 @@ $('#b-make').addEventListener('click', async () => {
     $('#b-download').focus({ preventScroll: true });
     done.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
   } catch (e) {
-    if (myGen === generation) setMessage(msg, e.message, 'bad');
+    setMessage(msg, myGen === gen.backup ? e.message : '', 'bad');
   } finally {
     backup.busy = false;
     setBusy(btn, null);
@@ -666,7 +699,7 @@ $('#b-print-plain').addEventListener('click', () => {
 const restore = { pending: null, wallet: null, busy: false };
 
 function resetRestore() {
-  generation++;
+  gen.restore++;
   show($('#r-reprint-row'), false);
   $('#r-success').classList.remove('is-in');
   delete $('#r-step1').dataset.collapsed;
@@ -698,7 +731,6 @@ function loadForRestore(text, source) {
       $('#r-address-label').textContent = 'In backup';
       renderAddress($('#r-address'), id.backup.address);
       show($('#r-address-note'), true);
-      show($('#r-reprint-row'), true);
       setMessage(msg, id.rescued ? 'This file had been changed by another app, such as a text editor. BRC Vault recovered the backup from it; unlocking will confirm it.' : '', 'info');
       setStep('#r-step2', 'active');
       $('#r-password').focus();
@@ -708,21 +740,21 @@ function loadForRestore(text, source) {
       renderAddress($('#r-address'), id.wallet.address);
       show($('#r-address-note'), false);
       setStep('#r-step2', 'done');
-      finishRestore(id.wallet, id.ambiguous);
+      finishRestore(id.wallet, id.ambiguous || id.checked === false);
     }
   } catch (e) {
     resetRestore();
-    if (intakes.r.mode() === 'loaded') intakes.r.setMode('file');
+    if (intakes.r.mode() === 'loaded' || intakes.r.mode() === 'scan') intakes.r.setMode('file');
     setMessage(msg, e.message, 'bad');
   }
 }
 
 wireIntake('r', loadForRestore, $('#r-load-msg'), () => !restore.busy && !restore.wallet);
 
-// A paper copy can be printed straight from a backup file: it's already locked,
-// so no password or unprotected wallet file is needed.
+// A new paper copy of a backup, offered once the password has unlocked it, so
+// the address printed on it has been confirmed against the key.
 $('#r-reprint').addEventListener('click', () => {
-  if (!restore.pending) return;
+  if (!restore.pending || !restore.wallet || restore.wallet.address !== restore.pending.address) return;
   openPaperPreview(encryptedSheet({ ...restore.pending, created: `copy printed ${new Date().toISOString().slice(0, 10)}` }), 'encrypted');
 });
 
@@ -731,7 +763,7 @@ $('#r-unlock').addEventListener('click', async () => {
   const btn = $('#r-unlock');
   const msg = $('#r-unlock-msg');
   if (!restore.pending || restore.busy) return;
-  const myGen = generation;
+  const myGen = gen.restore;
   const pending = restore.pending;
   restore.busy = true;
   btn.disabled = true;
@@ -740,12 +772,12 @@ $('#r-unlock').addEventListener('click', async () => {
   await startBusy($('#r-progress'));
   try {
     const wallet = await core.decryptBackup(pending, $('#r-password').value);
-    if (myGen !== generation) { core.wipeWallet(wallet); return; }
+    if (myGen !== gen.restore) { core.wipeWallet(wallet); return; }
     $('#r-password').value = '';
     setStep('#r-step2', 'done');
     finishRestore(wallet, false);
   } catch (e) {
-    if (myGen === generation) setMessage(msg, e.message, 'bad');
+    if (myGen === gen.restore) setMessage(msg, e.message, 'bad');
   } finally {
     restore.busy = false;
     btn.disabled = false;
@@ -756,14 +788,17 @@ $('#r-unlock').addEventListener('click', async () => {
 $('#r-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#r-unlock').click(); });
 
 function finishRestore(wallet, ambiguous) {
-  show($('#r-reprint-row'), false);
   restore.wallet = wallet;
-  $('#r-sum-unlock').textContent = restore.pending ? 'Unlocked with your password' : 'No password needed';
+  const unlocked = Boolean(restore.pending);
+  show($('#r-reprint-row'), unlocked);
+  $('#r-done-title').textContent = unlocked ? 'Backup unlocked' : 'Wallet ready';
+  $('#r-done-check').textContent = unlocked ? 'The key matches the address in the backup' : 'Address worked out from this key';
+  $('#r-sum-unlock').textContent = unlocked ? 'Unlocked with your password' : 'No password needed';
   $('#r-step1').dataset.collapsed = '';
   $('#r-step2').dataset.collapsed = '';
   setMessage($('#r-load-msg'), '');
   setMessage($('#r-done-msg'), ambiguous
-    ? 'A 64-character code can be a private key or a wallet address, and they look the same. If the address below isn\'t yours, you entered an address. Use the private key or the locked backup code instead.'
+    ? 'Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn\'t your address, use your locked backup code or the full BRCKEY1 code from your paper wallet.'
     : '', 'warn');
   renderAddress($('#r-done-address'), wallet.address);
   if (restore.pending) playLockMoment($('#r-success'), 'unlock');
@@ -801,8 +836,9 @@ function sheetHead(kind, sub) {
   return `<header class="ps-head"><div class="ps-brand" aria-label="BRC Vault">${LOGO()}</div><div class="ps-kind"><strong>${escapeHtml(kind)}</strong>${escapeHtml(sub)}</div></header>`;
 }
 
-function sheetFoot(created) {
-  return `<footer class="ps-foot"><div>Made ${escapeHtml(created)}</div><div>Stored at<span class="ps-line"></span></div><div>Password kept by<span class="ps-line"></span></div></footer>`;
+function sheetFoot(created, withPassword = true) {
+  const pw = withPassword ? '<div>Password kept by<span class="ps-line"></span></div>' : '<div></div>';
+  return `<footer class="ps-foot"><div>Made ${escapeHtml(created)}</div><div>Stored at<span class="ps-line"></span></div>${pw}</footer>`;
 }
 
 function encryptedSheet(result) {
@@ -849,8 +885,10 @@ function encryptedSheet(result) {
 }
 
 function plainSheet(wallet) {
-  const keyHex = core.bytesToHex(wallet.privateKey).toUpperCase();
-  const keyCode = `${core.KEY_PREFIX}:${keyHex}`;
+  const keyCode = core.keyToCode(wallet);
+  const keyLines = core.keyCodeLines(keyCode)
+    .map((l) => `<span class="ps-codeline">${escapeHtml(l.text)} <span class="ps-check">[${escapeHtml(l.check)}]</span></span>`)
+    .join('<br>');
   return `
     ${sheetHead('Paper wallet', 'Not password-protected')}
     <p class="ps-alarm">Anyone who sees or photographs this page can take every coin in this wallet.</p>
@@ -868,8 +906,8 @@ function plainSheet(wallet) {
       <div>
         <div class="ps-label">Never share</div>
         <h2>Private key</h2>
-        <p class="ps-note">This is the wallet itself.</p>
-        <p class="ps-mono sheet-code">${escapeHtml(core.KEY_PREFIX)}:<br>${twoLines(keyHex)}</p>
+        <p class="ps-note">This is the wallet itself. Type every line with its check in brackets; the last line checks the key against the address.</p>
+        <p class="ps-mono sheet-code">${keyLines}</p>
       </div>
     </section>
     <section class="ps-steps">
@@ -877,12 +915,12 @@ function plainSheet(wallet) {
         <h3>To get your coins back</h3>
         <ol>
           <li>Open BRC Vault and choose Restore.</li>
-          <li>Choose Scan paper backup and hold this sheet up to the camera, or type the key including BRCKEY1: at the start.</li>
+          <li>Choose Scan paper backup and hold this sheet up to the camera, or type every line of the private key code, including BRCKEY1: and the checks in brackets.</li>
           <li>Download the wallet file and use Import key in BrowserCoin Settings.</li>
         </ol>
       </div>
     </section>
-    ${sheetFoot(new Date().toISOString().slice(0, 10))}`;
+    ${sheetFoot(new Date().toISOString().slice(0, 10), false)}`;
 }
 
 // The sheet opens as an on-screen preview with its own Print button. If the
@@ -928,12 +966,14 @@ $('#pp-print').addEventListener('click', () => {
   }, 1500);
 });
 $('#pp-close').addEventListener('click', closePaperPreview);
-$('#paper-preview').addEventListener('keydown', (e) => {
+document.addEventListener('keydown', (e) => {
+  if ($('#paper-preview').hidden) return;
   if (e.key === 'Escape') { e.preventDefault(); closePaperPreview(); return; }
   if (e.key !== 'Tab') return;
   // Keep keyboard focus inside the preview while it is open.
   const items = [$('#pp-close'), $('#pp-print')];
   const i = items.indexOf(document.activeElement);
+  if (i === -1) { e.preventDefault(); items[e.shiftKey ? items.length - 1 : 0].focus(); return; }
   if (e.shiftKey && i <= 0) { e.preventDefault(); items[items.length - 1].focus(); }
   else if (!e.shiftKey && i === items.length - 1) { e.preventDefault(); items[0].focus(); }
 });
@@ -943,7 +983,7 @@ $('#paper-preview').addEventListener('keydown', (e) => {
 // ---------------------------------------------------------------------------
 
 function restartBackup() {
-  generation++;
+  gen.backup++;
   core.wipeWallet(backup.wallet);
   backup.wallet = null;
   backup.result = null;
@@ -981,7 +1021,8 @@ $$('[data-restart]').forEach((btn) => btn.addEventListener('click', () => {
 // ---------------------------------------------------------------------------
 
 $('#clear-all').addEventListener('click', () => {
-  generation++;
+  gen.backup++;
+  stopScan();
   core.wipeWallet(backup.wallet);
   backup.wallet = null;
   backup.result = null;

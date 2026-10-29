@@ -157,7 +157,9 @@ with sync_playwright() as pw:
     page.emulate_media(media="print")
     page.screenshot(path=str(OUT / "4-paper-plain.png"), full_page=True)
     key_qr = decode_qr(page.locator("#print-sheet .ps-qr").nth(1), "qr-key")
-    assert key_qr == "BRCKEY1:" + wallet["privateKeyHex"].upper(), key_qr
+    assert key_qr == "BRCKEY1:" + wallet["privateKeyHex"].upper() + ":" + wallet["address"][:8].upper(), key_qr
+    plain_lines = page.locator("#print-sheet .sheet-code .ps-codeline").all_inner_texts()
+    assert len(plain_lines) == 4 and all(re.search(r"\[[0-9A-F]{4}\]$", l) for l in plain_lines), plain_lines
     ok("unprotected paper wallet needs a confirmation, and its QR is clearly marked as a key")
     page.emulate_media(media="screen")
     page.click("#pp-close")
@@ -175,22 +177,34 @@ with sync_playwright() as pw:
     page.set_input_files("#r-file", str(backup_path))
     expect(page.locator("#r-address")).to_have_text(wallet["address"])
     expect(page.locator("#r-address-label")).to_have_text("In backup")
-    # A paper copy can be reprinted from the backup file alone, and its QR scans as a phone reads it.
+    # Reprinting waits until the password has confirmed the address.
+    expect(page.locator("#r-reprint-row")).to_be_hidden()
+    page.fill("#r-password", "not the password at all")
+    page.click("#r-unlock")
+    expect(page.locator("#r-unlock-msg")).to_contain_text("Wrong password", timeout=60000)
+    ok("wrong password is refused with a clear message")
+    # A password pasted with Ctrl/Cmd+V while focus is outside the field doesn't wipe the loaded backup.
+    page.evaluate("""() => {
+        const dt = new DataTransfer(); dt.setData('text/plain', 'not the password at all');
+        document.body.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true }));
+    }""")
+    expect(page.locator("#r-address")).to_have_text(wallet["address"])
+    expect(page.locator("#r-load-msg")).to_be_hidden()
+    ok("a stray paste on the page never replaces a loaded backup")
+    page.fill("#r-password", PASSWORD)
+    page.click("#r-unlock")
+    expect(page.locator("#r-done")).to_be_visible(timeout=60000)
+    expect(page.locator("#r-done-title")).to_have_text("Backup unlocked")
+    expect(page.locator("#r-download")).to_be_disabled()
     page.evaluate("() => { window.print = () => {}; }")
     page.click("#r-reprint")
     expect(page.locator("#paper-preview")).to_be_visible()
     reprint_qr = decode_qr(page.locator("#print-sheet .ps-qr").nth(1), "qr-reprint")
     assert reprint_qr == paper_code, (reprint_qr[:30], paper_code[:30])
-    page.click("#pp-close")
-    ok("a paper copy can be reprinted from a backup file, with no password")
-    page.fill("#r-password", "not the password at all")
-    page.click("#r-unlock")
-    expect(page.locator("#r-unlock-msg")).to_contain_text("Wrong password", timeout=60000)
-    ok("wrong password is refused with a clear message")
-    page.fill("#r-password", PASSWORD)
-    page.click("#r-unlock")
-    expect(page.locator("#r-done")).to_be_visible(timeout=60000)
-    expect(page.locator("#r-download")).to_be_disabled()
+    page.locator("#print-sheet").click()  # focus leaves the buttons; Escape must still close
+    page.keyboard.press("Escape")
+    expect(page.locator("#paper-preview")).to_be_hidden()
+    ok("after unlocking, a new paper copy can be printed, and Escape closes the preview")
     tick_restore_confirms(page)
     with page.expect_download() as dl2:
         page.click("#r-download")
@@ -255,6 +269,7 @@ with sync_playwright() as pw:
     page.fill("#r-paste", wallet["address"])  # someone scans the address QR by mistake
     page.click("#r-paste-go")
     expect(page.locator("#r-done-msg")).to_contain_text("wallet address")
+    expect(page.locator("#r-done-title")).to_have_text("Wallet ready")
     expect(page.locator("#r-download")).to_be_disabled()
     ok("restores a BRCKEY1 key; a bare 64-character code gets an address warning and stays locked")
 
@@ -379,8 +394,68 @@ with sync_playwright() as pw:
     cp.fill("#r-password", PASSWORD)
     cp.click("#r-unlock")
     expect(cp.locator("#r-done-address")).to_have_text(wallet["address"], timeout=60000)
-    cam.close()
     ok("scanning the printed QR with the built-in camera scanner restores the wallet, and the camera turns off")
+
+    # Closing the scanner (Cancel, another tab, Clear page) while the browser is still
+    # asking for camera permission must leave the camera off when permission arrives.
+    slow_cam = """() => {
+        window.__streams = [];
+        const real = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+        navigator.mediaDevices.getUserMedia = async (c) => {
+            await new Promise((r) => setTimeout(r, 1200));
+            const s = await real(c); window.__streams.push(s); return s;
+        };
+    }"""
+    live_tracks = "() => window.__streams.flatMap((s) => s.getTracks()).filter((t) => t.readyState === 'live').length"
+    for how in ["cancel", "tab", "clear", "reopen"]:
+        sp = cam.new_page()
+        sp.add_init_script(f"({slow_cam})()")
+        sp.goto(PAGE)
+        sp.click("#tab-restore")
+        sp.click("#r-scan-open")
+        sp.wait_for_timeout(300)
+        if how == "cancel": sp.click("#r-scan-panel [data-scan-cancel]")
+        elif how == "tab": sp.click("#tab-backup")
+        elif how == "clear": sp.click("#clear-all")
+        else:
+            sp.click("#r-scan-panel [data-scan-cancel]"); sp.click("#r-scan-open")
+        sp.wait_for_timeout(2500)
+        if how == "reopen":
+            # The first, abandoned request is switched off; only the reopened scanner runs
+            # (and this fake camera shows a real backup QR, so it reads it and stops too).
+            assert sp.evaluate("window.__streams[0].getTracks()[0].readyState") == "ended"
+            assert sp.evaluate(live_tracks) <= 1
+            if sp.locator("#r-scan-panel").is_visible(): sp.click("#r-scan-panel [data-scan-cancel]")
+            sp.wait_for_timeout(200)
+            assert sp.evaluate(live_tracks) == 0
+        else:
+            assert sp.evaluate(live_tracks) == 0, (how, sp.evaluate(live_tracks))
+            expect(sp.locator("#r-loaded")).to_be_hidden()  # the closed scanner never loads anything
+        sp.close()
+    cam.close()
+    ok("closing the scanner while camera permission is pending leaves the camera off, and nothing loads")
+
+    # Holding up the small wallet address QR is named, ignored, and scanning carries on.
+    im = Image.open(OUT / "qr-address.png").convert("RGB")
+    canvas = Image.new("RGB", (1280, 720), (238, 236, 230))
+    canvas.paste(im.resize((520, 520), Image.NEAREST), ((1280 - 520) // 2, (720 - 520) // 2))
+    canvas.save(OUT / "camera-frame-address.png")
+    y4m_addr = OUT / "camera-address.y4m"
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-loop", "1", "-i", str(OUT / "camera-frame-address.png"), "-t", "3", "-r", "15", "-pix_fmt", "yuv420p", str(y4m_addr)], check=True)
+    cam = pw.chromium.launch(args=["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", f"--use-file-for-fake-video-capture={y4m_addr}"])
+    ap = cam.new_page()
+    ap.on("pageerror", lambda e: errors.append(str(e)))
+    ap.goto(PAGE)
+    ap.click("#tab-restore")
+    ap.click("#r-scan-open")
+    expect(ap.locator("#r-scan-hint")).to_contain_text("wallet address QR code", timeout=20000)
+    expect(ap.locator("#r-loaded")).to_be_hidden()
+    expect(ap.locator("#r-done")).to_be_hidden()
+    assert ap.evaluate("document.querySelector('#r-scan-video').srcObject !== null"), "scanning should carry on"
+    ap.click("#r-scan-panel [data-scan-cancel]")
+    assert ap.evaluate("document.querySelector('#r-scan-video').srcObject") is None
+    cam.close()
+    ok("scanning the address QR by mistake is explained and ignored; it never counts as a key")
 
     # Inside a locked-down preview (like an app's file viewer) the camera can't work: say so clearly.
     import http.server, threading, functools

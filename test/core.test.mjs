@@ -116,7 +116,7 @@ await test('a typo in a typed paper code names the line before any slow work', a
   const lines = core.paperCodeText(core.backupToCompact(b)).split('\n');
   const bad = [...lines];
   bad[4] = bad[4].replace(/[0-9A-F](?=[^[]*\[)/, (c) => (c === '0' ? 'D' : '0'));
-  assert.throws(() => core.identifyInput(bad.join('\n')), /Line 5 of the backup code has a typo/);
+  assert.throws(() => core.identifyInput(bad.join('\n')), /Line 5 of the code has a typo/);
   assert.throws(() => core.identifyInput(lines.slice(0, 8).join('\n') + '\nABCD'), /missing its check/);
   // All on one line with checks still works.
   assert.equal(core.identifyInput(lines.join(' ')).kind, 'vault-backup');
@@ -158,6 +158,50 @@ await test('a bare 64-character string is flagged as possibly an address; BRCKEY
   const prefixed = core.identifyInput(`${core.KEY_PREFIX}:${core.bytesToHex(kp.privateKey).toUpperCase()}`);
   assert.equal(prefixed.ambiguous, false);
   assert.equal(prefixed.wallet.address, kp.address);
+  assert.equal(prefixed.checked, false); // an old-style code with no address check gets the address warning
+});
+
+await test('the unprotected key code carries an address check, so a typo is caught instead of opening another wallet', async () => {
+  const kp = bc.generateKeyPair();
+  const w = { privateKey: Uint8Array.from(kp.privateKey), address: kp.address };
+  const code = core.keyToCode(w);
+  assert.equal(code, `BRCKEY1:${core.bytesToHex(kp.privateKey)}:${kp.address.slice(0, 8)}`.toUpperCase());
+  const ok = core.identifyInput(core.qrPayload(code));
+  assert.equal(ok.checked, true);
+  assert.equal(ok.wallet.address, kp.address);
+  // Typed from paper, with the checks in brackets, in lower case.
+  const typed = core.keyCodeLines(code).map((l) => `${l.text} [${l.check}]`).join('\n');
+  assert.equal(core.identifyInput(typed.toLowerCase()).wallet.address, kp.address);
+  // One wrong character in the key: caught by the address check even without the bracket checks.
+  const i = 20;
+  const typo = code.slice(0, i) + (code[i] === '0' ? '1' : '0') + code.slice(i + 1);
+  assert.throws(() => core.identifyInput(typo), /has a typo/);
+  // With the bracket checks, the exact line is named.
+  const lines = typed.split('\n');
+  lines[1] = lines[1].replace(/^./, (c) => (c === '0' ? '1' : '0'));
+  assert.throws(() => core.identifyInput(lines.join('\n')), /Line 2 of the code has a typo/);
+  // The last line left off.
+  assert.throws(() => core.identifyInput(typed.split('\n').slice(0, 3).join('\n')), /address check after the final colon, is missing/);
+});
+
+await test('typed codes and very long pastes are read quickly', async () => {
+  for (const t of [
+    'BRCVAULT1:' + 'A'.repeat(64000) + '[zz',
+    'BRCVAULT1:' + '[ '.repeat(30000),
+    'BRCVAULT1:' + 'AB]'.repeat(20000) + '[ABCD]',
+    'BRCKEY1:' + 'A '.repeat(30000) + '[1234]',
+  ]) {
+    const start = Date.now();
+    assert.throws(() => core.identifyInput(t));
+    assert.ok(Date.now() - start < 500, `took ${Date.now() - start} ms`);
+  }
+  assert.throws(() => core.identifyInput('x'.repeat(core.MAX_INPUT_LENGTH + 1)), /far too long/);
+  // A stray "]" can't hide text from the line checks.
+  const kp = bc.generateKeyPair();
+  const b = await core.encryptWallet({ privateKey: kp.privateKey, address: kp.address }, 'paper backup password', { kdf: FAST });
+  const lines = core.paperCodeText(core.backupToCompact(b)).split('\n');
+  lines[3] = 'junk] ' + lines[3];
+  assert.throws(() => core.identifyInput(lines.join('\n')), /missing its check/);
 });
 
 await test('repetitive passwords are refused and key bytes can be wiped', async () => {

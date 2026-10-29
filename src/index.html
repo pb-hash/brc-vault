@@ -420,7 +420,9 @@ body.is-previewing { overflow: hidden; }
 }
 
 /* ---------- Print: only the paper sheet, when one is open ---------- */
-@page { size: letter; margin: 13mm 14mm; }
+/* No page margin, so browsers have no room to add their own header and footer
+   (page title, date, and the file path, which can include your user name). */
+@page { size: letter; margin: 0; }
 @media print {
   body { background: #fff; color: #000; font-feature-settings: normal; }
   body.is-previewing .app { display: none !important; }
@@ -428,7 +430,7 @@ body.is-previewing { overflow: hidden; }
   .paper-preview { position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; display: block; }
   .pp-bar { display: none !important; }
   .pp-scroll { overflow: visible; padding: 0; }
-  .pp-paper { width: auto; min-height: 0; padding: 0; box-shadow: none; border-radius: 0; }
+  .pp-paper { width: auto; min-height: 0; padding: 13mm 14mm; box-shadow: none; border-radius: 0; }
 }
 </style>
 </head>
@@ -622,7 +624,6 @@ body.is-previewing { overflow: hidden; }
                   <div class="kv-row"><dt id="r-address-label">In backup</dt><dd class="addr-cell"><span class="mono addr" id="r-address"></span><button type="button" class="copy" data-copy="r-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row" id="r-address-note"><dt>Check</dt><dd>Confirmed after you unlock</dd></div>
                 </dl>
-                <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a paper copy of this backup</button></div>
               </div>
             </div>
           </li>
@@ -650,16 +651,17 @@ body.is-previewing { overflow: hidden; }
                 <div id="r-done" hidden>
                   <div class="success success-compact" id="r-success">
                     <div class="logo-moment" data-variant="unlock"><div class="lm-mark"><span class="lm-ring" aria-hidden="true"></span><svg viewBox="/*__MARK_VIEW__*/" aria-hidden="true">/*__MARK_MOMENT__*/</svg></div><span class="lm-word" aria-hidden="true"><span class="wm-light"><i style="--i:0">B</i><i style="--i:1">R</i><i style="--i:2">C</i></span><span class="wm-bold"><i style="--i:3">V</i><i style="--i:4">A</i><i style="--i:5">U</i><i style="--i:6">L</i><i style="--i:7">T</i></span></span></div>
-                    <h3>Backup unlocked</h3>
+                    <h3 id="r-done-title">Backup unlocked</h3>
                   </div>
                   <dl class="kv">
                     <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
-                    <div class="kv-row"><dt>Check</dt><dd class="ok-text">The key matches this address</dd></div>
+                    <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="r-done-check">The key matches this address</dd></div>
                   </dl>
                   <p class="msg" id="r-done-msg" role="status" hidden></p>
                   <label class="check check-plain"><input type="checkbox" id="r-ok-address"><span>This is the wallet address I expected.</span></label>
                   <label class="check"><input type="checkbox" id="r-ok-replace"><span>I understand that <strong>importing</strong> this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.</span></label>
                   <div class="actions"><button type="button" class="btn btn-primary btn-block" id="r-download" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download wallet file</button></div>
+                  <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a new paper copy of this backup</button></div>
                   <ul class="tips">
                     <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Downloading only saves a file. Nothing changes in BrowserCoin until you open Settings, choose Import key, and pick that file.</li>
                     <li class="caution"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 17.5 16.5h-15z"/><path d="M10 8.5v3.5M10 14.25v.25"/></svg>The downloaded file isn't password-protected. Delete it after importing.</li>
@@ -731,7 +733,7 @@ body.is-previewing { overflow: hidden; }
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg><span id="toast-text"></span></div>
 
-<div class="paper-preview" id="paper-preview" role="dialog" aria-modal="true" aria-labelledby="pp-title" hidden>
+<div class="paper-preview" id="paper-preview" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="pp-title" hidden>
   <div class="pp-bar">
     <div class="pp-text">
       <h2 class="pp-title" id="pp-title">Paper backup preview</h2>

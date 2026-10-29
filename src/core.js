@@ -335,24 +335,52 @@ export function paperCodeText(code) {
 export function stripPaperChecks(text) {
   const t = String(text);
   if (!t.includes('[')) return t;
-  const re = /([^[\]]*)\[\s*([0-9a-fA-F]{4})\s*\]/g;
-  let m;
+  // Read line by line, front to back, so every part of the text must belong to
+  // a checked line and no input can make this slow.
+  const CHECK = /\[\s*([0-9a-fA-F]{4})\s*\]/y;
+  const missing = () => new Error('Part of the code is missing its check in brackets. Copy every line, including the [XXXX] at the end.');
+  let pos = 0;
   let line = 0;
   let joined = '';
-  let consumed = 0;
-  while ((m = re.exec(t)) !== null) {
+  for (let open = t.indexOf('[', pos); open !== -1; open = t.indexOf('[', pos)) {
+    const content = t.slice(pos, open);
+    CHECK.lastIndex = open;
+    const m = CHECK.exec(t);
+    if (!m || content.includes(']')) throw missing();
     line++;
-    if (lineCheck(m[1]) !== m[2].toUpperCase()) {
-      throw new Error(`Line ${line} of the backup code has a typo: it doesn't match its check [${m[2].toUpperCase()}]. Compare that line with the paper, watching for 0/D and 8/B.`);
+    if (lineCheck(content) !== m[1].toUpperCase()) {
+      throw new Error(`Line ${line} of the code has a typo: it doesn't match its check [${m[1].toUpperCase()}]. Compare that line with the paper, watching for 0/D and 8/B.`);
     }
-    joined += m[1];
-    consumed = re.lastIndex;
+    joined += content;
+    pos = CHECK.lastIndex;
   }
-  if (line === 0 || t.slice(consumed).trim() !== '') {
-    throw new Error('Part of the backup code is missing its check in brackets. Copy every line, including the [XXXX] at the end.');
-  }
+  if (line === 0 || t.slice(pos).trim() !== '') throw missing();
   return joined;
 }
+
+// ---------------------------------------------------------------------------
+// Unprotected key code: BRCKEY1:<private key>:<first 8 characters of the address>
+// The address part is a typo check: any 64 characters make a valid key, so
+// without it a single wrong character would quietly open a different, empty wallet.
+// ---------------------------------------------------------------------------
+
+export function keyToCode(wallet) {
+  return `${KEY_PREFIX}:${bytesToHex(wallet.privateKey)}:${wallet.address.slice(0, 8)}`.toUpperCase();
+}
+
+/** Paper layout for a key code, one checked line at a time, like the backup code. */
+export function keyCodeLines(code) {
+  const [prefix, key, check] = code.split(':');
+  return [
+    `${prefix}:`,
+    chunkForPaper(key.slice(0, 32)),
+    `${chunkForPaper(key.slice(32))}:`,
+    chunkForPaper(check),
+  ].map((text) => ({ text, check: lineCheck(text) }));
+}
+
+/** Longest text identifyInput will look at. Real wallets, backups and codes are far smaller. */
+export const MAX_INPUT_LENGTH = 64 * 1024;
 
 /** Group a long code into blocks for easier copying by hand. */
 export function chunkForPaper(code, size = 4) {
@@ -372,6 +400,7 @@ export function chunkForPaper(code, size = 4) {
  * it could be an address pasted by mistake, which looks exactly the same.
  */
 export function identifyInput(text) {
+  if (String(text).length > MAX_INPUT_LENGTH) throw new Error('This is far too long to be a wallet, a backup or a key.');
   // QR codes carry "BRCVAULT1 …" / "BRCKEY1 …" with a space, because phone
   // cameras treat "WORD:" as a link to an unknown app and refuse to show it.
   const t = String(text).trim().replace(/^(BRCVAULT1|BRCKEY1)[ \t]+(?=[0-9A-Fa-f])/i, (m, p) => `${p.toUpperCase()}:`);
@@ -381,9 +410,25 @@ export function identifyInput(text) {
     return { kind: 'vault-backup', backup: compactToBackup(stripPaperChecks(t)) };
   }
   if (squashed.startsWith(KEY_PREFIX + ':')) {
-    const hex = squashed.slice(KEY_PREFIX.length + 1).toLowerCase();
-    if (!/^[0-9a-f]{64}$/.test(hex)) throw new Error('This private key code is damaged. It should have 64 characters after BRCKEY1:.');
-    return { kind: 'private-key', wallet: walletFromPrivateKeyHex(hex), ambiguous: false };
+    const parts = stripPaperChecks(t).replace(/\s+/g, '').toLowerCase().split(':');
+    if (parts.length > 3 || !/^[0-9a-f]{64}$/.test(parts[1] || '')) {
+      throw new Error('This private key code is damaged. It should have 64 characters after BRCKEY1:.');
+    }
+    const wallet = walletFromPrivateKeyHex(parts[1]);
+    if (parts.length === 3) {
+      if (!parts[2]) {
+        wipeWallet(wallet);
+        throw new Error('The last line of the code, the address check after the final colon, is missing.');
+      }
+      if (wallet.address.slice(0, 8) !== parts[2]) {
+        wipeWallet(wallet);
+        throw new Error("This private key has a typo: it doesn't match the address check at the end of the code. Compare it with the paper, watching for 0/D and 8/B.");
+      }
+      return { kind: 'private-key', wallet, ambiguous: false, checked: true };
+    }
+    // An older code with no address check: it may still have a typo, so it
+    // gets the same "is this your address?" warning as a bare key.
+    return { kind: 'private-key', wallet, ambiguous: false, checked: false };
   }
   if (t.startsWith('{')) {
     const parsed = parseJsonLoose(t);
