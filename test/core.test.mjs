@@ -288,10 +288,13 @@ await test('24 recovery words match the official BIP39 test vectors for 32-byte 
   for (const [hex, words] of vectors) {
     const w = core.walletFromPrivateKeyHex(hex);
     assert.equal(core.walletToWords(w).join(' '), words);
-    const back = core.identifyInput(words);
-    assert.equal(hexOf(back.wallet.privateKey), hex);
-    assert.equal(back.words, true);
-    assert.equal(back.ambiguous, false);
+    assert.equal(hexOf(core.walletFromWords(words).privateKey), hex);
+    // These keys are published, so the page refuses them as wallets.
+    assert.throws(() => core.identifyInput(words), /well-known example key/);
+    assert.throws(() => core.identifyInput(hex), /well-known example key/);
+  }
+  for (const k of ['9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60', '4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb', '11'.repeat(32)]) {
+    assert.throws(() => core.identifyInput(`BRCKEY1:${k}`), /well-known example key/);
   }
 });
 
@@ -303,12 +306,27 @@ await test('recovery words: forgiving about layout, strict about mistakes', asyn
   for (const t of [
     words.map((x, i) => `${i + 1}. ${x.toUpperCase()}`).join('\n'),
     words.map((x, i) => `${i + 1}) ${x}`).join('  '),
+    words.map((x, i) => `(${i + 1}) ${x}`).join(' '),
+    words.map((x, i) => `${i + 1}.${x}`).join(' '),
     words.join(', '),
     words.map((x) => x.slice(0, 4)).join(' '),
-  ]) assert.equal(core.identifyInput(t).wallet.address, kp.address);
+  ]) {
+    const id = core.identifyInput(t);
+    assert.equal(id.wallet.address, kp.address);
+    assert.equal(id.checked, false); // words still get the "is this your address?" check
+  }
+  // A numbered grid copied across the rows instead of down the columns: the numbers decide the order.
+  const grid = [];
+  for (let row = 0; row < 6; row++) for (let col = 0; col < 4; col++) { const n = col * 6 + row; grid.push(`${n + 1}. ${words[n]}`); }
+  assert.equal(core.identifyInput(grid.join(' ')).wallet.address, kp.address);
+  // Numbers that don't run 1 to 24 once each are refused rather than guessed.
+  const dup = words.map((x, i) => `${i === 5 ? 1 : i + 1}. ${x}`).join(' ');
+  assert.throws(() => core.identifyInput(dup), /Number every word 1 to 24/);
+  const someNumbered = words.map((x, i) => (i < 3 ? `${i + 1}. ${x}` : x)).join(' ');
+  assert.throws(() => core.identifyInput(someNumbered), /Number every word 1 to 24/);
   // Misspelt word: named by position.
   const bad = [...words]; bad[6] = 'qqqqzz';
-  assert.throws(() => core.identifyInput(bad.join(' ')), /Word 7 \("qqqqzz"\) isn't on the recovery word list/);
+  assert.throws(() => core.identifyInput(bad.join(' ')), (e) => /Word 7 isn't on the recovery word list/.test(e.message) && !e.message.includes('qqqq'));
   // Two words swapped: almost always caught by the built-in check.
   let caught = 0;
   for (let i = 0; i < 20; i++) {

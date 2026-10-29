@@ -273,7 +273,7 @@ export function validateDesktopBackup(d) {
   if (!d || typeof d !== 'object' || d.type !== BROWSERCOIN_WALLET_TYPE || d.encrypted !== true) {
     throw new Error('This is not a password-protected BRC Wallet file.');
   }
-  if (d.version !== 2) throw new Error(`This BRC Wallet file is version ${String(d.version).slice(0, 8)}; BRC Vault reads version 2.`);
+  if (d.version !== 2) throw new Error(`This BRC Wallet file has a version (${JSON.stringify(d.version ?? null).slice(0, 12)}) BRC Vault doesn't know; it reads version 2.`);
   if (d.kdf !== 'scrypt' || d.cipher !== 'aes-256-gcm') throw new Error('This wallet file uses an encryption method BRC Vault does not know.');
   const kp = d.kdfParams || {};
   const N = kp.N;
@@ -342,34 +342,59 @@ const BY_PREFIX = new Map(BIP39_ENGLISH.map((w) => [w.slice(0, 4), w]));
 /** True if the text looks like a list of words rather than a key, file or code. */
 export function looksLikeWords(text) {
   const t = String(text).trim();
-  if (!/^[\sa-z0-9.,):;-]+$/i.test(t)) return false;
-  return wordTokens(t).filter((w) => /^[a-z]+$/.test(w)).length >= 6;
-}
-
-function wordTokens(text) {
-  return String(text).toLowerCase()
-    .split(/[\s,;]+/)
-    .map((t) => t.replace(/^\d{1,2}[.):-]*/, '').replace(/[.]$/, ''))
-    .filter(Boolean);
+  if (!/^[\sa-z0-9.,():;-]+$/i.test(t)) return false;
+  return wordTokens(t).words.filter((w) => /^[a-z]+$/.test(w)).length >= 6;
 }
 
 /**
- * Read 24 recovery words. Numbers ("1." or "1)") and commas are ignored, case
- * doesn't matter, and since every word on the list is unique in its first four
- * letters, those four are enough (as many metal backup plates store them).
+ * Split typed words into a list. Numbers written next to the words ("1." "1)"
+ * "(1)") are kept, because people often copy a grid in a different order than
+ * it was numbered: when numbers are present they decide the order.
+ */
+function wordTokens(text) {
+  const words = [];
+  const numbers = [];
+  let pending = null;
+  for (const raw of String(text).toLowerCase().split(/[\s,;]+/)) {
+    const m = /^\(?(\d{1,3})[.):-]*\)?(.*)$/.exec(raw);
+    let rest = raw;
+    if (m) { pending = Number(m[1]); rest = m[2]; }
+    rest = rest.replace(/[.]$/, '');
+    if (!rest) continue;
+    words.push(rest);
+    numbers.push(pending);
+    pending = null;
+  }
+  return { words, numbers };
+}
+
+/**
+ * Read 24 recovery words. Commas and capital letters don't matter, and since
+ * every word on the list is unique in its first four letters, those four are
+ * enough. If the words are numbered, every word needs its number, 1 to 24.
  */
 export function walletFromWords(text) {
-  const tokens = wordTokens(text);
+  const { words: tokens, numbers } = wordTokens(text);
   if (tokens.length !== 24) {
     throw new Error(tokens.length === 12
       ? 'That is 12 words. BrowserCoin wallets use 24 recovery words.'
       : `That is ${tokens.length} words. BrowserCoin recovery words are a list of 24.`);
   }
-  const words = tokens.map((t, i) => {
+  let ordered = tokens;
+  if (numbers.some((n) => n !== null)) {
+    const seen = new Set(numbers);
+    const complete = numbers.every((n) => Number.isInteger(n) && n >= 1 && n <= 24) && seen.size === 24;
+    if (!complete) {
+      throw new Error('Some words are numbered and some aren\'t, or a number is missing or used twice. Number every word 1 to 24, or leave all the numbers out and type the words in order.');
+    }
+    ordered = [];
+    numbers.forEach((n, i) => { ordered[n - 1] = tokens[i]; });
+  }
+  const words = ordered.map((t, i) => {
     if (WORD_SET.has(t)) return t;
     const full = t.length >= 4 ? BY_PREFIX.get(t.slice(0, 4)) : undefined;
     if (full && full.startsWith(t)) return full;
-    throw new Error(`Word ${i + 1} ("${t.slice(0, 20)}") isn't on the recovery word list. Check its spelling against the paper.`);
+    throw new Error(`Word ${i + 1} isn't on the recovery word list. Check its spelling against the paper.`);
   });
   let entropy;
   try {
@@ -379,6 +404,30 @@ export function walletFromWords(text) {
   }
   const wallet = { privateKey: Uint8Array.from(entropy), address: addressFromPrivateKey(entropy) };
   entropy.fill(0);
+  return wallet;
+}
+
+// Keys published as test examples (official BIP39 and RFC 8032 test vectors,
+// and keys made of one repeated byte). Anyone can take coins sent to them.
+const PUBLISHED_TEST_KEYS = new Set([
+  '68a79eaca2324873eacc50cb9c6eca8cc68ea5d936f98787c60c7ebc74e6ce7c',
+  '9f6a2878b2520799a44ef18bc7df394e7061a224d2c33cd015b157d746869863',
+  '066dca1a2bb7e8a1db2832148ce9933eea0f3ac9548d793112d9a95c9407efad',
+  'f585c11aec520db57dd353c69554b21a89b20fb0650966fa0a9d6f74fd989d8f',
+  '9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60',
+  '4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb',
+  'c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7',
+  'f5e5767cf153319517630f226876b86c8160cc583bc013744c6bf255f5cc0ee5',
+  '833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42',
+]);
+
+/** Refuse keys that are published online as examples. */
+export function refuseWellKnownKey(wallet) {
+  const hex = bytesToHex(wallet.privateKey);
+  if (/^(..)\1{31}$/.test(hex) || PUBLISHED_TEST_KEYS.has(hex)) {
+    wipeWallet(wallet);
+    throw new Error('This is a well-known example key that is published online, so anyone can take coins sent to it. Use your own wallet\'s key or words.');
+  }
   return wallet;
 }
 
@@ -546,7 +595,7 @@ export function identifyInput(text) {
     if (parts.length > 3 || !/^[0-9a-f]{64}$/.test(parts[1] || '')) {
       throw new Error('This private key code is damaged. It should have 64 characters after BRCKEY1:.');
     }
-    const wallet = walletFromPrivateKeyHex(parts[1]);
+    const wallet = refuseWellKnownKey(walletFromPrivateKeyHex(parts[1]));
     if (parts.length === 3) {
       if (!parts[2]) {
         wipeWallet(wallet);
@@ -567,20 +616,25 @@ export function identifyInput(text) {
     if (parsed) {
       if (parsed.type === BACKUP_TYPE) return { kind: 'vault-backup', backup: validateBackup(parsed) };
       if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: 'desktop-backup', backup: validateDesktopBackup(parsed) };
-      if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: 'browsercoin-wallet', wallet: parseBrowserCoinWallet(JSON.stringify(parsed)) };
+      if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: 'browsercoin-wallet', wallet: refuseWellKnownKey(parseBrowserCoinWallet(JSON.stringify(parsed))) };
       throw new Error('This file is neither a BrowserCoin wallet nor a BRC Vault backup.');
     }
     const rescued = rescueFromDamagedText(t);
     if (rescued) return rescued;
+    if (/browsercoin-wallet/.test(t) && /encrypted/.test(t)) {
+      throw new Error('This password-protected BRC Wallet file was changed by another app, such as a text editor, and can\'t be read. Use the original file the BRC Wallet desktop app saved.');
+    }
     if (/^\{\\rtf/.test(t)) {
       throw new Error('This file was re-saved by a word processor such as TextEdit, which changed its format, and the key could not be recovered from it. Use the original file BrowserCoin downloaded.');
     }
     throw new Error("This file is incomplete or was changed by another app, so it can't be read. Use the original file BrowserCoin downloaded (named browsercoin-wallet-…json), not a copy opened and saved in a text editor.");
   }
   const hex = t.replace(/\s+/g, '').toLowerCase().replace(/^0x/, '');
-  if (/^[0-9a-f]{64}$/.test(hex)) return { kind: 'private-key', wallet: walletFromPrivateKeyHex(hex), ambiguous: true };
-  if (looksLikeWords(t)) return { kind: 'private-key', wallet: walletFromWords(t), ambiguous: false, checked: true, words: true };
-  throw new Error('Could not recognise this. Use a BrowserCoin wallet file, a BRC Vault backup, or a private key.');
+  if (/^[0-9a-f]{64}$/.test(hex)) return { kind: 'private-key', wallet: refuseWellKnownKey(walletFromPrivateKeyHex(hex)), ambiguous: true };
+  // Recovery words have only a small built-in check, so the address still
+  // needs a look: the page asks, as it does for an unchecked key.
+  if (looksLikeWords(t)) return { kind: 'private-key', wallet: refuseWellKnownKey(walletFromWords(t)), ambiguous: false, checked: false, words: true };
+  throw new Error('Could not recognise this. Use a BrowserCoin wallet file, a BRC Vault backup, a private key, or 24 recovery words.');
 }
 
 // ---------------------------------------------------------------------------

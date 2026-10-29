@@ -376,6 +376,7 @@ function selectTab(name) {
   if (name !== 'restore') {
     if (intakes.r && intakes.r.mode() === 'scan') intakes.r.setMode('file');
     stopScan();
+    if ($('#r-words-wrap')) closeRestoreWords();
   }
   $('#segmented').dataset.active = name;
   $$('[role="tab"]').forEach((t) => {
@@ -554,7 +555,7 @@ function resetBackupOutput() {
 
 /** A bare 64-character key needs a confirmation, because an address looks identical. */
 function backupKeyConfirmed() {
-  return backup.kind !== 'ambiguous-key' || $('#b-key-confirm').checked;
+  return !backup.confirm || $('#b-key-confirm').checked;
 }
 
 function loadWalletForBackup(text, source) {
@@ -570,11 +571,19 @@ function loadWalletForBackup(text, source) {
     if (id.kind === 'desktop-backup') throw new Error('That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.');
     backup.wallet = id.wallet;
     backup.kind = id.kind === 'private-key' ? (id.words ? 'words' : id.ambiguous ? 'ambiguous-key' : 'key') : 'file';
+    // A bare key, an old key code with no check, or recovery words: ask the
+    // person to compare the address before anything is locked.
+    backup.confirm = Boolean(id.ambiguous || id.checked === false);
+    $('#b-key-confirm-text').innerHTML = backup.kind === 'words'
+      ? 'The address above is the one my wallet app shows. <strong>A mistyped or out-of-order word</strong> can, rarely, make a different, empty wallet.'
+      : 'I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.';
     renderAddress($('#b-address'), id.wallet.address);
     show($('#b-loaded'), true);
-    show($('#b-key-confirm-wrap'), backup.kind === 'ambiguous-key');
+    show($('#b-key-confirm-wrap'), backup.confirm);
     if (backup.kind === 'ambiguous-key') {
       setMessage(msg, 'Check the address below before going on. A wallet address looks exactly like a private key, and backing up an address protects nothing.', 'warn');
+    } else if (backup.confirm) {
+      setMessage(msg, 'Check the address below against the one your wallet shows before going on.', 'warn');
     } else if (id.rescued) {
       setMessage(msg, 'This file had been changed by another app, such as a text editor. BRC Vault recovered the key and confirmed it matches the address.', 'info');
     } else {
@@ -588,6 +597,7 @@ function loadWalletForBackup(text, source) {
   } catch (e) {
     backup.wallet = null;
     backup.kind = null;
+    backup.confirm = false;
     show($('#b-loaded'), false);
     if (intakes.b.mode() === 'loaded') intakes.b.setMode('file');
     setMessage(msg, e.message, 'bad');
@@ -698,12 +708,13 @@ $('#b-print-plain').addEventListener('click', () => {
 // Restore
 // ---------------------------------------------------------------------------
 
-const restore = { pending: null, wallet: null, busy: false };
+const restore = { pending: null, wallet: null, busy: false, unverified: false, toBackup: false };
 
 function resetRestore() {
   gen.restore++;
-  $('#r-words-wrap').open = false;
-  $('#r-words').innerHTML = '';
+  closeRestoreWords();
+  restore.unverified = false;
+  restore.toBackup = false;
   show($('#r-reprint-row'), false);
   $('#r-success').classList.remove('is-in');
   delete $('#r-step1').dataset.collapsed;
@@ -799,7 +810,8 @@ function finishRestore(wallet, ambiguous, from = 'key') {
   const unlocked = Boolean(restore.pending);
   const desktop = unlocked && restore.pending.format === core.DESKTOP_FORMAT;
   show($('#r-reprint-row'), unlocked && !desktop);
-  show($('#r-to-backup-row'), !unlocked || desktop);
+  restore.unverified = Boolean(ambiguous);
+  restore.toBackup = !unlocked || desktop;
   $('#r-done-title').textContent = desktop ? 'Wallet file unlocked' : unlocked ? 'Backup unlocked' : 'Wallet ready';
   $('#r-done-check').textContent = desktop ? 'The key matches the address in the wallet file'
     : unlocked ? 'The key matches the address in the backup'
@@ -808,7 +820,9 @@ function finishRestore(wallet, ambiguous, from = 'key') {
   $('#r-step1').dataset.collapsed = '';
   $('#r-step2').dataset.collapsed = '';
   setMessage($('#r-load-msg'), '');
-  setMessage($('#r-done-msg'), ambiguous
+  setMessage($('#r-done-msg'), ambiguous && from === 'words'
+    ? 'Check this address against the one your wallet app shows. A mistyped or out-of-order word can, rarely, still pass the words\' built-in check and open a different, empty wallet.'
+    : ambiguous
     ? 'Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn\'t your address, use your locked backup code or the full BRCKEY1 code from your paper wallet.'
     : '', 'warn');
   renderAddress($('#r-done-address'), wallet.address);
@@ -823,7 +837,8 @@ function finishRestore(wallet, ambiguous, from = 'key') {
 // Words, a key or a desktop wallet file can be turned straight into a BRC Vault backup.
 $('#r-to-backup').addEventListener('click', () => {
   const w = restore.wallet;
-  if (!w) return;
+  if (!w || (restore.unverified && !$('#r-ok-address').checked)) return;
+  closeRestoreWords();
   selectTab('backup');
   restartBackup();
   loadWalletForBackup(core.browserCoinWalletJson(w), 'Wallet from Restore');
@@ -839,8 +854,19 @@ $('#r-words-wrap').addEventListener('toggle', () => {
     .map((w, i) => `<li><span class="n">${i + 1}</span>${escapeHtml(w)}</li>`).join('');
 });
 
+function closeRestoreWords() {
+  $('#r-words-wrap').open = false;
+  $('#r-words').innerHTML = '';
+}
+
 function updateRestoreDownload() {
   $('#r-download').disabled = !(restore.wallet && $('#r-ok-address').checked && $('#r-ok-replace').checked);
+  // Until an unchecked address has been confirmed, don't offer to back it up
+  // or show its words: they might belong to the wrong wallet.
+  const confirmed = Boolean(restore.wallet) && (!restore.unverified || $('#r-ok-address').checked);
+  show($('#r-to-backup-row'), confirmed && Boolean(restore.toBackup));
+  show($('#r-words-wrap'), confirmed);
+  if (!confirmed) closeRestoreWords();
 }
 ['#r-ok-address', '#r-ok-replace'].forEach((s) => $(s).addEventListener('change', updateRestoreDownload));
 
@@ -1025,6 +1051,7 @@ function restartBackup() {
   backup.wallet = null;
   backup.result = null;
   backup.kind = null;
+  backup.confirm = false;
   ['#b-password', '#b-confirm'].forEach((s) => { $(s).value = ''; });
   $('#b-understand').checked = false;
   $('#b-key-confirm').checked = false;
@@ -1064,6 +1091,7 @@ $('#clear-all').addEventListener('click', () => {
   backup.wallet = null;
   backup.result = null;
   backup.kind = null;
+  backup.confirm = false;
   $$('input[type="password"], input[type="text"], textarea').forEach((i) => { i.value = ''; });
   $$('input[type="checkbox"]').forEach((c) => { c.checked = false; });
   $$('[data-reveal]').forEach((b) => {

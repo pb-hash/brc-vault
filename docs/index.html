@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- No network access at all: this page cannot load or send anything. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ho88ziZ59sAq3OOyTe9O05leMyNJeakgMjK++WQt3oE='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-RPfW2xcIJLPaIK9LF0po/jEyo3mJdgB6UFuBVpwJ+eM='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="x-dns-prefetch-control" content="off">
 <meta name="color-scheme" content="light">
@@ -254,9 +254,9 @@ button, input, textarea { font: inherit; color: inherit; }
 .risky { margin-top: 1.1rem; }
 .risky p { font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
 .risky p strong { color: var(--danger); font-weight: 500; }
-.words { margin: 0.75rem 0 0; padding: 0.85rem 1rem; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(6, auto); gap: 0.35rem 1rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface); font: 0.9rem/1.5 var(--mono); }
+.words { margin: 0.75rem 0 0; padding: 0.85rem 1rem; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.35rem 1rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface); font: 0.9rem/1.5 var(--mono); }
 .words .n, .ps-wordgrid .n { display: inline-block; min-width: 1.6em; color: var(--muted); text-align: right; margin-right: 0.45em; font-variant-numeric: tabular-nums; }
-@media (max-width: 40rem) { .words { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(12, auto); } }
+@media (max-width: 40rem) { .words { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .foot-actions { display: flex; align-items: center; gap: 1.1rem; }
 .sound-toggle { display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -400,7 +400,7 @@ body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-t
 .ps-mono { margin: 0; font: 9.6pt/1.65 var(--mono); letter-spacing: 0.01em; word-break: break-word; font-feature-settings: "zero"; }
 .ps-check { color: #555; }
 .ps-panel.ps-words { grid-template-columns: 1fr; gap: 0; }
-.ps-wordgrid { margin: 1mm 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: column; grid-template-rows: repeat(6, auto); gap: 1mm 6mm; font: 10pt/1.6 var(--mono); }
+.ps-wordgrid { margin: 1mm 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1mm 6mm; font: 10pt/1.6 var(--mono); }
 .ps-wordgrid .n { color: #555; }
 .ps-steps { margin-top: 6mm; display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; break-inside: avoid; }
 .ps-steps h3 { margin: 0 0 1.5mm; font-size: 10.5pt; font-weight: 600; }
@@ -512,7 +512,7 @@ body.is-previewing { overflow: hidden; }
                   <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row"><dt>Check</dt><dd class="ok-text">The key matches this address</dd></div>
                 </dl>
-                <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span>I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
+                <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span id="b-key-confirm-text">I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
               </div>
             </div>
           </li>
@@ -735,7 +735,7 @@ body.is-previewing { overflow: hidden; }
         <p>Key = scrypt(password normalized to NFKC, salt, N = 2^logN, r, p, 32). Ciphertext = AES-256-GCM(key, iv, private key) with associated data <code>brc-vault-backup|1|address|scrypt|logN|r|p|dkLen|salt|iv</code>, so changing any field makes decryption fail.</p>
         <p>The paper code is the same backup on one line, in upper case: <code>BRCVAULT1:ADDRESS:LOGN:R:P:SALT:IV:CIPHERTEXT</code>, and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the <code>BRCVAULT1:</code> prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as <code>BRCKEY1:KEY:CHECK</code>, where CHECK is the first 8 characters of the address, so it can't be mistaken for an address and a typo in the key is caught.</p>
         <h4>Recovery words</h4>
-        <p>The 24 recovery words are standard BIP39 English, with the 32-byte private key used directly as the entropy (no passphrase, no derivation path). That is exactly what the BRC Wallet Android app shows and accepts, so the same words work in both. Numbers, commas and capital letters are ignored when you type them, and the first four letters of each word are enough.</p>
+        <p>The 24 recovery words are standard BIP39 English, with the 32-byte private key used directly as the entropy (no passphrase, no derivation path). That is exactly what the BRC Wallet Android app shows and accepts, so the same words work in both. When you type them here, commas and capital letters don't matter and the first four letters of each word are enough; if you number the words, the numbers set the order. The Android app needs the full words in lower case, in order.</p>
         <h4>Other wallets' files</h4>
         <p>Password-protected files from the BRC Wallet desktop app (<code>"type": "browsercoin-wallet", "version": 2, "encrypted": true</code>) open in Restore. They use scrypt with the password exactly as typed and AES-256-GCM with a separate <code>authTag</code>; the same setting limits apply.</p>
         <h4>Credits</h4>
@@ -744,7 +744,7 @@ body.is-previewing { overflow: hidden; }
     </details>
 
     <footer class="site-foot">
-      <span>BRC Vault, version 1, build 868f3cce</span>
+      <span>BRC Vault, version 1, build 44f7d6db</span>
       <span>Free and open source under the MIT License</span>
     </footer>
   </main>
@@ -776,6 +776,23 @@ body.is-previewing { overflow: hidden; }
  * @scure/base (MIT) — Copyright (c) 2022 Paul Miller (https://paulmillr.com)
  * qrcode-generator (MIT) — Copyright (c) 2009 Kazuhiko Arase
  * jsQR (Apache License 2.0) — by Cosmo Wolfe and contributors, github.com/cozmo/jsQR; see third-party/jsQR-LICENSE
+ *
+ * The MIT-licensed libraries above are provided under this notice:
+ *   Permission is hereby granted, free of charge, to any person obtaining a copy
+ *   of this software and associated documentation files (the "Software"), to deal
+ *   in the Software without restriction, including without limitation the rights
+ *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *   copies of the Software, and to permit persons to whom the Software is
+ *   furnished to do so, subject to the following conditions:
+ *   The above copyright notice and this permission notice shall be included in
+ *   all copies or substantial portions of the Software.
+ *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *   SOFTWARE.
  */
 (() => {
   var __create = Object.create;
@@ -7067,7 +7084,7 @@ zoo`.split("\n");
     if (!d || typeof d !== "object" || d.type !== BROWSERCOIN_WALLET_TYPE || d.encrypted !== true) {
       throw new Error("This is not a password-protected BRC Wallet file.");
     }
-    if (d.version !== 2) throw new Error(`This BRC Wallet file is version ${String(d.version).slice(0, 8)}; BRC Vault reads version 2.`);
+    if (d.version !== 2) throw new Error(`This BRC Wallet file has a version (${JSON.stringify(d.version ?? null).slice(0, 12)}) BRC Vault doesn't know; it reads version 2.`);
     if (d.kdf !== "scrypt" || d.cipher !== "aes-256-gcm") throw new Error("This wallet file uses an encryption method BRC Vault does not know.");
     const kp = d.kdfParams || {};
     const N2 = kp.N;
@@ -7125,22 +7142,50 @@ zoo`.split("\n");
   var BY_PREFIX = new Map(wordlist.map((w) => [w.slice(0, 4), w]));
   function looksLikeWords(text) {
     const t = String(text).trim();
-    if (!/^[\sa-z0-9.,):;-]+$/i.test(t)) return false;
-    return wordTokens(t).filter((w) => /^[a-z]+$/.test(w)).length >= 6;
+    if (!/^[\sa-z0-9.,():;-]+$/i.test(t)) return false;
+    return wordTokens(t).words.filter((w) => /^[a-z]+$/.test(w)).length >= 6;
   }
   function wordTokens(text) {
-    return String(text).toLowerCase().split(/[\s,;]+/).map((t) => t.replace(/^\d{1,2}[.):-]*/, "").replace(/[.]$/, "")).filter(Boolean);
+    const words = [];
+    const numbers = [];
+    let pending = null;
+    for (const raw of String(text).toLowerCase().split(/[\s,;]+/)) {
+      const m = /^\(?(\d{1,3})[.):-]*\)?(.*)$/.exec(raw);
+      let rest = raw;
+      if (m) {
+        pending = Number(m[1]);
+        rest = m[2];
+      }
+      rest = rest.replace(/[.]$/, "");
+      if (!rest) continue;
+      words.push(rest);
+      numbers.push(pending);
+      pending = null;
+    }
+    return { words, numbers };
   }
   function walletFromWords(text) {
-    const tokens = wordTokens(text);
+    const { words: tokens, numbers } = wordTokens(text);
     if (tokens.length !== 24) {
       throw new Error(tokens.length === 12 ? "That is 12 words. BrowserCoin wallets use 24 recovery words." : `That is ${tokens.length} words. BrowserCoin recovery words are a list of 24.`);
     }
-    const words = tokens.map((t, i) => {
+    let ordered = tokens;
+    if (numbers.some((n) => n !== null)) {
+      const seen = new Set(numbers);
+      const complete = numbers.every((n) => Number.isInteger(n) && n >= 1 && n <= 24) && seen.size === 24;
+      if (!complete) {
+        throw new Error("Some words are numbered and some aren't, or a number is missing or used twice. Number every word 1 to 24, or leave all the numbers out and type the words in order.");
+      }
+      ordered = [];
+      numbers.forEach((n, i) => {
+        ordered[n - 1] = tokens[i];
+      });
+    }
+    const words = ordered.map((t, i) => {
       if (WORD_SET.has(t)) return t;
       const full = t.length >= 4 ? BY_PREFIX.get(t.slice(0, 4)) : void 0;
       if (full && full.startsWith(t)) return full;
-      throw new Error(`Word ${i + 1} ("${t.slice(0, 20)}") isn't on the recovery word list. Check its spelling against the paper.`);
+      throw new Error(`Word ${i + 1} isn't on the recovery word list. Check its spelling against the paper.`);
     });
     let entropy;
     try {
@@ -7150,6 +7195,25 @@ zoo`.split("\n");
     }
     const wallet = { privateKey: Uint8Array.from(entropy), address: addressFromPrivateKey(entropy) };
     entropy.fill(0);
+    return wallet;
+  }
+  var PUBLISHED_TEST_KEYS = /* @__PURE__ */ new Set([
+    "68a79eaca2324873eacc50cb9c6eca8cc68ea5d936f98787c60c7ebc74e6ce7c",
+    "9f6a2878b2520799a44ef18bc7df394e7061a224d2c33cd015b157d746869863",
+    "066dca1a2bb7e8a1db2832148ce9933eea0f3ac9548d793112d9a95c9407efad",
+    "f585c11aec520db57dd353c69554b21a89b20fb0650966fa0a9d6f74fd989d8f",
+    "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+    "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+    "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
+    "f5e5767cf153319517630f226876b86c8160cc583bc013744c6bf255f5cc0ee5",
+    "833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"
+  ]);
+  function refuseWellKnownKey(wallet) {
+    const hex = bytesToHex2(wallet.privateKey);
+    if (/^(..)\1{31}$/.test(hex) || PUBLISHED_TEST_KEYS.has(hex)) {
+      wipeWallet(wallet);
+      throw new Error("This is a well-known example key that is published online, so anyone can take coins sent to it. Use your own wallet's key or words.");
+    }
     return wallet;
   }
   function backupToCompact(b) {
@@ -7247,7 +7311,7 @@ zoo`.split("\n");
       if (parts.length > 3 || !/^[0-9a-f]{64}$/.test(parts[1] || "")) {
         throw new Error("This private key code is damaged. It should have 64 characters after BRCKEY1:.");
       }
-      const wallet = walletFromPrivateKeyHex(parts[1]);
+      const wallet = refuseWellKnownKey(walletFromPrivateKeyHex(parts[1]));
       if (parts.length === 3) {
         if (!parts[2]) {
           wipeWallet(wallet);
@@ -7266,20 +7330,23 @@ zoo`.split("\n");
       if (parsed) {
         if (parsed.type === BACKUP_TYPE) return { kind: "vault-backup", backup: validateBackup(parsed) };
         if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: "desktop-backup", backup: validateDesktopBackup(parsed) };
-        if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: "browsercoin-wallet", wallet: parseBrowserCoinWallet(JSON.stringify(parsed)) };
+        if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: "browsercoin-wallet", wallet: refuseWellKnownKey(parseBrowserCoinWallet(JSON.stringify(parsed))) };
         throw new Error("This file is neither a BrowserCoin wallet nor a BRC Vault backup.");
       }
       const rescued = rescueFromDamagedText(t);
       if (rescued) return rescued;
+      if (/browsercoin-wallet/.test(t) && /encrypted/.test(t)) {
+        throw new Error("This password-protected BRC Wallet file was changed by another app, such as a text editor, and can't be read. Use the original file the BRC Wallet desktop app saved.");
+      }
       if (/^\{\\rtf/.test(t)) {
         throw new Error("This file was re-saved by a word processor such as TextEdit, which changed its format, and the key could not be recovered from it. Use the original file BrowserCoin downloaded.");
       }
       throw new Error("This file is incomplete or was changed by another app, so it can't be read. Use the original file BrowserCoin downloaded (named browsercoin-wallet-\u2026json), not a copy opened and saved in a text editor.");
     }
     const hex = t.replace(/\s+/g, "").toLowerCase().replace(/^0x/, "");
-    if (/^[0-9a-f]{64}$/.test(hex)) return { kind: "private-key", wallet: walletFromPrivateKeyHex(hex), ambiguous: true };
-    if (looksLikeWords(t)) return { kind: "private-key", wallet: walletFromWords(t), ambiguous: false, checked: true, words: true };
-    throw new Error("Could not recognise this. Use a BrowserCoin wallet file, a BRC Vault backup, or a private key.");
+    if (/^[0-9a-f]{64}$/.test(hex)) return { kind: "private-key", wallet: refuseWellKnownKey(walletFromPrivateKeyHex(hex)), ambiguous: true };
+    if (looksLikeWords(t)) return { kind: "private-key", wallet: refuseWellKnownKey(walletFromWords(t)), ambiguous: false, checked: false, words: true };
+    throw new Error("Could not recognise this. Use a BrowserCoin wallet file, a BRC Vault backup, a private key, or 24 recovery words.");
   }
   function parseJsonLoose(text) {
     const t = String(text).replace(/^﻿/, "");
@@ -7754,6 +7821,7 @@ zoo`.split("\n");
     if (name !== "restore") {
       if (intakes.r && intakes.r.mode() === "scan") intakes.r.setMode("file");
       stopScan();
+      if ($("#r-words-wrap")) closeRestoreWords();
     }
     $("#segmented").dataset.active = name;
     $$('[role="tab"]').forEach((t) => {
@@ -7927,7 +7995,7 @@ zoo`.split("\n");
     setMessage($("#b-saved-msg"), "");
   }
   function backupKeyConfirmed() {
-    return backup.kind !== "ambiguous-key" || $("#b-key-confirm").checked;
+    return !backup.confirm || $("#b-key-confirm").checked;
   }
   function loadWalletForBackup(text, source) {
     const msg = $("#b-load-msg");
@@ -7942,11 +8010,15 @@ zoo`.split("\n");
       if (id.kind === "desktop-backup") throw new Error("That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.");
       backup.wallet = id.wallet;
       backup.kind = id.kind === "private-key" ? id.words ? "words" : id.ambiguous ? "ambiguous-key" : "key" : "file";
+      backup.confirm = Boolean(id.ambiguous || id.checked === false);
+      $("#b-key-confirm-text").innerHTML = backup.kind === "words" ? "The address above is the one my wallet app shows. <strong>A mistyped or out-of-order word</strong> can, rarely, make a different, empty wallet." : "I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.";
       renderAddress($("#b-address"), id.wallet.address);
       show($("#b-loaded"), true);
-      show($("#b-key-confirm-wrap"), backup.kind === "ambiguous-key");
+      show($("#b-key-confirm-wrap"), backup.confirm);
       if (backup.kind === "ambiguous-key") {
         setMessage(msg, "Check the address below before going on. A wallet address looks exactly like a private key, and backing up an address protects nothing.", "warn");
+      } else if (backup.confirm) {
+        setMessage(msg, "Check the address below against the one your wallet shows before going on.", "warn");
       } else if (id.rescued) {
         setMessage(msg, "This file had been changed by another app, such as a text editor. BRC Vault recovered the key and confirmed it matches the address.", "info");
       } else {
@@ -7960,6 +8032,7 @@ zoo`.split("\n");
     } catch (e) {
       backup.wallet = null;
       backup.kind = null;
+      backup.confirm = false;
       show($("#b-loaded"), false);
       if (intakes.b.mode() === "loaded") intakes.b.setMode("file");
       setMessage(msg, e.message, "bad");
@@ -8069,11 +8142,12 @@ zoo`.split("\n");
     }
     openPaperPreview(plainSheet(backup.wallet), "plain");
   });
-  var restore = { pending: null, wallet: null, busy: false };
+  var restore = { pending: null, wallet: null, busy: false, unverified: false, toBackup: false };
   function resetRestore() {
     gen.restore++;
-    $("#r-words-wrap").open = false;
-    $("#r-words").innerHTML = "";
+    closeRestoreWords();
+    restore.unverified = false;
+    restore.toBackup = false;
     show($("#r-reprint-row"), false);
     $("#r-success").classList.remove("is-in");
     delete $("#r-step1").dataset.collapsed;
@@ -8164,14 +8238,15 @@ zoo`.split("\n");
     const unlocked = Boolean(restore.pending);
     const desktop = unlocked && restore.pending.format === DESKTOP_FORMAT;
     show($("#r-reprint-row"), unlocked && !desktop);
-    show($("#r-to-backup-row"), !unlocked || desktop);
+    restore.unverified = Boolean(ambiguous);
+    restore.toBackup = !unlocked || desktop;
     $("#r-done-title").textContent = desktop ? "Wallet file unlocked" : unlocked ? "Backup unlocked" : "Wallet ready";
     $("#r-done-check").textContent = desktop ? "The key matches the address in the wallet file" : unlocked ? "The key matches the address in the backup" : from === "words" ? "Address worked out from these words" : "Address worked out from this key";
     $("#r-sum-unlock").textContent = unlocked ? "Unlocked with your password" : "No password needed";
     $("#r-step1").dataset.collapsed = "";
     $("#r-step2").dataset.collapsed = "";
     setMessage($("#r-load-msg"), "");
-    setMessage($("#r-done-msg"), ambiguous ? "Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn't your address, use your locked backup code or the full BRCKEY1 code from your paper wallet." : "", "warn");
+    setMessage($("#r-done-msg"), ambiguous && from === "words" ? "Check this address against the one your wallet app shows. A mistyped or out-of-order word can, rarely, still pass the words' built-in check and open a different, empty wallet." : ambiguous ? "Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn't your address, use your locked backup code or the full BRCKEY1 code from your paper wallet." : "", "warn");
     renderAddress($("#r-done-address"), wallet.address);
     if (restore.pending) playLockMoment($("#r-success"), "unlock");
     else $("#r-success").classList.add("is-in");
@@ -8182,7 +8257,8 @@ zoo`.split("\n");
   }
   $("#r-to-backup").addEventListener("click", () => {
     const w = restore.wallet;
-    if (!w) return;
+    if (!w || restore.unverified && !$("#r-ok-address").checked) return;
+    closeRestoreWords();
     selectTab("backup");
     restartBackup();
     loadWalletForBackup(browserCoinWalletJson(w), "Wallet from Restore");
@@ -8194,8 +8270,16 @@ zoo`.split("\n");
     if (!$("#r-words-wrap").open || !restore.wallet) return;
     list.innerHTML = walletToWords(restore.wallet).map((w, i) => `<li><span class="n">${i + 1}</span>${escapeHtml(w)}</li>`).join("");
   });
+  function closeRestoreWords() {
+    $("#r-words-wrap").open = false;
+    $("#r-words").innerHTML = "";
+  }
   function updateRestoreDownload() {
     $("#r-download").disabled = !(restore.wallet && $("#r-ok-address").checked && $("#r-ok-replace").checked);
+    const confirmed = Boolean(restore.wallet) && (!restore.unverified || $("#r-ok-address").checked);
+    show($("#r-to-backup-row"), confirmed && Boolean(restore.toBackup));
+    show($("#r-words-wrap"), confirmed);
+    if (!confirmed) closeRestoreWords();
   }
   ["#r-ok-address", "#r-ok-replace"].forEach((s) => $(s).addEventListener("change", updateRestoreDownload));
   $("#r-download").addEventListener("click", () => {
@@ -8368,6 +8452,7 @@ zoo`.split("\n");
     backup.wallet = null;
     backup.result = null;
     backup.kind = null;
+    backup.confirm = false;
     ["#b-password", "#b-confirm"].forEach((s) => {
       $(s).value = "";
     });
@@ -8403,6 +8488,7 @@ zoo`.split("\n");
     backup.wallet = null;
     backup.result = null;
     backup.kind = null;
+    backup.confirm = false;
     $$('input[type="password"], input[type="text"], textarea').forEach((i) => {
       i.value = "";
     });

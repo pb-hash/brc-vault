@@ -252,9 +252,9 @@ button, input, textarea { font: inherit; color: inherit; }
 .risky { margin-top: 1.1rem; }
 .risky p { font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
 .risky p strong { color: var(--danger); font-weight: 500; }
-.words { margin: 0.75rem 0 0; padding: 0.85rem 1rem; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(6, auto); gap: 0.35rem 1rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface); font: 0.9rem/1.5 var(--mono); }
+.words { margin: 0.75rem 0 0; padding: 0.85rem 1rem; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.35rem 1rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface); font: 0.9rem/1.5 var(--mono); }
 .words .n, .ps-wordgrid .n { display: inline-block; min-width: 1.6em; color: var(--muted); text-align: right; margin-right: 0.45em; font-variant-numeric: tabular-nums; }
-@media (max-width: 40rem) { .words { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(12, auto); } }
+@media (max-width: 40rem) { .words { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .foot-actions { display: flex; align-items: center; gap: 1.1rem; }
 .sound-toggle { display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -398,7 +398,7 @@ body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-t
 .ps-mono { margin: 0; font: 9.6pt/1.65 var(--mono); letter-spacing: 0.01em; word-break: break-word; font-feature-settings: "zero"; }
 .ps-check { color: #555; }
 .ps-panel.ps-words { grid-template-columns: 1fr; gap: 0; }
-.ps-wordgrid { margin: 1mm 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: column; grid-template-rows: repeat(6, auto); gap: 1mm 6mm; font: 10pt/1.6 var(--mono); }
+.ps-wordgrid { margin: 1mm 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1mm 6mm; font: 10pt/1.6 var(--mono); }
 .ps-wordgrid .n { color: #555; }
 .ps-steps { margin-top: 6mm; display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; break-inside: avoid; }
 .ps-steps h3 { margin: 0 0 1.5mm; font-size: 10.5pt; font-weight: 600; }
@@ -510,7 +510,7 @@ body.is-previewing { overflow: hidden; }
                   <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row"><dt>Check</dt><dd class="ok-text">The key matches this address</dd></div>
                 </dl>
-                <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span>I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
+                <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span id="b-key-confirm-text">I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
               </div>
             </div>
           </li>
@@ -733,7 +733,7 @@ body.is-previewing { overflow: hidden; }
         <p>Key = scrypt(password normalized to NFKC, salt, N = 2^logN, r, p, 32). Ciphertext = AES-256-GCM(key, iv, private key) with associated data <code>brc-vault-backup|1|address|scrypt|logN|r|p|dkLen|salt|iv</code>, so changing any field makes decryption fail.</p>
         <p>The paper code is the same backup on one line, in upper case: <code>BRCVAULT1:ADDRESS:LOGN:R:P:SALT:IV:CIPHERTEXT</code>, and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the <code>BRCVAULT1:</code> prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as <code>BRCKEY1:KEY:CHECK</code>, where CHECK is the first 8 characters of the address, so it can't be mistaken for an address and a typo in the key is caught.</p>
         <h4>Recovery words</h4>
-        <p>The 24 recovery words are standard BIP39 English, with the 32-byte private key used directly as the entropy (no passphrase, no derivation path). That is exactly what the BRC Wallet Android app shows and accepts, so the same words work in both. Numbers, commas and capital letters are ignored when you type them, and the first four letters of each word are enough.</p>
+        <p>The 24 recovery words are standard BIP39 English, with the 32-byte private key used directly as the entropy (no passphrase, no derivation path). That is exactly what the BRC Wallet Android app shows and accepts, so the same words work in both. When you type them here, commas and capital letters don't matter and the first four letters of each word are enough; if you number the words, the numbers set the order. The Android app needs the full words in lower case, in order.</p>
         <h4>Other wallets' files</h4>
         <p>Password-protected files from the BRC Wallet desktop app (<code>"type": "browsercoin-wallet", "version": 2, "encrypted": true</code>) open in Restore. They use scrypt with the password exactly as typed and AES-256-GCM with a separate <code>authTag</code>; the same setting limits apply.</p>
         <h4>Credits</h4>

@@ -287,29 +287,60 @@ process.stdout.write(c.walletToWords(c.walletFromPrivateKeyHex('{wallet["private
     page.click("#clear-all")
     page.click("#tab-restore")
     open_paste(page, "restore")
-    page.fill("#r-paste", "\n".join(f"{i + 1}. {w}" for i, w in enumerate(words)))
+    # Copied across the rows of the printed grid: the numbers put them back in order.
+    grid = [f"{c * 6 + r + 1}. {words[c * 6 + r]}" for r in range(6) for c in range(4)]
+    page.fill("#r-paste", "  ".join(grid))
     page.click("#r-paste-go")
     expect(page.locator("#r-done-address")).to_have_text(wallet["address"])
     expect(page.locator("#r-done-title")).to_have_text("Wallet ready")
     expect(page.locator("#r-done-check")).to_contain_text("these words")
     expect(page.locator("#r-chip-name")).to_have_text("Recovery words")
-    expect(page.locator("#r-done-msg")).to_be_hidden()
+    expect(page.locator("#r-done-msg")).to_contain_text("wallet app shows")
+    # Until the address is confirmed, no words on screen and no "back this up".
+    expect(page.locator("#r-words-wrap")).to_be_hidden()
+    expect(page.locator("#r-to-backup-row")).to_be_hidden()
+    page.check("#r-ok-address")
     expect(page.locator("#r-words li")).to_have_count(0)  # not on screen until asked for
     page.click("#r-words-wrap summary")
     expect(page.locator("#r-words li")).to_have_count(24)
     shown = [re.sub(r"^\d+\s*", "", t) for t in page.locator("#r-words li").all_inner_texts()]
     assert shown == words, shown
-    page.click("#r-words-wrap summary")
+    page.uncheck("#r-ok-address")
     expect(page.locator("#r-words li")).to_have_count(0)
-    tick_restore_confirms(page)
+    page.check("#r-ok-address")
+    page.check("#r-ok-replace")
     with page.expect_download() as dl3:
         page.click("#r-download")
     p3 = OUT / ("from-words-" + dl3.value.suggested_filename); dl3.value.save_as(p3)
     assert p3.read_text() == wallet_json
+    page.click("#r-words-wrap summary")
+    expect(page.locator("#r-words li")).to_have_count(24)
     page.click("#r-to-backup")
+    expect(page.locator("#r-words li")).to_have_count(0)  # words removed when leaving Restore
     expect(page.locator("#b-address")).to_have_text(wallet["address"])
     expect(page.locator("#b-chip-name")).to_have_text("Wallet from Restore")
-    ok("24 recovery words restore the exact wallet file; the words show only on request; one click backs it up")
+    # Words typed straight into Back up need the address confirmed before locking.
+    page.click("#clear-all")
+    page.click("#tab-backup")
+    open_paste(page, "backup")
+    page.fill("#b-paste", " ".join(words))
+    page.click("#b-paste-go")
+    expect(page.locator("#b-key-confirm-wrap")).to_be_visible()
+    expect(page.locator("#b-key-confirm-text")).to_contain_text("wallet app shows")
+    expect(page.locator("#b-step2")).to_have_attribute("data-state", "waiting")
+    page.check("#b-key-confirm")
+    expect(page.locator("#b-step2")).to_have_attribute("data-state", "active")
+    page.fill("#b-password", PASSWORD); page.fill("#b-confirm", PASSWORD); page.check("#b-understand")
+    expect(page.locator("#b-make")).to_be_enabled()
+    # An address pasted into Restore can't be passed on to Back up or shown as words.
+    page.click("#clear-all")
+    page.click("#tab-restore")
+    open_paste(page, "restore")
+    page.fill("#r-paste", wallet["address"])
+    page.click("#r-paste-go")
+    expect(page.locator("#r-to-backup-row")).to_be_hidden()
+    expect(page.locator("#r-words-wrap")).to_be_hidden()
+    ok("24 recovery words restore the exact wallet file in any numbered order; words and back-up wait for the address check")
 
     # --- A password-protected file from the BRC Wallet desktop app ---
     desktop_json = node(f"""
