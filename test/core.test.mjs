@@ -381,4 +381,21 @@ await test('desktop files at the app\'s current setting (N = 2^17) open too', as
   assert.equal((await core.unlockAny(id.backup, 'current settings')).address, kp.address);
 });
 
+await test('a wallet file copied on a phone without its first or last brace still loads, and is still checked', async () => {
+  const kp = bc.generateKeyPair();
+  const json = bc.exportWalletJson(kp);
+  const inner = json.trim().slice(1, -1);
+  for (const t of [inner, '{' + inner, inner + '}', inner.trim(), '  ' + inner.trim() + '\n']) {
+    const id = core.identifyInput(t);
+    assert.equal(id.kind, 'browsercoin-wallet');
+    assert.equal(id.wallet.address, kp.address);
+  }
+  // Still refused if the key doesn't match the address.
+  const other = bc.generateKeyPair();
+  assert.throws(() => core.identifyInput(inner.replace(kp.address, other.address)), /does not match/);
+  // A backup's inside works too.
+  const b = await core.encryptWallet({ privateKey: kp.privateKey, address: kp.address }, 'a very good password', { kdf: FAST });
+  assert.equal(core.identifyInput(JSON.stringify(b, null, 2).trim().slice(1, -1)).kind, 'vault-backup');
+});
+
 console.log(`\n${passed} tests passed`);

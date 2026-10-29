@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- No network access at all: this page cannot load or send anything. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-RPfW2xcIJLPaIK9LF0po/jEyo3mJdgB6UFuBVpwJ+eM='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-OApFZRcbByc2pOWQpmWdMmhVmvk1wKXcEKm0pcvcFA4='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="x-dns-prefetch-control" content="off">
 <meta name="color-scheme" content="light">
@@ -744,7 +744,7 @@ body.is-previewing { overflow: hidden; }
     </details>
 
     <footer class="site-foot">
-      <span>BRC Vault, version 1, build 44f7d6db</span>
+      <span>BRC Vault, version 1, build 380a4565</span>
       <span>Free and open source under the MIT License</span>
     </footer>
   </main>
@@ -7325,20 +7325,26 @@ zoo`.split("\n");
       }
       return { kind: "private-key", wallet, ambiguous: false, checked: false };
     }
-    if (t.startsWith("{")) {
-      const parsed = parseJsonLoose(t);
+    let body = t;
+    if (!body.startsWith("{") && /^["“”]?(type|version|address|privateKeyHex|encrypted|kdf|cipher|ciphertext)["“”]?\s*:/.test(body)) {
+      body = `{${body.replace(/[\s}]*$/, "")}}`;
+    } else if (body.startsWith("{") && !body.endsWith("}") && /"(type|privateKeyHex)"\s*:/.test(body)) {
+      body = `${body.replace(/[\s,]*$/, "")}}`;
+    }
+    if (body.startsWith("{")) {
+      const parsed = parseJsonLoose(body);
       if (parsed) {
         if (parsed.type === BACKUP_TYPE) return { kind: "vault-backup", backup: validateBackup(parsed) };
         if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: "desktop-backup", backup: validateDesktopBackup(parsed) };
         if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: "browsercoin-wallet", wallet: refuseWellKnownKey(parseBrowserCoinWallet(JSON.stringify(parsed))) };
         throw new Error("This file is neither a BrowserCoin wallet nor a BRC Vault backup.");
       }
-      const rescued = rescueFromDamagedText(t);
+      const rescued = rescueFromDamagedText(body);
       if (rescued) return rescued;
-      if (/browsercoin-wallet/.test(t) && /encrypted/.test(t)) {
+      if (/browsercoin-wallet/.test(body) && /encrypted/.test(body)) {
         throw new Error("This password-protected BRC Wallet file was changed by another app, such as a text editor, and can't be read. Use the original file the BRC Wallet desktop app saved.");
       }
-      if (/^\{\\rtf/.test(t)) {
+      if (/^\{\\rtf/.test(body)) {
         throw new Error("This file was re-saved by a word processor such as TextEdit, which changed its format, and the key could not be recovered from it. Use the original file BrowserCoin downloaded.");
       }
       throw new Error("This file is incomplete or was changed by another app, so it can't be read. Use the original file BrowserCoin downloaded (named browsercoin-wallet-\u2026json), not a copy opened and saved in a text editor.");

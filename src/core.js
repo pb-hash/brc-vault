@@ -611,20 +611,29 @@ export function identifyInput(text) {
     // gets the same "is this your address?" warning as a bare key.
     return { kind: 'private-key', wallet, ambiguous: false, checked: false };
   }
-  if (t.startsWith('{')) {
-    const parsed = parseJsonLoose(t);
+  // Selecting text on a phone often misses the first "{" or the last "}".
+  // When the text is plainly the inside of a wallet file or backup, put them
+  // back; every value is still checked exactly as usual afterwards.
+  let body = t;
+  if (!body.startsWith('{') && /^["“”]?(type|version|address|privateKeyHex|encrypted|kdf|cipher|ciphertext)["“”]?\s*:/.test(body)) {
+    body = `{${body.replace(/[\s}]*$/, '')}}`;
+  } else if (body.startsWith('{') && !body.endsWith('}') && /"(type|privateKeyHex)"\s*:/.test(body)) {
+    body = `${body.replace(/[\s,]*$/, '')}}`;
+  }
+  if (body.startsWith('{')) {
+    const parsed = parseJsonLoose(body);
     if (parsed) {
       if (parsed.type === BACKUP_TYPE) return { kind: 'vault-backup', backup: validateBackup(parsed) };
       if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: 'desktop-backup', backup: validateDesktopBackup(parsed) };
       if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: 'browsercoin-wallet', wallet: refuseWellKnownKey(parseBrowserCoinWallet(JSON.stringify(parsed))) };
       throw new Error('This file is neither a BrowserCoin wallet nor a BRC Vault backup.');
     }
-    const rescued = rescueFromDamagedText(t);
+    const rescued = rescueFromDamagedText(body);
     if (rescued) return rescued;
-    if (/browsercoin-wallet/.test(t) && /encrypted/.test(t)) {
+    if (/browsercoin-wallet/.test(body) && /encrypted/.test(body)) {
       throw new Error('This password-protected BRC Wallet file was changed by another app, such as a text editor, and can\'t be read. Use the original file the BRC Wallet desktop app saved.');
     }
-    if (/^\{\\rtf/.test(t)) {
+    if (/^\{\\rtf/.test(body)) {
       throw new Error('This file was re-saved by a word processor such as TextEdit, which changed its format, and the key could not be recovered from it. Use the original file BrowserCoin downloaded.');
     }
     throw new Error("This file is incomplete or was changed by another app, so it can't be read. Use the original file BrowserCoin downloaded (named browsercoin-wallet-…json), not a copy opened and saved in a text editor.");
