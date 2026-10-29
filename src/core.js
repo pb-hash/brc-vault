@@ -584,7 +584,13 @@ export function identifyInput(text) {
   if (String(text).length > MAX_INPUT_LENGTH) throw new Error('This is far too long to be a wallet, a backup or a key.');
   // QR codes carry "BRCVAULT1 …" / "BRCKEY1 …" with a space, because phone
   // cameras treat "WORD:" as a link to an unknown app and refuse to show it.
-  const t = String(text).trim().replace(/^(BRCVAULT1|BRCKEY1)[ \t]+(?=[0-9A-Fa-f])/i, (m, p) => `${p.toUpperCase()}:`);
+  // Text copied on phones and from chat apps can carry invisible characters
+  // (zero-width spaces, non-breaking spaces, special line breaks). Remove them.
+  const clean = String(text)
+    .replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, '')
+    .replace(/[\u00A0\u2007\u202F]/g, ' ')
+    .replace(/[\u2028\u2029\r]/g, '\n');
+  const t = clean.trim().replace(/^(BRCVAULT1|BRCKEY1)[ \t]+(?=[0-9A-Fa-f])/i, (m, p) => `${p.toUpperCase()}:`);
   if (!t) throw new Error('Nothing to read yet.');
   const squashed = t.toUpperCase().replace(/\s+/g, '');
   if (squashed.startsWith(COMPACT_PREFIX + ':')) {
@@ -615,13 +621,18 @@ export function identifyInput(text) {
   // When the text is plainly the inside of a wallet file or backup, put them
   // back; every value is still checked exactly as usual afterwards.
   let body = t;
-  if (!body.startsWith('{') && /^["“”]?(type|version|address|privateKeyHex|encrypted|kdf|cipher|ciphertext)["“”]?\s*:/.test(body)) {
-    body = `{${body.replace(/[\s}]*$/, '')}}`;
+  if (!body.startsWith('{') && /browsercoin-wallet|brc-vault-backup|privateKeyHex/.test(body)) {
+    body = `{${body.replace(/^[\s{]*/, '').replace(/[\s}]*$/, '')}}`;
   } else if (body.startsWith('{') && !body.endsWith('}') && /"(type|privateKeyHex)"\s*:/.test(body)) {
     body = `${body.replace(/[\s,]*$/, '')}}`;
   }
   if (body.startsWith('{')) {
-    const parsed = parseJsonLoose(body);
+    let parsed = parseJsonLoose(body);
+    // The "type" line was cut off: a private key with its own address is
+    // still a wallet file, and the two must match below.
+    if (parsed && parsed.type === undefined && typeof parsed.privateKeyHex === 'string' && typeof parsed.address === 'string') {
+      parsed = { ...parsed, type: BROWSERCOIN_WALLET_TYPE };
+    }
     if (parsed) {
       if (parsed.type === BACKUP_TYPE) return { kind: 'vault-backup', backup: validateBackup(parsed) };
       if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: 'desktop-backup', backup: validateDesktopBackup(parsed) };
@@ -744,7 +755,7 @@ const field = (text, name, pattern) => {
  * and a wallet is only accepted if its key still produces its own address.
  */
 function rescueFromDamagedText(text) {
-  if (/browsercoin-wallet/.test(text)) {
+  if (/browsercoin-wallet|privateKeyHex/.test(text)) {
     const key = field(text, 'privateKeyHex', '[0-9a-fA-F]{64}');
     const address = field(text, 'address', '[0-9a-fA-F]{64}');
     if (!key || !address) return null;

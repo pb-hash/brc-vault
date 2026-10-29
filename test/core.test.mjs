@@ -385,7 +385,12 @@ await test('a wallet file copied on a phone without its first or last brace stil
   const kp = bc.generateKeyPair();
   const json = bc.exportWalletJson(kp);
   const inner = json.trim().slice(1, -1);
-  for (const t of [inner, '{' + inner, inner + '}', inner.trim(), '  ' + inner.trim() + '\n']) {
+  const phoneish = [
+    '\u200b' + inner, inner.replace(/  /g, '\u00a0\u00a0'), inner.replace(/\n/g, '\u2028'), inner.replace(/\n/g, '\r\n'),
+    inner.trim().slice(3), // the selection also clipped the start of "type"
+    inner.trim().split('\n').slice(1).join('\n'), // the whole "type" line missed
+  ];
+  for (const t of [inner, '{' + inner, inner + '}', inner.trim(), '  ' + inner.trim() + '\n', ...phoneish]) {
     const id = core.identifyInput(t);
     assert.equal(id.kind, 'browsercoin-wallet');
     assert.equal(id.wallet.address, kp.address);
