@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- No network access at all: this page cannot load or send anything. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-k/MDajqDN+S50k6dY0pq9DrqaYbtZ0PglPlWOpVaRtg='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-wNzWNC18vUxG5khQSuPJQ3lmzYSt2RkiYwA1rt6QnTQ='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="x-dns-prefetch-control" content="off">
 <meta name="color-scheme" content="light">
@@ -725,7 +725,7 @@ body.is-previewing { overflow: hidden; }
     </details>
 
     <footer class="site-foot">
-      <span>BRC Vault, version 1, build 2026-10-29 14:16 UTC</span>
+      <span>BRC Vault, version 1, build 2026-10-29 15:27 UTC</span>
       <span>Free and open source under the MIT License</span>
     </footer>
   </main>
@@ -4802,16 +4802,35 @@ body.is-previewing { overflow: hidden; }
     }
     const canon = (o) => o && o.type === BROWSERCOIN_WALLET_TYPE ? `wallet:${String(o.privateKeyHex).toLowerCase()}` : JSON.stringify(o);
     if (!parsed.every((o) => canon(o) === canon(parsed[0]))) {
-      throw new Error("This contains more than one different wallet or backup. Use just one.");
+      throw new Error(MULTIPLE);
     }
     return parsed[0];
   }
   var Q_OPEN = String.raw`(?:"|“|\\'93|\\u8220 ?)`;
   var Q_CLOSE = String.raw`(?:"|”|\\'94|\\u8221 ?)`;
-  var GAP = String.raw`(?:\\'[0-9a-fA-F]{2}|\\u-?\d+ ?|\\[a-zA-Z]+\d* ?|[^0-9a-fA-F\\]){1,40}?`;
+  var GAP_PIECE = /\\'[0-9a-fA-F]{2}|\\[a-zA-Z]+(?:-?\d+)? ?|[^0-9a-fA-F\\]/y;
+  var MAX_GAP = 40;
+  var MULTIPLE = "This contains more than one different wallet or backup. Use just one.";
   var field = (text, name, pattern) => {
-    const m = new RegExp(`${Q_OPEN}${name}${Q_CLOSE}${GAP}(${pattern})(?![0-9a-fA-F])`).exec(text);
-    return m ? m[1] : null;
+    const names = new RegExp(`${Q_OPEN}${name}${Q_CLOSE}`, "g");
+    const value = new RegExp(`(?:${pattern})(?![0-9a-fA-F])`, "y");
+    const found = /* @__PURE__ */ new Set();
+    for (let m = names.exec(text); m; m = names.exec(text)) {
+      let i = names.lastIndex;
+      let pieces = 0;
+      while (pieces < MAX_GAP) {
+        GAP_PIECE.lastIndex = i;
+        if (!GAP_PIECE.test(text)) break;
+        i = GAP_PIECE.lastIndex;
+        pieces++;
+      }
+      if (pieces === 0) continue;
+      value.lastIndex = i;
+      const v = value.exec(text);
+      if (v) found.add(v[0].toLowerCase());
+    }
+    if (found.size > 1) throw new Error(MULTIPLE);
+    return found.size ? [...found][0] : null;
   };
   function rescueFromDamagedText(text) {
     if (/browsercoin-wallet/.test(text)) {
@@ -4826,21 +4845,23 @@ body.is-previewing { overflow: hidden; }
       return { kind: "browsercoin-wallet", wallet, rescued: true };
     }
     if (/brc-vault-backup/.test(text)) {
+      const f = {
+        address: field(text, "address", "[0-9a-fA-F]{64}"),
+        logN: field(text, "logN", "[0-9]{1,3}"),
+        r: field(text, "r", "[0-9]{1,3}"),
+        p: field(text, "p", "[0-9]{1,3}"),
+        salt: field(text, "salt", "[0-9a-fA-F]{32}"),
+        iv: field(text, "iv", "[0-9a-fA-F]{24}"),
+        ciphertext: field(text, "ciphertext", "[0-9a-fA-F]{96}")
+      };
       try {
         const backup2 = validateBackup({
           type: BACKUP_TYPE,
           version: BACKUP_VERSION,
-          address: field(text, "address", "[0-9a-fA-F]{64}"),
-          kdf: {
-            name: "scrypt",
-            logN: Number(field(text, "logN", "[0-9]{1,3}")),
-            r: Number(field(text, "r", "[0-9]{1,3}")),
-            p: Number(field(text, "p", "[0-9]{1,3}")),
-            dkLen: 32,
-            salt: field(text, "salt", "[0-9a-fA-F]{32}")
-          },
-          cipher: { name: "aes-256-gcm", iv: field(text, "iv", "[0-9a-fA-F]{24}") },
-          ciphertext: field(text, "ciphertext", "[0-9a-fA-F]{96}")
+          address: f.address,
+          kdf: { name: "scrypt", logN: Number(f.logN), r: Number(f.r), p: Number(f.p), dkLen: 32, salt: f.salt },
+          cipher: { name: "aes-256-gcm", iv: f.iv },
+          ciphertext: f.ciphertext
         });
         return { kind: "vault-backup", backup: backup2, rescued: true };
       } catch {

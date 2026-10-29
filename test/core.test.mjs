@@ -197,4 +197,36 @@ await test('a damaged file is never accepted with a key that does not match its 
   assert.throws(() => core.identifyInput(toRtf(flipped)), /re-saved by a word processor/);
 });
 
+await test('damaged text holding two different wallets or backups is refused, not guessed', async () => {
+  const a = bc.exportWalletJson(bc.generateKeyPair());
+  const b = bc.exportWalletJson(bc.generateKeyPair());
+  assert.throws(() => core.identifyInput(toRtf(a + '\n' + b)), /more than one different wallet/);
+  // The same wallet twice is fine.
+  assert.equal(core.identifyInput(toRtf(a + '\n' + a)).kind, 'browsercoin-wallet');
+  // A second key hidden inside another field is refused too.
+  const kp = bc.generateKeyPair(), decoy = bc.generateKeyPair();
+  const hex = (u) => Buffer.from(u).toString('hex');
+  const evil = `{"type":"browsercoin-wallet","note":"“privateKeyHex”: “${hex(decoy.privateKey)}”", "privateKeyHex":"${hex(kp.privateKey)}","address":"${kp.address}" junk`;
+  assert.throws(() => core.identifyInput(evil), /more than one different wallet/);
+  const k1 = bc.generateKeyPair(), k2 = bc.generateKeyPair();
+  const b1 = JSON.stringify(await core.encryptWallet({ privateKey: k1.privateKey, address: k1.address }, 'a very good password', { kdf: FAST }));
+  const b2 = JSON.stringify(await core.encryptWallet({ privateKey: k2.privateKey, address: k2.address }, 'a very good password', { kdf: FAST }));
+  assert.throws(() => core.identifyInput(toRtf(b1 + b2)), /more than one different wallet/);
+});
+
+await test('crafted damaged text cannot freeze the page (64 KB inputs finish fast)', async () => {
+  const hex63 = 'a'.repeat(63);
+  const inputs = [
+    '{\\rtf browsercoin-wallet "privateKeyHex"' + '\\u1 '.repeat(16000) + hex63 + 'z',
+    '{\\rtf browsercoin-wallet "privateKeyHex"' + '\\zz'.repeat(21000) + hex63 + 'z',
+    '{\\rtf browsercoin-wallet ' + '"privateKeyHex"\\u1 '.repeat(3000),
+    '{\\rtf brc-vault-backup ' + '"r" '.repeat(16000),
+  ];
+  for (const t of inputs) {
+    const start = Date.now();
+    try { core.identifyInput(t); } catch { /* an error message is fine */ }
+    assert.ok(Date.now() - start < 500, `took ${Date.now() - start} ms on a ${t.length}-character input`);
+  }
+});
+
 console.log(`\n${passed} tests passed`);

@@ -457,7 +457,7 @@ function singleObject(text) {
     ? `wallet:${String(o.privateKeyHex).toLowerCase()}`
     : JSON.stringify(o));
   if (!parsed.every((o) => canon(o) === canon(parsed[0]))) {
-    throw new Error('This contains more than one different wallet or backup. Use just one.');
+    throw new Error(MULTIPLE);
   }
   return parsed[0];
 }
@@ -466,10 +466,34 @@ function singleObject(text) {
 // then a short gap of punctuation or RTF escapes, then its value.
 const Q_OPEN = String.raw`(?:"|“|\\'93|\\u8220 ?)`;
 const Q_CLOSE = String.raw`(?:"|”|\\'94|\\u8221 ?)`;
-const GAP = String.raw`(?:\\'[0-9a-fA-F]{2}|\\u-?\d+ ?|\\[a-zA-Z]+\d* ?|[^0-9a-fA-F\\]){1,40}?`;
+// The gap is read one piece at a time (an RTF escape such as \'7b or 舡,
+// or one non-hex character), never by a single backtracking regex: a crafted
+// file must not be able to freeze the page.
+const GAP_PIECE = /\\'[0-9a-fA-F]{2}|\\[a-zA-Z]+(?:-?\d+)? ?|[^0-9a-fA-F\\]/y;
+const MAX_GAP = 40;
+const MULTIPLE = 'This contains more than one different wallet or backup. Use just one.';
 const field = (text, name, pattern) => {
-  const m = new RegExp(`${Q_OPEN}${name}${Q_CLOSE}${GAP}(${pattern})(?![0-9a-fA-F])`).exec(text);
-  return m ? m[1] : null;
+  const names = new RegExp(`${Q_OPEN}${name}${Q_CLOSE}`, 'g');
+  const value = new RegExp(`(?:${pattern})(?![0-9a-fA-F])`, 'y');
+  const found = new Set();
+  for (let m = names.exec(text); m; m = names.exec(text)) {
+    let i = names.lastIndex;
+    let pieces = 0;
+    while (pieces < MAX_GAP) {
+      GAP_PIECE.lastIndex = i;
+      if (!GAP_PIECE.test(text)) break;
+      i = GAP_PIECE.lastIndex;
+      pieces++;
+    }
+    if (pieces === 0) continue;
+    value.lastIndex = i;
+    const v = value.exec(text);
+    if (v) found.add(v[0].toLowerCase());
+  }
+  // Two different values for the same field (say, two wallets in one file):
+  // refuse rather than guess which one was meant.
+  if (found.size > 1) throw new Error(MULTIPLE);
+  return found.size ? [...found][0] : null;
 };
 
 /**
@@ -487,21 +511,24 @@ function rescueFromDamagedText(text) {
     return { kind: 'browsercoin-wallet', wallet, rescued: true };
   }
   if (/brc-vault-backup/.test(text)) {
+    // Read every field first, so "more than one backup" is reported as such.
+    const f = {
+      address: field(text, 'address', '[0-9a-fA-F]{64}'),
+      logN: field(text, 'logN', '[0-9]{1,3}'),
+      r: field(text, 'r', '[0-9]{1,3}'),
+      p: field(text, 'p', '[0-9]{1,3}'),
+      salt: field(text, 'salt', '[0-9a-fA-F]{32}'),
+      iv: field(text, 'iv', '[0-9a-fA-F]{24}'),
+      ciphertext: field(text, 'ciphertext', '[0-9a-fA-F]{96}'),
+    };
     try {
       const backup = validateBackup({
         type: BACKUP_TYPE,
         version: BACKUP_VERSION,
-        address: field(text, 'address', '[0-9a-fA-F]{64}'),
-        kdf: {
-          name: 'scrypt',
-          logN: Number(field(text, 'logN', '[0-9]{1,3}')),
-          r: Number(field(text, 'r', '[0-9]{1,3}')),
-          p: Number(field(text, 'p', '[0-9]{1,3}')),
-          dkLen: 32,
-          salt: field(text, 'salt', '[0-9a-fA-F]{32}'),
-        },
-        cipher: { name: 'aes-256-gcm', iv: field(text, 'iv', '[0-9a-fA-F]{24}') },
-        ciphertext: field(text, 'ciphertext', '[0-9a-fA-F]{96}'),
+        address: f.address,
+        kdf: { name: 'scrypt', logN: Number(f.logN), r: Number(f.r), p: Number(f.p), dkLen: 32, salt: f.salt },
+        cipher: { name: 'aes-256-gcm', iv: f.iv },
+        ciphertext: f.ciphertext,
       });
       return { kind: 'vault-backup', backup, rescued: true };
     } catch { return null; }
