@@ -10,13 +10,14 @@
   "dependencies": {
     "@noble/ed25519": "2.3.0",
     "@noble/hashes": "1.8.0",
-    "qrcode-generator": "1.5.2",
-    "jsqr": "1.4.0"
+    "@scure/bip39": "1.6.0",
+    "jsqr": "1.4.0",
+    "qrcode-generator": "1.5.2"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
-    "pngjs": "7.0.0",
-    "geist": "1.8.2"
+    "geist": "1.8.2",
+    "pngjs": "7.0.0"
   },
   "private": true
 }

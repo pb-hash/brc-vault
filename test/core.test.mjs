@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import * as core from '../build/core.mjs';
 import * as bc from './browsercoin-reference.mjs';
+import { desktopEncryptedWalletJson } from './desktop-wallet-reference.mjs';
 
 const FAST = { name: 'scrypt', logN: 14, r: 8, p: 1, dkLen: 32 }; // cheap settings for repeated tests only
 let passed = 0;
@@ -271,6 +272,95 @@ await test('crafted damaged text cannot freeze the page (64 KB inputs finish fas
     try { core.identifyInput(t); } catch { /* an error message is fine */ }
     assert.ok(Date.now() - start < 500, `took ${Date.now() - start} ms on a ${t.length}-character input`);
   }
+});
+
+const hexOf = (u) => Buffer.from(u).toString('hex');
+
+await test('24 recovery words match the official BIP39 test vectors for 32-byte keys', async () => {
+  // From the reference BIP39 vectors (trezor/python-mnemonic vectors.json), which bitcoinj's MnemonicCode also passes.
+  const vectors = [
+    ['00'.repeat(32), 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art'],
+    ['7f'.repeat(32), 'legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth title'],
+    ['80'.repeat(32), 'letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless'],
+    ['ff'.repeat(32), 'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo vote'],
+    ['68a79eaca2324873eacc50cb9c6eca8cc68ea5d936f98787c60c7ebc74e6ce7c', 'hamster diagram private dutch cause delay private meat slide toddler razor book happy fancy gospel tennis maple dilemma loan word shrug inflict delay length'],
+  ];
+  for (const [hex, words] of vectors) {
+    const w = core.walletFromPrivateKeyHex(hex);
+    assert.equal(core.walletToWords(w).join(' '), words);
+    const back = core.identifyInput(words);
+    assert.equal(hexOf(back.wallet.privateKey), hex);
+    assert.equal(back.words, true);
+    assert.equal(back.ambiguous, false);
+  }
+});
+
+await test('recovery words: forgiving about layout, strict about mistakes', async () => {
+  const kp = bc.generateKeyPair();
+  const w = { privateKey: Uint8Array.from(kp.privateKey), address: kp.address };
+  const words = core.walletToWords(w);
+  // Numbered, upper case, one per line, or just the first four letters of each word.
+  for (const t of [
+    words.map((x, i) => `${i + 1}. ${x.toUpperCase()}`).join('\n'),
+    words.map((x, i) => `${i + 1}) ${x}`).join('  '),
+    words.join(', '),
+    words.map((x) => x.slice(0, 4)).join(' '),
+  ]) assert.equal(core.identifyInput(t).wallet.address, kp.address);
+  // Misspelt word: named by position.
+  const bad = [...words]; bad[6] = 'qqqqzz';
+  assert.throws(() => core.identifyInput(bad.join(' ')), /Word 7 \("qqqqzz"\) isn't on the recovery word list/);
+  // Two words swapped: almost always caught by the built-in check.
+  let caught = 0;
+  for (let i = 0; i < 20; i++) {
+    const sw = [...words]; [sw[i], sw[i + 1]] = [sw[i + 1], sw[i]];
+    if (sw[i] === sw[i + 1]) { caught++; continue; }
+    try { core.identifyInput(sw.join(' ')); } catch (e) { if (/built-in check/.test(e.message)) caught++; }
+  }
+  assert.ok(caught >= 18, `only ${caught} of 20 swaps caught`);
+  assert.throws(() => core.identifyInput(words.slice(0, 12).join(' ')), /12 words/);
+  assert.throws(() => core.identifyInput(words.slice(0, 23).join(' ')), /23 words/);
+});
+
+await test('opens password-protected files from the BRC Wallet desktop app', async () => {
+  const kp = bc.generateKeyPair();
+  const wallet = { privateKeyHex: hexOf(kp.privateKey), address: kp.address };
+  const file = desktopEncryptedWalletJson(wallet, 'desktop pass 1', { N: 16384 }); // fast; older files used this
+  const id = core.identifyInput(file);
+  assert.equal(id.kind, 'desktop-backup');
+  assert.equal(id.backup.address, kp.address);
+  const opened = await core.unlockAny(id.backup, 'desktop pass 1');
+  assert.equal(opened.address, kp.address);
+  assert.equal(hexOf(opened.privateKey), wallet.privateKeyHex);
+  await assert.rejects(core.unlockAny(id.backup, 'desktop pass 2'), /Wrong password/);
+  // The app uses the password exactly as typed: no Unicode normalisation.
+  const nfd = 'café password';
+  const id2 = core.identifyInput(desktopEncryptedWalletJson(wallet, nfd, { N: 16384 }));
+  assert.equal((await core.unlockAny(id2.backup, nfd)).address, kp.address);
+  await assert.rejects(core.unlockAny(id2.backup, nfd.normalize('NFKC')), /Wrong password/);
+  // A file whose address was swapped for another one is refused after unlocking.
+  const other = bc.generateKeyPair();
+  const swapped = JSON.parse(file); swapped.address = other.address;
+  await assert.rejects(core.unlockAny(core.identifyInput(JSON.stringify(swapped)).backup, 'desktop pass 1'), /does not match/);
+  // Unsafe or odd settings are refused before any slow work.
+  for (const kdfParams of [{ N: 2 ** 20, r: 8, p: 1 }, { N: 16384, r: 16, p: 1 }, { N: 10000, r: 8, p: 1 }, { N: '16384', r: 8, p: 1 }]) {
+    const f = JSON.parse(file); f.kdfParams = { ...f.kdfParams, ...kdfParams };
+    assert.throws(() => core.identifyInput(JSON.stringify(f)), /unsafe|invalid/);
+  }
+  const short = JSON.parse(file); short.authTag = short.authTag.slice(2);
+  assert.throws(() => core.identifyInput(JSON.stringify(short)), /damaged/);
+  // Two different desktop files pasted together are refused, not merged.
+  const file2 = desktopEncryptedWalletJson(wallet, 'desktop pass 1', { N: 16384 });
+  assert.throws(() => core.identifyInput(file + file2), /more than one different wallet/);
+  // The old, misleading message is gone.
+  assert.throws(() => core.parseBrowserCoinWallet(file), /BRC Wallet desktop app/);
+});
+
+await test('desktop files at the app\'s current setting (N = 2^17) open too', async () => {
+  const kp = bc.generateKeyPair();
+  const file = desktopEncryptedWalletJson({ privateKeyHex: hexOf(kp.privateKey), address: kp.address }, 'current settings');
+  const id = core.identifyInput(file);
+  assert.equal(id.backup.kdf.logN, 17);
+  assert.equal((await core.unlockAny(id.backup, 'current settings')).address, kp.address);
 });
 
 console.log(`\n${passed} tests passed`);

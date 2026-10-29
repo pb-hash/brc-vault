@@ -30,6 +30,8 @@ const firstLine = (p) => readFileSync(p, 'utf8').split('\n').find((l) => /copyri
 const notices = [
   ['@noble/ed25519', 'node_modules/@noble/ed25519/LICENSE'],
   ['@noble/hashes', 'node_modules/@noble/hashes/LICENSE'],
+  ['@scure/bip39', 'node_modules/@scure/bip39/LICENSE'],
+  ['@scure/base', 'node_modules/@scure/base/LICENSE'],
   ['qrcode-generator', 'node_modules/qrcode-generator/qrcode.js'],
 ].map(([name, path]) => ` * ${name} (MIT) — ${firstLine(path) || 'see project license'}`).join('\n')
   + '\n * jsQR (Apache License 2.0) — by Cosmo Wolfe and contributors, github.com/cozmo/jsQR; see third-party/jsQR-LICENSE';

@@ -4,6 +4,8 @@
 import * as ed from '@noble/ed25519';
 import { sha512, sha256 } from '@noble/hashes/sha2';
 import { scryptAsync } from '@noble/hashes/scrypt';
+import { entropyToMnemonic, mnemonicToEntropy } from '@scure/bip39';
+import { wordlist as BIP39_ENGLISH } from '@scure/bip39/wordlists/english';
 
 ed.etc.sha512Sync = (...m) => sha512(ed.etc.concatBytes(...m));
 
@@ -101,6 +103,7 @@ export function parseBrowserCoinWallet(text) {
   if (!parsed || parsed.type !== BROWSERCOIN_WALLET_TYPE) {
     throw new Error('This is not a BrowserCoin wallet file (it should come from BrowserCoin Settings → Export key).');
   }
+  if (parsed.encrypted === true) throw new Error('This wallet file is password-protected by the BRC Wallet desktop app. Open it in Restore.');
   if (typeof parsed.privateKeyHex !== 'string') throw new Error('The wallet file has no private key in it.');
   const wallet = walletFromPrivateKeyHex(parsed.privateKeyHex);
   if (parsed.address && String(parsed.address).toLowerCase() !== wallet.address) {
@@ -136,9 +139,11 @@ function checkKdf(kdf) {
   if (!ok) throw new Error('This backup has invalid or unsafe key-stretching settings.');
 }
 
-async function deriveKey(password, salt, kdf, onProgress) {
+async function deriveKey(password, salt, kdf, onProgress, { normalize = true } = {}) {
   checkKdf(kdf);
-  const pw = new TextEncoder().encode(password.normalize('NFKC'));
+  // BRC Vault normalizes the password (so the same characters typed on any
+  // keyboard give the same key). The desktop wallet uses it exactly as typed.
+  const pw = new TextEncoder().encode(normalize ? password.normalize('NFKC') : password);
   const raw = await scryptAsync(pw, salt, {
     N: 2 ** kdf.logN, r: kdf.r, p: kdf.p, dkLen: kdf.dkLen,
     onProgress: onProgress ? (x) => onProgress(x) : undefined,
@@ -247,6 +252,133 @@ export async function decryptBackup(backup, password, { onProgress } = {}) {
   }
   const wallet = { privateKey: pt, address: addressFromPrivateKey(pt) };
   if (wallet.address !== b.address) throw new Error('The decrypted key does not match the address in the backup.');
+  return wallet;
+}
+
+// ---------------------------------------------------------------------------
+// Password-protected files from the BRC Wallet desktop app (Windows), so they
+// can be opened here too. Their layout, from that app's src/wallet.js:
+//   { type: "browsercoin-wallet", version: 2, address, encrypted: true,
+//     kdf: "scrypt", kdfParams: { N, r, p, salt }, cipher: "aes-256-gcm",
+//     iv, authTag, ciphertext, warning }
+// The password is used exactly as typed, and there is no associated data.
+// ---------------------------------------------------------------------------
+
+export const DESKTOP_FORMAT = 'brc-wallet-desktop';
+const checkTag = HEX_FIELD('check code', 16);
+const checkDesktopCiphertext = HEX_FIELD('locked key', 32);
+
+/** Check a desktop-app encrypted wallet file and return a clean copy. */
+export function validateDesktopBackup(d) {
+  if (!d || typeof d !== 'object' || d.type !== BROWSERCOIN_WALLET_TYPE || d.encrypted !== true) {
+    throw new Error('This is not a password-protected BRC Wallet file.');
+  }
+  if (d.version !== 2) throw new Error(`This BRC Wallet file is version ${String(d.version).slice(0, 8)}; BRC Vault reads version 2.`);
+  if (d.kdf !== 'scrypt' || d.cipher !== 'aes-256-gcm') throw new Error('This wallet file uses an encryption method BRC Vault does not know.');
+  const kp = d.kdfParams || {};
+  const N = kp.N;
+  const logN = Number.isInteger(N) && N > 1 && (N & (N - 1)) === 0 ? Math.log2(N) : NaN;
+  const kdf = { name: 'scrypt', logN, r: kp.r, p: kp.p, dkLen: 32 };
+  checkKdf(kdf);
+  return {
+    format: DESKTOP_FORMAT,
+    address: checkAddress(d.address),
+    kdf: { ...kdf, salt: checkSalt(kp.salt) },
+    iv: checkIv(d.iv),
+    authTag: checkTag(d.authTag),
+    ciphertext: checkDesktopCiphertext(d.ciphertext),
+  };
+}
+
+/** Unlock a desktop-app wallet file with its password. */
+export async function decryptDesktopBackup(backup, password, { onProgress } = {}) {
+  const b = validateDesktopBackup({
+    type: BROWSERCOIN_WALLET_TYPE, version: 2, encrypted: true, kdf: 'scrypt', cipher: 'aes-256-gcm',
+    address: backup.address, kdfParams: { N: 2 ** backup.kdf.logN, r: backup.kdf.r, p: backup.kdf.p, salt: backup.kdf.salt },
+    iv: backup.iv, authTag: backup.authTag, ciphertext: backup.ciphertext,
+  });
+  const { salt: saltHex, ...kdf } = b.kdf;
+  const key = await deriveKey(password, hexToBytes(saltHex, 16), kdf, onProgress, { normalize: false });
+  let pt;
+  try {
+    pt = new Uint8Array(await globalThis.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: hexToBytes(b.iv, 12), tagLength: 128 },
+      key,
+      hexToBytes(b.ciphertext + b.authTag, 48),
+    ));
+  } catch {
+    throw new Error('Wrong password, or the wallet file has been changed or damaged.');
+  }
+  const wallet = { privateKey: pt, address: addressFromPrivateKey(pt) };
+  if (wallet.address !== b.address) {
+    wipeWallet(wallet);
+    throw new Error('The unlocked key does not match the address in the wallet file.');
+  }
+  return wallet;
+}
+
+/** Unlock whichever kind of password-protected backup was loaded. */
+export function unlockAny(backup, password, opts) {
+  return backup && backup.format === DESKTOP_FORMAT
+    ? decryptDesktopBackup(backup, password, opts)
+    : decryptBackup(backup, password, opts);
+}
+
+// ---------------------------------------------------------------------------
+// 24 recovery words: standard BIP39 English, with the 32-byte private key used
+// directly as the entropy. This is exactly what the BRC Wallet Android app
+// shows and accepts (its Bip39Helper uses bitcoinj's MnemonicCode the same
+// way), so the same words restore in that app, here, and, through the file
+// this page saves, in the browser.
+// ---------------------------------------------------------------------------
+
+export function walletToWords(wallet) {
+  return entropyToMnemonic(wallet.privateKey, BIP39_ENGLISH).split(' ');
+}
+
+const WORD_SET = new Set(BIP39_ENGLISH);
+const BY_PREFIX = new Map(BIP39_ENGLISH.map((w) => [w.slice(0, 4), w]));
+
+/** True if the text looks like a list of words rather than a key, file or code. */
+export function looksLikeWords(text) {
+  const t = String(text).trim();
+  if (!/^[\sa-z0-9.,):;-]+$/i.test(t)) return false;
+  return wordTokens(t).filter((w) => /^[a-z]+$/.test(w)).length >= 6;
+}
+
+function wordTokens(text) {
+  return String(text).toLowerCase()
+    .split(/[\s,;]+/)
+    .map((t) => t.replace(/^\d{1,2}[.):-]*/, '').replace(/[.]$/, ''))
+    .filter(Boolean);
+}
+
+/**
+ * Read 24 recovery words. Numbers ("1." or "1)") and commas are ignored, case
+ * doesn't matter, and since every word on the list is unique in its first four
+ * letters, those four are enough (as many metal backup plates store them).
+ */
+export function walletFromWords(text) {
+  const tokens = wordTokens(text);
+  if (tokens.length !== 24) {
+    throw new Error(tokens.length === 12
+      ? 'That is 12 words. BrowserCoin wallets use 24 recovery words.'
+      : `That is ${tokens.length} words. BrowserCoin recovery words are a list of 24.`);
+  }
+  const words = tokens.map((t, i) => {
+    if (WORD_SET.has(t)) return t;
+    const full = t.length >= 4 ? BY_PREFIX.get(t.slice(0, 4)) : undefined;
+    if (full && full.startsWith(t)) return full;
+    throw new Error(`Word ${i + 1} ("${t.slice(0, 20)}") isn't on the recovery word list. Check its spelling against the paper.`);
+  });
+  let entropy;
+  try {
+    entropy = mnemonicToEntropy(words.join(' '), BIP39_ENGLISH);
+  } catch {
+    throw new Error("These words don't pass their built-in check, so one of them is wrong or two are swapped. Compare them with the paper, word by word.");
+  }
+  const wallet = { privateKey: Uint8Array.from(entropy), address: addressFromPrivateKey(entropy) };
+  entropy.fill(0);
   return wallet;
 }
 
@@ -434,6 +566,7 @@ export function identifyInput(text) {
     const parsed = parseJsonLoose(t);
     if (parsed) {
       if (parsed.type === BACKUP_TYPE) return { kind: 'vault-backup', backup: validateBackup(parsed) };
+      if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: 'desktop-backup', backup: validateDesktopBackup(parsed) };
       if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: 'browsercoin-wallet', wallet: parseBrowserCoinWallet(JSON.stringify(parsed)) };
       throw new Error('This file is neither a BrowserCoin wallet nor a BRC Vault backup.');
     }
@@ -446,6 +579,7 @@ export function identifyInput(text) {
   }
   const hex = t.replace(/\s+/g, '').toLowerCase().replace(/^0x/, '');
   if (/^[0-9a-f]{64}$/.test(hex)) return { kind: 'private-key', wallet: walletFromPrivateKeyHex(hex), ambiguous: true };
+  if (looksLikeWords(t)) return { kind: 'private-key', wallet: walletFromWords(t), ambiguous: false, checked: true, words: true };
   throw new Error('Could not recognise this. Use a BrowserCoin wallet file, a BRC Vault backup, or a private key.');
 }
 
@@ -498,8 +632,8 @@ function singleObject(text) {
   if (leftover.trim()) return null;
   let parsed;
   try { parsed = objects.map((o) => JSON.parse(o)); } catch { return null; }
-  const canon = (o) => (o && o.type === BROWSERCOIN_WALLET_TYPE
-    ? `wallet:${String(o.privateKeyHex).toLowerCase()}`
+  const canon = (o) => (o && o.type === BROWSERCOIN_WALLET_TYPE && typeof o.privateKeyHex === 'string'
+    ? `wallet:${o.privateKeyHex.toLowerCase()}`
     : JSON.stringify(o));
   if (!parsed.every((o) => canon(o) === canon(parsed[0]))) {
     throw new Error(MULTIPLE);

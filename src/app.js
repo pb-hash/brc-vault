@@ -567,8 +567,9 @@ function loadWalletForBackup(text, source) {
   try {
     const id = core.identifyInput(text);
     if (id.kind === 'vault-backup') throw new Error('That is already a BRC Vault backup. To open it, switch to Restore.');
+    if (id.kind === 'desktop-backup') throw new Error('That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.');
     backup.wallet = id.wallet;
-    backup.kind = id.kind === 'private-key' ? (id.ambiguous ? 'ambiguous-key' : 'key') : 'file';
+    backup.kind = id.kind === 'private-key' ? (id.words ? 'words' : id.ambiguous ? 'ambiguous-key' : 'key') : 'file';
     renderAddress($('#b-address'), id.wallet.address);
     show($('#b-loaded'), true);
     show($('#b-key-confirm-wrap'), backup.kind === 'ambiguous-key');
@@ -579,10 +580,11 @@ function loadWalletForBackup(text, source) {
     } else {
       setMessage(msg, '');
     }
-    $('#b-tip-delete').textContent = backup.kind === 'file'
-      ? 'Your unlocked wallet file is still in your Downloads folder. Delete it once your backup is safe.'
-      : 'Remove the private key from wherever you copied it once your backup is safe.';
-    intakes.b.setMode('loaded', backup.kind === 'file' ? (source || 'Wallet file') : 'Pasted private key');
+    $('#b-tip-delete').textContent = {
+      file: 'Your unlocked wallet file is still in your Downloads folder. Delete it once your backup is safe.',
+      words: 'If you typed or pasted your recovery words anywhere else, delete them there once your backup is safe.',
+    }[backup.kind] || 'Remove the private key from wherever you copied it once your backup is safe.';
+    intakes.b.setMode('loaded', backup.kind === 'file' ? (source || 'Wallet file') : backup.kind === 'words' ? 'Recovery words' : (source || 'Pasted private key'));
   } catch (e) {
     backup.wallet = null;
     backup.kind = null;
@@ -700,6 +702,8 @@ const restore = { pending: null, wallet: null, busy: false };
 
 function resetRestore() {
   gen.restore++;
+  $('#r-words-wrap').open = false;
+  $('#r-words').innerHTML = '';
   show($('#r-reprint-row'), false);
   $('#r-success').classList.remove('is-in');
   delete $('#r-step1').dataset.collapsed;
@@ -723,15 +727,18 @@ function loadForRestore(text, source) {
   resetRestore();
   try {
     const id = core.identifyInput(text);
-    intakes.r.setMode('loaded', source || (id.kind === 'vault-backup' ? 'Pasted backup code' : 'Pasted key'));
+    const pasted = { 'vault-backup': 'Pasted backup code', 'desktop-backup': 'Pasted wallet file' }[id.kind] || (id.words ? 'Recovery words' : 'Pasted key');
+    intakes.r.setMode('loaded', source || pasted);
     setStep('#r-step1', 'done');
     show($('#r-loaded'), true);
-    if (id.kind === 'vault-backup') {
+    if (id.kind === 'vault-backup' || id.kind === 'desktop-backup') {
       restore.pending = id.backup;
-      $('#r-address-label').textContent = 'In backup';
+      $('#r-address-label').textContent = id.kind === 'vault-backup' ? 'In backup' : 'In wallet file';
       renderAddress($('#r-address'), id.backup.address);
       show($('#r-address-note'), true);
-      setMessage(msg, id.rescued ? 'This file had been changed by another app, such as a text editor. BRC Vault recovered the backup from it; unlocking will confirm it.' : '', 'info');
+      setMessage(msg, id.kind === 'desktop-backup'
+        ? 'This is a password-protected file from the BRC Wallet desktop app. Unlock it with the password you set in that app.'
+        : id.rescued ? 'This file had been changed by another app, such as a text editor. BRC Vault recovered the backup from it; unlocking will confirm it.' : '', 'info');
       setStep('#r-step2', 'active');
       $('#r-password').focus();
     } else {
@@ -740,7 +747,7 @@ function loadForRestore(text, source) {
       renderAddress($('#r-address'), id.wallet.address);
       show($('#r-address-note'), false);
       setStep('#r-step2', 'done');
-      finishRestore(id.wallet, id.ambiguous || id.checked === false);
+      finishRestore(id.wallet, id.ambiguous || id.checked === false, id.words ? 'words' : 'key');
     }
   } catch (e) {
     resetRestore();
@@ -754,7 +761,7 @@ wireIntake('r', loadForRestore, $('#r-load-msg'), () => !restore.busy && !restor
 // A new paper copy of a backup, offered once the password has unlocked it, so
 // the address printed on it has been confirmed against the key.
 $('#r-reprint').addEventListener('click', () => {
-  if (!restore.pending || !restore.wallet || restore.wallet.address !== restore.pending.address) return;
+  if (!restore.pending || restore.pending.format || !restore.wallet || restore.wallet.address !== restore.pending.address) return;
   openPaperPreview(encryptedSheet({ ...restore.pending, created: `copy printed ${new Date().toISOString().slice(0, 10)}` }), 'encrypted');
 });
 
@@ -771,7 +778,7 @@ $('#r-unlock').addEventListener('click', async () => {
   setMessage(msg, '');
   await startBusy($('#r-progress'));
   try {
-    const wallet = await core.decryptBackup(pending, $('#r-password').value);
+    const wallet = await core.unlockAny(pending, $('#r-password').value);
     if (myGen !== gen.restore) { core.wipeWallet(wallet); return; }
     $('#r-password').value = '';
     setStep('#r-step2', 'done');
@@ -787,12 +794,16 @@ $('#r-unlock').addEventListener('click', async () => {
 });
 $('#r-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#r-unlock').click(); });
 
-function finishRestore(wallet, ambiguous) {
+function finishRestore(wallet, ambiguous, from = 'key') {
   restore.wallet = wallet;
   const unlocked = Boolean(restore.pending);
-  show($('#r-reprint-row'), unlocked);
-  $('#r-done-title').textContent = unlocked ? 'Backup unlocked' : 'Wallet ready';
-  $('#r-done-check').textContent = unlocked ? 'The key matches the address in the backup' : 'Address worked out from this key';
+  const desktop = unlocked && restore.pending.format === core.DESKTOP_FORMAT;
+  show($('#r-reprint-row'), unlocked && !desktop);
+  show($('#r-to-backup-row'), !unlocked || desktop);
+  $('#r-done-title').textContent = desktop ? 'Wallet file unlocked' : unlocked ? 'Backup unlocked' : 'Wallet ready';
+  $('#r-done-check').textContent = desktop ? 'The key matches the address in the wallet file'
+    : unlocked ? 'The key matches the address in the backup'
+    : from === 'words' ? 'Address worked out from these words' : 'Address worked out from this key';
   $('#r-sum-unlock').textContent = unlocked ? 'Unlocked with your password' : 'No password needed';
   $('#r-step1').dataset.collapsed = '';
   $('#r-step2').dataset.collapsed = '';
@@ -808,6 +819,25 @@ function finishRestore(wallet, ambiguous) {
   updateRestoreDownload();
   $('#r-ok-address').focus();
 }
+
+// Words, a key or a desktop wallet file can be turned straight into a BRC Vault backup.
+$('#r-to-backup').addEventListener('click', () => {
+  const w = restore.wallet;
+  if (!w) return;
+  selectTab('backup');
+  restartBackup();
+  loadWalletForBackup(core.browserCoinWalletJson(w), 'Wallet from Restore');
+  $('#b-tip-delete').textContent = 'Once your backup is safe, delete any other copies of the words, key or wallet file you restored from.';
+});
+
+// The recovery words are only put on screen when asked for, and removed again when closed.
+$('#r-words-wrap').addEventListener('toggle', () => {
+  const list = $('#r-words');
+  list.innerHTML = '';
+  if (!$('#r-words-wrap').open || !restore.wallet) return;
+  list.innerHTML = core.walletToWords(restore.wallet)
+    .map((w, i) => `<li><span class="n">${i + 1}</span>${escapeHtml(w)}</li>`).join('');
+});
 
 function updateRestoreDownload() {
   $('#r-download').disabled = !(restore.wallet && $('#r-ok-address').checked && $('#r-ok-replace').checked);
@@ -873,7 +903,7 @@ function encryptedSheet(result) {
           <li>Open BRC Vault and choose Restore.</li>
           <li>Choose Scan paper backup and hold this sheet up to the camera, or type the code exactly as printed.</li>
           <li>Enter your password and download the wallet file.</li>
-          <li>In BrowserCoin, open Settings and choose Import key.</li>
+          <li>At browsercoin.org/app, open Settings and choose Import key…</li>
         </ol>
       </div>
       <div>
@@ -910,14 +940,21 @@ function plainSheet(wallet) {
         <p class="ps-mono sheet-code">${keyLines}</p>
       </div>
     </section>
+    <section class="ps-panel ps-words is-key">
+      <div class="ps-label">Never share</div>
+      <h2>24 recovery words</h2>
+      <p class="ps-note">The same wallet as standard recovery words. They restore in BRC Vault and in the BRC Wallet Android app.</p>
+      <ol class="ps-wordgrid">${core.walletToWords(wallet).map((w, i) => `<li><span class="n">${i + 1}</span>${escapeHtml(w)}</li>`).join('')}</ol>
+    </section>
     <section class="ps-steps">
       <div>
         <h3>To get your coins back</h3>
         <ol>
           <li>Open BRC Vault and choose Restore.</li>
-          <li>Choose Scan paper backup and hold this sheet up to the camera, or type every line of the private key code, including BRCKEY1: and the checks in brackets.</li>
-          <li>Download the wallet file and use Import key in BrowserCoin Settings.</li>
+          <li>Choose Scan paper backup and hold this sheet up to the camera. Or type every line of the private key code, with BRCKEY1: and the checks in brackets, or the 24 recovery words.</li>
+          <li>Download the wallet file. At browsercoin.org/app, open Settings and choose Import key…</li>
         </ol>
+        <p class="ps-warn">In the BRC Wallet Android app, import the 24 recovery words instead.</p>
       </div>
     </section>
     ${sheetFoot(new Date().toISOString().slice(0, 10), false)}`;

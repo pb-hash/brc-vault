@@ -8,11 +8,23 @@ browser, with the internet off if you like. It never uploads anything.
 
 What it does
 ------------
-Back up:  load the wallet file from BrowserCoin (Settings > Export key), choose
-          a password, and get a locked backup file and/or a printable paper
-          backup with QR codes.
+Back up:  load the wallet file from BrowserCoin (browsercoin.org/app, then
+          Settings > Export key...), a private key, or 24 recovery words.
+          Choose a password, and get a locked backup file and/or a printable
+          paper backup with QR codes.
 Restore:  load the backup file or type the paper code, enter the password, and
-          get a wallet file that BrowserCoin's Settings > Import key accepts.
+          get a wallet file that BrowserCoin's Settings > Import key... accepts.
+          It also opens 24 recovery words and password-protected files from the
+          BRC Wallet desktop app.
+
+Works with the other BrowserCoin wallets
+----------------------------------------
+- BRC Wallet for Android (github.com/ils94/BRC_Wallet_Android): its 24 words
+  are standard BIP39 English with the private key as the entropy. BRC Vault
+  reads and prints exactly those words, so the same paper restores in either.
+- BRC Wallet desktop app for Windows (github.com/Mattpomeranian/BRC-Wallet):
+  its password-protected export (version 2, scrypt + AES-256-GCM) opens in
+  Restore with that app's password.
 
 How it protects your key
 ------------------------
@@ -25,8 +37,11 @@ How it protects your key
   SHA-256) and blocks network requests. Peer-to-peer connections are disabled.
 - Printed codes carry a 4-character check on every line, so a typo is caught
   and named before the password step.
-- An unprotected paper key is printed as BRCKEY1:... so it can't be mistaken
-  for a wallet address.
+- An unprotected paper key is printed as BRCKEY1:<key>:<address check>, so it
+  can't be mistaken for a wallet address and a typo in it is caught. The same
+  sheet lists the 24 recovery words.
+- The camera scanner reads only BRC Vault codes, and the camera turns off as
+  soon as the scanner closes.
 
 The full file format is described under "Technical details" on the page.
 
@@ -35,6 +50,7 @@ Verify your copy
 dist/SHA256.txt holds the SHA-256 of dist/brc-vault.html. Compare it with the
 hash published on the project page:
     shasum -a 256 dist/brc-vault.html
+Builds are reproducible: npm ci && npm run build gives the same file and hash.
 
 Build and test
 --------------

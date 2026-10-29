@@ -252,6 +252,9 @@ button, input, textarea { font: inherit; color: inherit; }
 .risky { margin-top: 1.1rem; }
 .risky p { font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
 .risky p strong { color: var(--danger); font-weight: 500; }
+.words { margin: 0.75rem 0 0; padding: 0.85rem 1rem; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(6, auto); gap: 0.35rem 1rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface); font: 0.9rem/1.5 var(--mono); }
+.words .n, .ps-wordgrid .n { display: inline-block; min-width: 1.6em; color: var(--muted); text-align: right; margin-right: 0.45em; font-variant-numeric: tabular-nums; }
+@media (max-width: 40rem) { .words { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(12, auto); } }
 
 .foot-actions { display: flex; align-items: center; gap: 1.1rem; }
 .sound-toggle { display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -394,11 +397,15 @@ body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-t
 .ps-note { margin: 1mm 0 3mm; font-size: 9pt; color: #333; }
 .ps-mono { margin: 0; font: 9.6pt/1.65 var(--mono); letter-spacing: 0.01em; word-break: break-word; font-feature-settings: "zero"; }
 .ps-check { color: #555; }
+.ps-panel.ps-words { grid-template-columns: 1fr; gap: 0; }
+.ps-wordgrid { margin: 1mm 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: column; grid-template-rows: repeat(6, auto); gap: 1mm 6mm; font: 10pt/1.6 var(--mono); }
+.ps-wordgrid .n { color: #555; }
 .ps-steps { margin-top: 6mm; display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; break-inside: avoid; }
 .ps-steps h3 { margin: 0 0 1.5mm; font-size: 10.5pt; font-weight: 600; }
 .ps-steps ol { margin: 0; padding-left: 4.5mm; font-size: 9.5pt; }
 .ps-steps li + li { margin-top: 0.8mm; }
 .ps-warn { margin: 0; font-size: 9.5pt; }
+.ps-steps ol + .ps-warn { margin-top: 2mm; }
 .ps-foot { margin-top: 9mm; padding-top: 3mm; border-top: 0.6pt solid #9a9a9a; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6mm; font-size: 8.5pt; color: #333; }
 .ps-line { display: block; margin-top: 5mm; border-bottom: 0.6pt solid #000; }
 
@@ -464,7 +471,7 @@ body.is-previewing { overflow: hidden; }
 
       <!-- ===================== Back up ===================== -->
       <div class="panel" role="tabpanel" id="panel-backup" aria-labelledby="tab-backup">
-        <p class="panel-lede">Start with your wallet file. In BrowserCoin, open <strong>Settings</strong> and choose <strong>Export key</strong>.</p>
+        <p class="panel-lede">Start with your wallet file: at <strong>browsercoin.org/app</strong>, open <strong>Settings</strong> and choose <strong>Export key…</strong> You can also paste a private key, or the 24 recovery words from the BRC Wallet Android app.</p>
         <ol class="steps">
           <li class="step" id="b-step1" data-state="active">
             <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
@@ -490,7 +497,7 @@ body.is-previewing { overflow: hidden; }
                     <button type="button" class="btn btn-quiet btn-sm" data-intake-change="b">Change</button>
                   </div>
                   <div class="paste-panel" id="b-paste-panel" hidden>
-                    <textarea id="b-paste" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the wallet file's contents, or a private key" aria-label="Paste wallet file contents or private key"></textarea>
+                    <textarea id="b-paste" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the wallet file's contents, a private key, or 24 recovery words" aria-label="Paste wallet file contents, a private key, or recovery words"></textarea>
                     <div class="paste-bar">
                       <span class="paste-hint"><kbd class="kbd-mod">Ctrl</kbd> <kbd>V</kbd> to paste. It's read right away.</span>
                       <button type="button" class="btn btn-quiet btn-sm" data-intake-back="b">Use a file</button>
@@ -570,7 +577,7 @@ body.is-previewing { overflow: hidden; }
 
       <!-- ===================== Restore ===================== -->
       <div class="panel" role="tabpanel" id="panel-restore" aria-labelledby="tab-restore" hidden>
-        <p class="panel-lede">Turn a BRC Vault backup back into a wallet file BrowserCoin can import.</p>
+        <p class="panel-lede">Turn a BRC Vault backup, 24 recovery words, or a password-protected file from the BRC Wallet desktop app back into a wallet file BrowserCoin can import.</p>
         <ol class="steps">
           <li class="step" id="r-step1" data-state="active">
             <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
@@ -611,7 +618,7 @@ body.is-previewing { overflow: hidden; }
                   <div class="paste-panel" id="r-paste-panel" hidden>
                     <textarea id="r-paste" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="BRCVAULT1: [FADA]
 …" aria-label="Type or paste a paper backup code"></textarea>
-                    <p class="paste-note">Type every line of the locked backup code, including the check in brackets. The wallet address on the paper is not a key.</p>
+                    <p class="paste-note">Type every line of the locked backup code, including the check in brackets, or your 24 recovery words. The wallet address on the paper is not a key.</p>
                     <div class="paste-bar">
                       <span class="paste-hint"><kbd class="kbd-mod">Ctrl</kbd> <kbd>V</kbd> to paste. It's read right away.</span>
                       <button type="button" class="btn btn-quiet btn-sm" data-intake-back="r">Use a file</button>
@@ -662,8 +669,14 @@ body.is-previewing { overflow: hidden; }
                   <label class="check"><input type="checkbox" id="r-ok-replace"><span>I understand that <strong>importing</strong> this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.</span></label>
                   <div class="actions"><button type="button" class="btn btn-primary btn-block" id="r-download" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download wallet file</button></div>
                   <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a new paper copy of this backup</button></div>
+                  <div class="actions" id="r-to-backup-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-to-backup"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg>Make a password-protected backup of this wallet</button></div>
+                  <details class="disclosure risky" id="r-words-wrap">
+                    <summary>Show the 24 recovery words, for the BRC Wallet Android app</summary>
+                    <p>These words are the wallet itself, with no password. <strong>Anyone who sees them can take the coins.</strong> Only open this somewhere private, and don't take a screenshot.</p>
+                    <ol class="words" id="r-words" aria-label="Recovery words"></ol>
+                  </details>
                   <ul class="tips">
-                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Downloading only saves a file. Nothing changes in BrowserCoin until you open Settings, choose Import key, and pick that file.</li>
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Downloading only saves a file. Nothing changes in BrowserCoin until you open Settings at browsercoin.org/app, choose Import key…, and pick that file.</li>
                     <li class="caution"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 17.5 16.5h-15z"/><path d="M10 8.5v3.5M10 14.25v.25"/></svg>The downloaded file isn't password-protected. Delete it after importing.</li>
                   </ul>
                 </div>
@@ -718,9 +731,13 @@ body.is-previewing { overflow: hidden; }
   "note": "…"
 }</pre>
         <p>Key = scrypt(password normalized to NFKC, salt, N = 2^logN, r, p, 32). Ciphertext = AES-256-GCM(key, iv, private key) with associated data <code>brc-vault-backup|1|address|scrypt|logN|r|p|dkLen|salt|iv</code>, so changing any field makes decryption fail.</p>
-        <p>The paper code is the same backup on one line, in upper case: <code>BRCVAULT1:ADDRESS:LOGN:R:P:SALT:IV:CIPHERTEXT</code>, and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the <code>BRCVAULT1:</code> prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as <code>BRCKEY1:KEY</code> so it can't be mistaken for an address.</p>
+        <p>The paper code is the same backup on one line, in upper case: <code>BRCVAULT1:ADDRESS:LOGN:R:P:SALT:IV:CIPHERTEXT</code>, and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the <code>BRCVAULT1:</code> prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as <code>BRCKEY1:KEY:CHECK</code>, where CHECK is the first 8 characters of the address, so it can't be mistaken for an address and a typo in the key is caught.</p>
+        <h4>Recovery words</h4>
+        <p>The 24 recovery words are standard BIP39 English, with the 32-byte private key used directly as the entropy (no passphrase, no derivation path). That is exactly what the BRC Wallet Android app shows and accepts, so the same words work in both. Numbers, commas and capital letters are ignored when you type them, and the first four letters of each word are enough.</p>
+        <h4>Other wallets' files</h4>
+        <p>Password-protected files from the BRC Wallet desktop app (<code>"type": "browsercoin-wallet", "version": 2, "encrypted": true</code>) open in Restore. They use scrypt with the password exactly as typed and AES-256-GCM with a separate <code>authTag</code>; the same setting limits apply.</p>
         <h4>Credits</h4>
-        <p>Built with @noble/ed25519 and @noble/hashes by Paul Miller (MIT), qrcode-generator by Kazuhiko Arase (MIT), jsQR by Cosmo Wolfe (Apache 2.0), and the Geist typefaces by Vercel (SIL Open Font License). BRC Vault is a community project and isn't made by the BrowserCoin developers.</p>
+        <p>Built with @noble/ed25519, @noble/hashes and @scure/bip39 by Paul Miller and contributors (MIT), qrcode-generator by Kazuhiko Arase (MIT), jsQR by Cosmo Wolfe (Apache 2.0), and the Geist typefaces by Vercel (SIL Open Font License). BRC Vault is a community project and isn't made by the BrowserCoin developers.</p>
       </div>
     </details>
 

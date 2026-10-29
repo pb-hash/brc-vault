@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- No network access at all: this page cannot load or send anything. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-jRwymfpTJ5WwlYeIz7LoMDP0rgh0hIiKW5LCQzYa9cY='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ho88ziZ59sAq3OOyTe9O05leMyNJeakgMjK++WQt3oE='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="x-dns-prefetch-control" content="off">
 <meta name="color-scheme" content="light">
@@ -254,6 +254,9 @@ button, input, textarea { font: inherit; color: inherit; }
 .risky { margin-top: 1.1rem; }
 .risky p { font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
 .risky p strong { color: var(--danger); font-weight: 500; }
+.words { margin: 0.75rem 0 0; padding: 0.85rem 1rem; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(6, auto); gap: 0.35rem 1rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface); font: 0.9rem/1.5 var(--mono); }
+.words .n, .ps-wordgrid .n { display: inline-block; min-width: 1.6em; color: var(--muted); text-align: right; margin-right: 0.45em; font-variant-numeric: tabular-nums; }
+@media (max-width: 40rem) { .words { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(12, auto); } }
 
 .foot-actions { display: flex; align-items: center; gap: 1.1rem; }
 .sound-toggle { display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -396,11 +399,15 @@ body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-t
 .ps-note { margin: 1mm 0 3mm; font-size: 9pt; color: #333; }
 .ps-mono { margin: 0; font: 9.6pt/1.65 var(--mono); letter-spacing: 0.01em; word-break: break-word; font-feature-settings: "zero"; }
 .ps-check { color: #555; }
+.ps-panel.ps-words { grid-template-columns: 1fr; gap: 0; }
+.ps-wordgrid { margin: 1mm 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: column; grid-template-rows: repeat(6, auto); gap: 1mm 6mm; font: 10pt/1.6 var(--mono); }
+.ps-wordgrid .n { color: #555; }
 .ps-steps { margin-top: 6mm; display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; break-inside: avoid; }
 .ps-steps h3 { margin: 0 0 1.5mm; font-size: 10.5pt; font-weight: 600; }
 .ps-steps ol { margin: 0; padding-left: 4.5mm; font-size: 9.5pt; }
 .ps-steps li + li { margin-top: 0.8mm; }
 .ps-warn { margin: 0; font-size: 9.5pt; }
+.ps-steps ol + .ps-warn { margin-top: 2mm; }
 .ps-foot { margin-top: 9mm; padding-top: 3mm; border-top: 0.6pt solid #9a9a9a; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6mm; font-size: 8.5pt; color: #333; }
 .ps-line { display: block; margin-top: 5mm; border-bottom: 0.6pt solid #000; }
 
@@ -466,7 +473,7 @@ body.is-previewing { overflow: hidden; }
 
       <!-- ===================== Back up ===================== -->
       <div class="panel" role="tabpanel" id="panel-backup" aria-labelledby="tab-backup">
-        <p class="panel-lede">Start with your wallet file. In BrowserCoin, open <strong>Settings</strong> and choose <strong>Export key</strong>.</p>
+        <p class="panel-lede">Start with your wallet file: at <strong>browsercoin.org/app</strong>, open <strong>Settings</strong> and choose <strong>Export key…</strong> You can also paste a private key, or the 24 recovery words from the BRC Wallet Android app.</p>
         <ol class="steps">
           <li class="step" id="b-step1" data-state="active">
             <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
@@ -492,7 +499,7 @@ body.is-previewing { overflow: hidden; }
                     <button type="button" class="btn btn-quiet btn-sm" data-intake-change="b">Change</button>
                   </div>
                   <div class="paste-panel" id="b-paste-panel" hidden>
-                    <textarea id="b-paste" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the wallet file's contents, or a private key" aria-label="Paste wallet file contents or private key"></textarea>
+                    <textarea id="b-paste" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the wallet file's contents, a private key, or 24 recovery words" aria-label="Paste wallet file contents, a private key, or recovery words"></textarea>
                     <div class="paste-bar">
                       <span class="paste-hint"><kbd class="kbd-mod">Ctrl</kbd> <kbd>V</kbd> to paste. It's read right away.</span>
                       <button type="button" class="btn btn-quiet btn-sm" data-intake-back="b">Use a file</button>
@@ -572,7 +579,7 @@ body.is-previewing { overflow: hidden; }
 
       <!-- ===================== Restore ===================== -->
       <div class="panel" role="tabpanel" id="panel-restore" aria-labelledby="tab-restore" hidden>
-        <p class="panel-lede">Turn a BRC Vault backup back into a wallet file BrowserCoin can import.</p>
+        <p class="panel-lede">Turn a BRC Vault backup, 24 recovery words, or a password-protected file from the BRC Wallet desktop app back into a wallet file BrowserCoin can import.</p>
         <ol class="steps">
           <li class="step" id="r-step1" data-state="active">
             <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
@@ -613,7 +620,7 @@ body.is-previewing { overflow: hidden; }
                   <div class="paste-panel" id="r-paste-panel" hidden>
                     <textarea id="r-paste" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="BRCVAULT1: [FADA]
 …" aria-label="Type or paste a paper backup code"></textarea>
-                    <p class="paste-note">Type every line of the locked backup code, including the check in brackets. The wallet address on the paper is not a key.</p>
+                    <p class="paste-note">Type every line of the locked backup code, including the check in brackets, or your 24 recovery words. The wallet address on the paper is not a key.</p>
                     <div class="paste-bar">
                       <span class="paste-hint"><kbd class="kbd-mod">Ctrl</kbd> <kbd>V</kbd> to paste. It's read right away.</span>
                       <button type="button" class="btn btn-quiet btn-sm" data-intake-back="r">Use a file</button>
@@ -664,8 +671,14 @@ body.is-previewing { overflow: hidden; }
                   <label class="check"><input type="checkbox" id="r-ok-replace"><span>I understand that <strong>importing</strong> this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.</span></label>
                   <div class="actions"><button type="button" class="btn btn-primary btn-block" id="r-download" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download wallet file</button></div>
                   <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a new paper copy of this backup</button></div>
+                  <div class="actions" id="r-to-backup-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-to-backup"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg>Make a password-protected backup of this wallet</button></div>
+                  <details class="disclosure risky" id="r-words-wrap">
+                    <summary>Show the 24 recovery words, for the BRC Wallet Android app</summary>
+                    <p>These words are the wallet itself, with no password. <strong>Anyone who sees them can take the coins.</strong> Only open this somewhere private, and don't take a screenshot.</p>
+                    <ol class="words" id="r-words" aria-label="Recovery words"></ol>
+                  </details>
                   <ul class="tips">
-                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Downloading only saves a file. Nothing changes in BrowserCoin until you open Settings, choose Import key, and pick that file.</li>
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Downloading only saves a file. Nothing changes in BrowserCoin until you open Settings at browsercoin.org/app, choose Import key…, and pick that file.</li>
                     <li class="caution"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 17.5 16.5h-15z"/><path d="M10 8.5v3.5M10 14.25v.25"/></svg>The downloaded file isn't password-protected. Delete it after importing.</li>
                   </ul>
                 </div>
@@ -720,14 +733,18 @@ body.is-previewing { overflow: hidden; }
   "note": "…"
 }</pre>
         <p>Key = scrypt(password normalized to NFKC, salt, N = 2^logN, r, p, 32). Ciphertext = AES-256-GCM(key, iv, private key) with associated data <code>brc-vault-backup|1|address|scrypt|logN|r|p|dkLen|salt|iv</code>, so changing any field makes decryption fail.</p>
-        <p>The paper code is the same backup on one line, in upper case: <code>BRCVAULT1:ADDRESS:LOGN:R:P:SALT:IV:CIPHERTEXT</code>, and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the <code>BRCVAULT1:</code> prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as <code>BRCKEY1:KEY</code> so it can't be mistaken for an address.</p>
+        <p>The paper code is the same backup on one line, in upper case: <code>BRCVAULT1:ADDRESS:LOGN:R:P:SALT:IV:CIPHERTEXT</code>, and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the <code>BRCVAULT1:</code> prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as <code>BRCKEY1:KEY:CHECK</code>, where CHECK is the first 8 characters of the address, so it can't be mistaken for an address and a typo in the key is caught.</p>
+        <h4>Recovery words</h4>
+        <p>The 24 recovery words are standard BIP39 English, with the 32-byte private key used directly as the entropy (no passphrase, no derivation path). That is exactly what the BRC Wallet Android app shows and accepts, so the same words work in both. Numbers, commas and capital letters are ignored when you type them, and the first four letters of each word are enough.</p>
+        <h4>Other wallets' files</h4>
+        <p>Password-protected files from the BRC Wallet desktop app (<code>"type": "browsercoin-wallet", "version": 2, "encrypted": true</code>) open in Restore. They use scrypt with the password exactly as typed and AES-256-GCM with a separate <code>authTag</code>; the same setting limits apply.</p>
         <h4>Credits</h4>
-        <p>Built with @noble/ed25519 and @noble/hashes by Paul Miller (MIT), qrcode-generator by Kazuhiko Arase (MIT), jsQR by Cosmo Wolfe (Apache 2.0), and the Geist typefaces by Vercel (SIL Open Font License). BRC Vault is a community project and isn't made by the BrowserCoin developers.</p>
+        <p>Built with @noble/ed25519, @noble/hashes and @scure/bip39 by Paul Miller and contributors (MIT), qrcode-generator by Kazuhiko Arase (MIT), jsQR by Cosmo Wolfe (Apache 2.0), and the Geist typefaces by Vercel (SIL Open Font License). BRC Vault is a community project and isn't made by the BrowserCoin developers.</p>
       </div>
     </details>
 
     <footer class="site-foot">
-      <span>BRC Vault, version 1, build 8d1c3299</span>
+      <span>BRC Vault, version 1, build 868f3cce</span>
       <span>Free and open source under the MIT License</span>
     </footer>
   </main>
@@ -755,6 +772,8 @@ body.is-previewing { overflow: hidden; }
  * Includes these open-source libraries:
  * @noble/ed25519 (MIT) — Copyright (c) 2019 Paul Miller (https://paulmillr.com)
  * @noble/hashes (MIT) — Copyright (c) 2022 Paul Miller (https://paulmillr.com)
+ * @scure/bip39 (MIT) — Copyright (c) 2022 Patricio Palladino, Paul Miller (paulmillr.com)
+ * @scure/base (MIT) — Copyright (c) 2022 Paul Miller (https://paulmillr.com)
  * qrcode-generator (MIT) — Copyright (c) 2009 Kazuhiko Arase
  * jsQR (Apache License 2.0) — by Cosmo Wolfe and contributors, github.com/cozmo/jsQR; see third-party/jsQR-LICENSE
  */
@@ -4481,6 +4500,2383 @@ body.is-previewing { overflow: hidden; }
     return scryptOutput(password, dkLen, B, V, tmp);
   }
 
+  // node_modules/@scure/base/lib/esm/index.js
+  /*! scure-base - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+  function isBytes3(a) {
+    return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
+  }
+  function isArrayOf(isString, arr) {
+    if (!Array.isArray(arr))
+      return false;
+    if (arr.length === 0)
+      return true;
+    if (isString) {
+      return arr.every((item) => typeof item === "string");
+    } else {
+      return arr.every((item) => Number.isSafeInteger(item));
+    }
+  }
+  function afn(input) {
+    if (typeof input !== "function")
+      throw new Error("function expected");
+    return true;
+  }
+  function astr(label, input) {
+    if (typeof input !== "string")
+      throw new Error(`${label}: string expected`);
+    return true;
+  }
+  function anumber2(n) {
+    if (!Number.isSafeInteger(n))
+      throw new Error(`invalid integer: ${n}`);
+  }
+  function aArr(input) {
+    if (!Array.isArray(input))
+      throw new Error("array expected");
+  }
+  function astrArr(label, input) {
+    if (!isArrayOf(true, input))
+      throw new Error(`${label}: array of strings expected`);
+  }
+  function anumArr(label, input) {
+    if (!isArrayOf(false, input))
+      throw new Error(`${label}: array of numbers expected`);
+  }
+  // @__NO_SIDE_EFFECTS__
+  function chain(...args) {
+    const id = (a) => a;
+    const wrap = (a, b) => (c) => a(b(c));
+    const encode = args.map((x) => x.encode).reduceRight(wrap, id);
+    const decode = args.map((x) => x.decode).reduce(wrap, id);
+    return { encode, decode };
+  }
+  // @__NO_SIDE_EFFECTS__
+  function alphabet(letters) {
+    const lettersA = typeof letters === "string" ? letters.split("") : letters;
+    const len = lettersA.length;
+    astrArr("alphabet", lettersA);
+    const indexes = new Map(lettersA.map((l, i) => [l, i]));
+    return {
+      encode: (digits) => {
+        aArr(digits);
+        return digits.map((i) => {
+          if (!Number.isSafeInteger(i) || i < 0 || i >= len)
+            throw new Error(`alphabet.encode: digit index outside alphabet "${i}". Allowed: ${letters}`);
+          return lettersA[i];
+        });
+      },
+      decode: (input) => {
+        aArr(input);
+        return input.map((letter) => {
+          astr("alphabet.decode", letter);
+          const i = indexes.get(letter);
+          if (i === void 0)
+            throw new Error(`Unknown letter: "${letter}". Allowed: ${letters}`);
+          return i;
+        });
+      }
+    };
+  }
+  // @__NO_SIDE_EFFECTS__
+  function join(separator = "") {
+    astr("join", separator);
+    return {
+      encode: (from) => {
+        astrArr("join.decode", from);
+        return from.join(separator);
+      },
+      decode: (to) => {
+        astr("join.decode", to);
+        return to.split(separator);
+      }
+    };
+  }
+  // @__NO_SIDE_EFFECTS__
+  function padding(bits, chr = "=") {
+    anumber2(bits);
+    astr("padding", chr);
+    return {
+      encode(data) {
+        astrArr("padding.encode", data);
+        while (data.length * bits % 8)
+          data.push(chr);
+        return data;
+      },
+      decode(input) {
+        astrArr("padding.decode", input);
+        let end = input.length;
+        if (end * bits % 8)
+          throw new Error("padding: invalid, string should have whole number of bytes");
+        for (; end > 0 && input[end - 1] === chr; end--) {
+          const last = end - 1;
+          const byte = last * bits;
+          if (byte % 8 === 0)
+            throw new Error("padding: invalid, string has too much padding");
+        }
+        return input.slice(0, end);
+      }
+    };
+  }
+  function convertRadix(data, from, to) {
+    if (from < 2)
+      throw new Error(`convertRadix: invalid from=${from}, base cannot be less than 2`);
+    if (to < 2)
+      throw new Error(`convertRadix: invalid to=${to}, base cannot be less than 2`);
+    aArr(data);
+    if (!data.length)
+      return [];
+    let pos = 0;
+    const res = [];
+    const digits = Array.from(data, (d) => {
+      anumber2(d);
+      if (d < 0 || d >= from)
+        throw new Error(`invalid integer: ${d}`);
+      return d;
+    });
+    const dlen = digits.length;
+    while (true) {
+      let carry = 0;
+      let done = true;
+      for (let i = pos; i < dlen; i++) {
+        const digit = digits[i];
+        const fromCarry = from * carry;
+        const digitBase = fromCarry + digit;
+        if (!Number.isSafeInteger(digitBase) || fromCarry / from !== carry || digitBase - digit !== fromCarry) {
+          throw new Error("convertRadix: carry overflow");
+        }
+        const div = digitBase / to;
+        carry = digitBase % to;
+        const rounded = Math.floor(div);
+        digits[i] = rounded;
+        if (!Number.isSafeInteger(rounded) || rounded * to + carry !== digitBase)
+          throw new Error("convertRadix: carry overflow");
+        if (!done)
+          continue;
+        else if (!rounded)
+          pos = i;
+        else
+          done = false;
+      }
+      res.push(carry);
+      if (done)
+        break;
+    }
+    for (let i = 0; i < data.length - 1 && data[i] === 0; i++)
+      res.push(0);
+    return res.reverse();
+  }
+  var gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+  var radix2carry = /* @__NO_SIDE_EFFECTS__ */ (from, to) => from + (to - gcd(from, to));
+  var powers = /* @__PURE__ */ (() => {
+    let res = [];
+    for (let i = 0; i < 40; i++)
+      res.push(2 ** i);
+    return res;
+  })();
+  function convertRadix2(data, from, to, padding2) {
+    aArr(data);
+    if (from <= 0 || from > 32)
+      throw new Error(`convertRadix2: wrong from=${from}`);
+    if (to <= 0 || to > 32)
+      throw new Error(`convertRadix2: wrong to=${to}`);
+    if (/* @__PURE__ */ radix2carry(from, to) > 32) {
+      throw new Error(`convertRadix2: carry overflow from=${from} to=${to} carryBits=${/* @__PURE__ */ radix2carry(from, to)}`);
+    }
+    let carry = 0;
+    let pos = 0;
+    const max = powers[from];
+    const mask = powers[to] - 1;
+    const res = [];
+    for (const n of data) {
+      anumber2(n);
+      if (n >= max)
+        throw new Error(`convertRadix2: invalid data word=${n} from=${from}`);
+      carry = carry << from | n;
+      if (pos + from > 32)
+        throw new Error(`convertRadix2: carry overflow pos=${pos} from=${from}`);
+      pos += from;
+      for (; pos >= to; pos -= to)
+        res.push((carry >> pos - to & mask) >>> 0);
+      const pow = powers[pos];
+      if (pow === void 0)
+        throw new Error("invalid carry");
+      carry &= pow - 1;
+    }
+    carry = carry << to - pos & mask;
+    if (!padding2 && pos >= from)
+      throw new Error("Excess padding");
+    if (!padding2 && carry > 0)
+      throw new Error(`Non-zero padding: ${carry}`);
+    if (padding2 && pos > 0)
+      res.push(carry >>> 0);
+    return res;
+  }
+  // @__NO_SIDE_EFFECTS__
+  function radix(num) {
+    anumber2(num);
+    const _256 = 2 ** 8;
+    return {
+      encode: (bytes) => {
+        if (!isBytes3(bytes))
+          throw new Error("radix.encode input should be Uint8Array");
+        return convertRadix(Array.from(bytes), _256, num);
+      },
+      decode: (digits) => {
+        anumArr("radix.decode", digits);
+        return Uint8Array.from(convertRadix(digits, num, _256));
+      }
+    };
+  }
+  // @__NO_SIDE_EFFECTS__
+  function radix2(bits, revPadding = false) {
+    anumber2(bits);
+    if (bits <= 0 || bits > 32)
+      throw new Error("radix2: bits should be in (0..32]");
+    if (/* @__PURE__ */ radix2carry(8, bits) > 32 || /* @__PURE__ */ radix2carry(bits, 8) > 32)
+      throw new Error("radix2: carry overflow");
+    return {
+      encode: (bytes) => {
+        if (!isBytes3(bytes))
+          throw new Error("radix2.encode input should be Uint8Array");
+        return convertRadix2(Array.from(bytes), 8, bits, !revPadding);
+      },
+      decode: (digits) => {
+        anumArr("radix2.decode", digits);
+        return Uint8Array.from(convertRadix2(digits, bits, 8, revPadding));
+      }
+    };
+  }
+  function checksum(len, fn) {
+    anumber2(len);
+    afn(fn);
+    return {
+      encode(data) {
+        if (!isBytes3(data))
+          throw new Error("checksum.encode: input should be Uint8Array");
+        const sum = fn(data).slice(0, len);
+        const res = new Uint8Array(data.length + len);
+        res.set(data);
+        res.set(sum, data.length);
+        return res;
+      },
+      decode(data) {
+        if (!isBytes3(data))
+          throw new Error("checksum.decode: input should be Uint8Array");
+        const payload = data.slice(0, -len);
+        const oldChecksum = data.slice(-len);
+        const newChecksum = fn(payload).slice(0, len);
+        for (let i = 0; i < len; i++)
+          if (newChecksum[i] !== oldChecksum[i])
+            throw new Error("Invalid checksum");
+        return payload;
+      }
+    };
+  }
+  var utils = {
+    alphabet,
+    chain,
+    checksum,
+    convertRadix,
+    convertRadix2,
+    radix,
+    radix2,
+    join,
+    padding
+  };
+
+  // node_modules/@scure/bip39/esm/index.js
+  /*! scure-bip39 - MIT License (c) 2022 Patricio Palladino, Paul Miller (paulmillr.com) */
+  var isJapanese = (wordlist2) => wordlist2[0] === "\u3042\u3044\u3053\u304F\u3057\u3093";
+  function nfkd(str) {
+    if (typeof str !== "string")
+      throw new TypeError("invalid mnemonic type: " + typeof str);
+    return str.normalize("NFKD");
+  }
+  function normalize(str) {
+    const norm = nfkd(str);
+    const words = norm.split(" ");
+    if (![12, 15, 18, 21, 24].includes(words.length))
+      throw new Error("Invalid mnemonic");
+    return { nfkd: norm, words };
+  }
+  function aentropy(ent) {
+    abytes2(ent, 16, 20, 24, 28, 32);
+  }
+  var calcChecksum = (entropy) => {
+    const bitsLeft = 8 - entropy.length / 4;
+    return new Uint8Array([sha256(entropy)[0] >> bitsLeft << bitsLeft]);
+  };
+  function getCoder(wordlist2) {
+    if (!Array.isArray(wordlist2) || wordlist2.length !== 2048 || typeof wordlist2[0] !== "string")
+      throw new Error("Wordlist: expected array of 2048 strings");
+    wordlist2.forEach((i) => {
+      if (typeof i !== "string")
+        throw new Error("wordlist: non-string element: " + i);
+    });
+    return utils.chain(utils.checksum(1, calcChecksum), utils.radix2(11, true), utils.alphabet(wordlist2));
+  }
+  function mnemonicToEntropy(mnemonic, wordlist2) {
+    const { words } = normalize(mnemonic);
+    const entropy = getCoder(wordlist2).decode(words);
+    aentropy(entropy);
+    return entropy;
+  }
+  function entropyToMnemonic(entropy, wordlist2) {
+    aentropy(entropy);
+    const words = getCoder(wordlist2).encode(entropy);
+    return words.join(isJapanese(wordlist2) ? "\u3000" : " ");
+  }
+
+  // node_modules/@scure/bip39/esm/wordlists/english.js
+  var wordlist = `abandon
+ability
+able
+about
+above
+absent
+absorb
+abstract
+absurd
+abuse
+access
+accident
+account
+accuse
+achieve
+acid
+acoustic
+acquire
+across
+act
+action
+actor
+actress
+actual
+adapt
+add
+addict
+address
+adjust
+admit
+adult
+advance
+advice
+aerobic
+affair
+afford
+afraid
+again
+age
+agent
+agree
+ahead
+aim
+air
+airport
+aisle
+alarm
+album
+alcohol
+alert
+alien
+all
+alley
+allow
+almost
+alone
+alpha
+already
+also
+alter
+always
+amateur
+amazing
+among
+amount
+amused
+analyst
+anchor
+ancient
+anger
+angle
+angry
+animal
+ankle
+announce
+annual
+another
+answer
+antenna
+antique
+anxiety
+any
+apart
+apology
+appear
+apple
+approve
+april
+arch
+arctic
+area
+arena
+argue
+arm
+armed
+armor
+army
+around
+arrange
+arrest
+arrive
+arrow
+art
+artefact
+artist
+artwork
+ask
+aspect
+assault
+asset
+assist
+assume
+asthma
+athlete
+atom
+attack
+attend
+attitude
+attract
+auction
+audit
+august
+aunt
+author
+auto
+autumn
+average
+avocado
+avoid
+awake
+aware
+away
+awesome
+awful
+awkward
+axis
+baby
+bachelor
+bacon
+badge
+bag
+balance
+balcony
+ball
+bamboo
+banana
+banner
+bar
+barely
+bargain
+barrel
+base
+basic
+basket
+battle
+beach
+bean
+beauty
+because
+become
+beef
+before
+begin
+behave
+behind
+believe
+below
+belt
+bench
+benefit
+best
+betray
+better
+between
+beyond
+bicycle
+bid
+bike
+bind
+biology
+bird
+birth
+bitter
+black
+blade
+blame
+blanket
+blast
+bleak
+bless
+blind
+blood
+blossom
+blouse
+blue
+blur
+blush
+board
+boat
+body
+boil
+bomb
+bone
+bonus
+book
+boost
+border
+boring
+borrow
+boss
+bottom
+bounce
+box
+boy
+bracket
+brain
+brand
+brass
+brave
+bread
+breeze
+brick
+bridge
+brief
+bright
+bring
+brisk
+broccoli
+broken
+bronze
+broom
+brother
+brown
+brush
+bubble
+buddy
+budget
+buffalo
+build
+bulb
+bulk
+bullet
+bundle
+bunker
+burden
+burger
+burst
+bus
+business
+busy
+butter
+buyer
+buzz
+cabbage
+cabin
+cable
+cactus
+cage
+cake
+call
+calm
+camera
+camp
+can
+canal
+cancel
+candy
+cannon
+canoe
+canvas
+canyon
+capable
+capital
+captain
+car
+carbon
+card
+cargo
+carpet
+carry
+cart
+case
+cash
+casino
+castle
+casual
+cat
+catalog
+catch
+category
+cattle
+caught
+cause
+caution
+cave
+ceiling
+celery
+cement
+census
+century
+cereal
+certain
+chair
+chalk
+champion
+change
+chaos
+chapter
+charge
+chase
+chat
+cheap
+check
+cheese
+chef
+cherry
+chest
+chicken
+chief
+child
+chimney
+choice
+choose
+chronic
+chuckle
+chunk
+churn
+cigar
+cinnamon
+circle
+citizen
+city
+civil
+claim
+clap
+clarify
+claw
+clay
+clean
+clerk
+clever
+click
+client
+cliff
+climb
+clinic
+clip
+clock
+clog
+close
+cloth
+cloud
+clown
+club
+clump
+cluster
+clutch
+coach
+coast
+coconut
+code
+coffee
+coil
+coin
+collect
+color
+column
+combine
+come
+comfort
+comic
+common
+company
+concert
+conduct
+confirm
+congress
+connect
+consider
+control
+convince
+cook
+cool
+copper
+copy
+coral
+core
+corn
+correct
+cost
+cotton
+couch
+country
+couple
+course
+cousin
+cover
+coyote
+crack
+cradle
+craft
+cram
+crane
+crash
+crater
+crawl
+crazy
+cream
+credit
+creek
+crew
+cricket
+crime
+crisp
+critic
+crop
+cross
+crouch
+crowd
+crucial
+cruel
+cruise
+crumble
+crunch
+crush
+cry
+crystal
+cube
+culture
+cup
+cupboard
+curious
+current
+curtain
+curve
+cushion
+custom
+cute
+cycle
+dad
+damage
+damp
+dance
+danger
+daring
+dash
+daughter
+dawn
+day
+deal
+debate
+debris
+decade
+december
+decide
+decline
+decorate
+decrease
+deer
+defense
+define
+defy
+degree
+delay
+deliver
+demand
+demise
+denial
+dentist
+deny
+depart
+depend
+deposit
+depth
+deputy
+derive
+describe
+desert
+design
+desk
+despair
+destroy
+detail
+detect
+develop
+device
+devote
+diagram
+dial
+diamond
+diary
+dice
+diesel
+diet
+differ
+digital
+dignity
+dilemma
+dinner
+dinosaur
+direct
+dirt
+disagree
+discover
+disease
+dish
+dismiss
+disorder
+display
+distance
+divert
+divide
+divorce
+dizzy
+doctor
+document
+dog
+doll
+dolphin
+domain
+donate
+donkey
+donor
+door
+dose
+double
+dove
+draft
+dragon
+drama
+drastic
+draw
+dream
+dress
+drift
+drill
+drink
+drip
+drive
+drop
+drum
+dry
+duck
+dumb
+dune
+during
+dust
+dutch
+duty
+dwarf
+dynamic
+eager
+eagle
+early
+earn
+earth
+easily
+east
+easy
+echo
+ecology
+economy
+edge
+edit
+educate
+effort
+egg
+eight
+either
+elbow
+elder
+electric
+elegant
+element
+elephant
+elevator
+elite
+else
+embark
+embody
+embrace
+emerge
+emotion
+employ
+empower
+empty
+enable
+enact
+end
+endless
+endorse
+enemy
+energy
+enforce
+engage
+engine
+enhance
+enjoy
+enlist
+enough
+enrich
+enroll
+ensure
+enter
+entire
+entry
+envelope
+episode
+equal
+equip
+era
+erase
+erode
+erosion
+error
+erupt
+escape
+essay
+essence
+estate
+eternal
+ethics
+evidence
+evil
+evoke
+evolve
+exact
+example
+excess
+exchange
+excite
+exclude
+excuse
+execute
+exercise
+exhaust
+exhibit
+exile
+exist
+exit
+exotic
+expand
+expect
+expire
+explain
+expose
+express
+extend
+extra
+eye
+eyebrow
+fabric
+face
+faculty
+fade
+faint
+faith
+fall
+false
+fame
+family
+famous
+fan
+fancy
+fantasy
+farm
+fashion
+fat
+fatal
+father
+fatigue
+fault
+favorite
+feature
+february
+federal
+fee
+feed
+feel
+female
+fence
+festival
+fetch
+fever
+few
+fiber
+fiction
+field
+figure
+file
+film
+filter
+final
+find
+fine
+finger
+finish
+fire
+firm
+first
+fiscal
+fish
+fit
+fitness
+fix
+flag
+flame
+flash
+flat
+flavor
+flee
+flight
+flip
+float
+flock
+floor
+flower
+fluid
+flush
+fly
+foam
+focus
+fog
+foil
+fold
+follow
+food
+foot
+force
+forest
+forget
+fork
+fortune
+forum
+forward
+fossil
+foster
+found
+fox
+fragile
+frame
+frequent
+fresh
+friend
+fringe
+frog
+front
+frost
+frown
+frozen
+fruit
+fuel
+fun
+funny
+furnace
+fury
+future
+gadget
+gain
+galaxy
+gallery
+game
+gap
+garage
+garbage
+garden
+garlic
+garment
+gas
+gasp
+gate
+gather
+gauge
+gaze
+general
+genius
+genre
+gentle
+genuine
+gesture
+ghost
+giant
+gift
+giggle
+ginger
+giraffe
+girl
+give
+glad
+glance
+glare
+glass
+glide
+glimpse
+globe
+gloom
+glory
+glove
+glow
+glue
+goat
+goddess
+gold
+good
+goose
+gorilla
+gospel
+gossip
+govern
+gown
+grab
+grace
+grain
+grant
+grape
+grass
+gravity
+great
+green
+grid
+grief
+grit
+grocery
+group
+grow
+grunt
+guard
+guess
+guide
+guilt
+guitar
+gun
+gym
+habit
+hair
+half
+hammer
+hamster
+hand
+happy
+harbor
+hard
+harsh
+harvest
+hat
+have
+hawk
+hazard
+head
+health
+heart
+heavy
+hedgehog
+height
+hello
+helmet
+help
+hen
+hero
+hidden
+high
+hill
+hint
+hip
+hire
+history
+hobby
+hockey
+hold
+hole
+holiday
+hollow
+home
+honey
+hood
+hope
+horn
+horror
+horse
+hospital
+host
+hotel
+hour
+hover
+hub
+huge
+human
+humble
+humor
+hundred
+hungry
+hunt
+hurdle
+hurry
+hurt
+husband
+hybrid
+ice
+icon
+idea
+identify
+idle
+ignore
+ill
+illegal
+illness
+image
+imitate
+immense
+immune
+impact
+impose
+improve
+impulse
+inch
+include
+income
+increase
+index
+indicate
+indoor
+industry
+infant
+inflict
+inform
+inhale
+inherit
+initial
+inject
+injury
+inmate
+inner
+innocent
+input
+inquiry
+insane
+insect
+inside
+inspire
+install
+intact
+interest
+into
+invest
+invite
+involve
+iron
+island
+isolate
+issue
+item
+ivory
+jacket
+jaguar
+jar
+jazz
+jealous
+jeans
+jelly
+jewel
+job
+join
+joke
+journey
+joy
+judge
+juice
+jump
+jungle
+junior
+junk
+just
+kangaroo
+keen
+keep
+ketchup
+key
+kick
+kid
+kidney
+kind
+kingdom
+kiss
+kit
+kitchen
+kite
+kitten
+kiwi
+knee
+knife
+knock
+know
+lab
+label
+labor
+ladder
+lady
+lake
+lamp
+language
+laptop
+large
+later
+latin
+laugh
+laundry
+lava
+law
+lawn
+lawsuit
+layer
+lazy
+leader
+leaf
+learn
+leave
+lecture
+left
+leg
+legal
+legend
+leisure
+lemon
+lend
+length
+lens
+leopard
+lesson
+letter
+level
+liar
+liberty
+library
+license
+life
+lift
+light
+like
+limb
+limit
+link
+lion
+liquid
+list
+little
+live
+lizard
+load
+loan
+lobster
+local
+lock
+logic
+lonely
+long
+loop
+lottery
+loud
+lounge
+love
+loyal
+lucky
+luggage
+lumber
+lunar
+lunch
+luxury
+lyrics
+machine
+mad
+magic
+magnet
+maid
+mail
+main
+major
+make
+mammal
+man
+manage
+mandate
+mango
+mansion
+manual
+maple
+marble
+march
+margin
+marine
+market
+marriage
+mask
+mass
+master
+match
+material
+math
+matrix
+matter
+maximum
+maze
+meadow
+mean
+measure
+meat
+mechanic
+medal
+media
+melody
+melt
+member
+memory
+mention
+menu
+mercy
+merge
+merit
+merry
+mesh
+message
+metal
+method
+middle
+midnight
+milk
+million
+mimic
+mind
+minimum
+minor
+minute
+miracle
+mirror
+misery
+miss
+mistake
+mix
+mixed
+mixture
+mobile
+model
+modify
+mom
+moment
+monitor
+monkey
+monster
+month
+moon
+moral
+more
+morning
+mosquito
+mother
+motion
+motor
+mountain
+mouse
+move
+movie
+much
+muffin
+mule
+multiply
+muscle
+museum
+mushroom
+music
+must
+mutual
+myself
+mystery
+myth
+naive
+name
+napkin
+narrow
+nasty
+nation
+nature
+near
+neck
+need
+negative
+neglect
+neither
+nephew
+nerve
+nest
+net
+network
+neutral
+never
+news
+next
+nice
+night
+noble
+noise
+nominee
+noodle
+normal
+north
+nose
+notable
+note
+nothing
+notice
+novel
+now
+nuclear
+number
+nurse
+nut
+oak
+obey
+object
+oblige
+obscure
+observe
+obtain
+obvious
+occur
+ocean
+october
+odor
+off
+offer
+office
+often
+oil
+okay
+old
+olive
+olympic
+omit
+once
+one
+onion
+online
+only
+open
+opera
+opinion
+oppose
+option
+orange
+orbit
+orchard
+order
+ordinary
+organ
+orient
+original
+orphan
+ostrich
+other
+outdoor
+outer
+output
+outside
+oval
+oven
+over
+own
+owner
+oxygen
+oyster
+ozone
+pact
+paddle
+page
+pair
+palace
+palm
+panda
+panel
+panic
+panther
+paper
+parade
+parent
+park
+parrot
+party
+pass
+patch
+path
+patient
+patrol
+pattern
+pause
+pave
+payment
+peace
+peanut
+pear
+peasant
+pelican
+pen
+penalty
+pencil
+people
+pepper
+perfect
+permit
+person
+pet
+phone
+photo
+phrase
+physical
+piano
+picnic
+picture
+piece
+pig
+pigeon
+pill
+pilot
+pink
+pioneer
+pipe
+pistol
+pitch
+pizza
+place
+planet
+plastic
+plate
+play
+please
+pledge
+pluck
+plug
+plunge
+poem
+poet
+point
+polar
+pole
+police
+pond
+pony
+pool
+popular
+portion
+position
+possible
+post
+potato
+pottery
+poverty
+powder
+power
+practice
+praise
+predict
+prefer
+prepare
+present
+pretty
+prevent
+price
+pride
+primary
+print
+priority
+prison
+private
+prize
+problem
+process
+produce
+profit
+program
+project
+promote
+proof
+property
+prosper
+protect
+proud
+provide
+public
+pudding
+pull
+pulp
+pulse
+pumpkin
+punch
+pupil
+puppy
+purchase
+purity
+purpose
+purse
+push
+put
+puzzle
+pyramid
+quality
+quantum
+quarter
+question
+quick
+quit
+quiz
+quote
+rabbit
+raccoon
+race
+rack
+radar
+radio
+rail
+rain
+raise
+rally
+ramp
+ranch
+random
+range
+rapid
+rare
+rate
+rather
+raven
+raw
+razor
+ready
+real
+reason
+rebel
+rebuild
+recall
+receive
+recipe
+record
+recycle
+reduce
+reflect
+reform
+refuse
+region
+regret
+regular
+reject
+relax
+release
+relief
+rely
+remain
+remember
+remind
+remove
+render
+renew
+rent
+reopen
+repair
+repeat
+replace
+report
+require
+rescue
+resemble
+resist
+resource
+response
+result
+retire
+retreat
+return
+reunion
+reveal
+review
+reward
+rhythm
+rib
+ribbon
+rice
+rich
+ride
+ridge
+rifle
+right
+rigid
+ring
+riot
+ripple
+risk
+ritual
+rival
+river
+road
+roast
+robot
+robust
+rocket
+romance
+roof
+rookie
+room
+rose
+rotate
+rough
+round
+route
+royal
+rubber
+rude
+rug
+rule
+run
+runway
+rural
+sad
+saddle
+sadness
+safe
+sail
+salad
+salmon
+salon
+salt
+salute
+same
+sample
+sand
+satisfy
+satoshi
+sauce
+sausage
+save
+say
+scale
+scan
+scare
+scatter
+scene
+scheme
+school
+science
+scissors
+scorpion
+scout
+scrap
+screen
+script
+scrub
+sea
+search
+season
+seat
+second
+secret
+section
+security
+seed
+seek
+segment
+select
+sell
+seminar
+senior
+sense
+sentence
+series
+service
+session
+settle
+setup
+seven
+shadow
+shaft
+shallow
+share
+shed
+shell
+sheriff
+shield
+shift
+shine
+ship
+shiver
+shock
+shoe
+shoot
+shop
+short
+shoulder
+shove
+shrimp
+shrug
+shuffle
+shy
+sibling
+sick
+side
+siege
+sight
+sign
+silent
+silk
+silly
+silver
+similar
+simple
+since
+sing
+siren
+sister
+situate
+six
+size
+skate
+sketch
+ski
+skill
+skin
+skirt
+skull
+slab
+slam
+sleep
+slender
+slice
+slide
+slight
+slim
+slogan
+slot
+slow
+slush
+small
+smart
+smile
+smoke
+smooth
+snack
+snake
+snap
+sniff
+snow
+soap
+soccer
+social
+sock
+soda
+soft
+solar
+soldier
+solid
+solution
+solve
+someone
+song
+soon
+sorry
+sort
+soul
+sound
+soup
+source
+south
+space
+spare
+spatial
+spawn
+speak
+special
+speed
+spell
+spend
+sphere
+spice
+spider
+spike
+spin
+spirit
+split
+spoil
+sponsor
+spoon
+sport
+spot
+spray
+spread
+spring
+spy
+square
+squeeze
+squirrel
+stable
+stadium
+staff
+stage
+stairs
+stamp
+stand
+start
+state
+stay
+steak
+steel
+stem
+step
+stereo
+stick
+still
+sting
+stock
+stomach
+stone
+stool
+story
+stove
+strategy
+street
+strike
+strong
+struggle
+student
+stuff
+stumble
+style
+subject
+submit
+subway
+success
+such
+sudden
+suffer
+sugar
+suggest
+suit
+summer
+sun
+sunny
+sunset
+super
+supply
+supreme
+sure
+surface
+surge
+surprise
+surround
+survey
+suspect
+sustain
+swallow
+swamp
+swap
+swarm
+swear
+sweet
+swift
+swim
+swing
+switch
+sword
+symbol
+symptom
+syrup
+system
+table
+tackle
+tag
+tail
+talent
+talk
+tank
+tape
+target
+task
+taste
+tattoo
+taxi
+teach
+team
+tell
+ten
+tenant
+tennis
+tent
+term
+test
+text
+thank
+that
+theme
+then
+theory
+there
+they
+thing
+this
+thought
+three
+thrive
+throw
+thumb
+thunder
+ticket
+tide
+tiger
+tilt
+timber
+time
+tiny
+tip
+tired
+tissue
+title
+toast
+tobacco
+today
+toddler
+toe
+together
+toilet
+token
+tomato
+tomorrow
+tone
+tongue
+tonight
+tool
+tooth
+top
+topic
+topple
+torch
+tornado
+tortoise
+toss
+total
+tourist
+toward
+tower
+town
+toy
+track
+trade
+traffic
+tragic
+train
+transfer
+trap
+trash
+travel
+tray
+treat
+tree
+trend
+trial
+tribe
+trick
+trigger
+trim
+trip
+trophy
+trouble
+truck
+true
+truly
+trumpet
+trust
+truth
+try
+tube
+tuition
+tumble
+tuna
+tunnel
+turkey
+turn
+turtle
+twelve
+twenty
+twice
+twin
+twist
+two
+type
+typical
+ugly
+umbrella
+unable
+unaware
+uncle
+uncover
+under
+undo
+unfair
+unfold
+unhappy
+uniform
+unique
+unit
+universe
+unknown
+unlock
+until
+unusual
+unveil
+update
+upgrade
+uphold
+upon
+upper
+upset
+urban
+urge
+usage
+use
+used
+useful
+useless
+usual
+utility
+vacant
+vacuum
+vague
+valid
+valley
+valve
+van
+vanish
+vapor
+various
+vast
+vault
+vehicle
+velvet
+vendor
+venture
+venue
+verb
+verify
+version
+very
+vessel
+veteran
+viable
+vibrant
+vicious
+victory
+video
+view
+village
+vintage
+violin
+virtual
+virus
+visa
+visit
+visual
+vital
+vivid
+vocal
+voice
+void
+volcano
+volume
+vote
+voyage
+wage
+wagon
+wait
+walk
+wall
+walnut
+want
+warfare
+warm
+warrior
+wash
+wasp
+waste
+water
+wave
+way
+wealth
+weapon
+wear
+weasel
+weather
+web
+wedding
+weekend
+weird
+welcome
+west
+wet
+whale
+what
+wheat
+wheel
+when
+where
+whip
+whisper
+wide
+width
+wife
+wild
+will
+win
+window
+wine
+wing
+wink
+winner
+winter
+wire
+wisdom
+wise
+wish
+witness
+wolf
+woman
+wonder
+wood
+wool
+word
+work
+world
+worry
+worth
+wrap
+wreck
+wrestle
+wrist
+write
+wrong
+yard
+year
+yellow
+you
+young
+youth
+zebra
+zero
+zone
+zoo`.split("\n");
+
   // src/core.js
   etc.sha512Sync = (...m) => sha512(etc.concatBytes(...m));
   var BACKUP_TYPE = "brc-vault-backup";
@@ -4510,7 +6906,7 @@ body.is-previewing { overflow: hidden; }
     for (let i = 0; i < out.length; i++) out[i] = parseInt(h2.slice(i * 2, i * 2 + 2), 16);
     return out;
   }
-  function randomBytes2(n) {
+  function randomBytes3(n) {
     const b = new Uint8Array(n);
     globalThis.crypto.getRandomValues(b);
     return b;
@@ -4538,6 +6934,7 @@ body.is-previewing { overflow: hidden; }
     if (!parsed || parsed.type !== BROWSERCOIN_WALLET_TYPE) {
       throw new Error("This is not a BrowserCoin wallet file (it should come from BrowserCoin Settings \u2192 Export key).");
     }
+    if (parsed.encrypted === true) throw new Error("This wallet file is password-protected by the BRC Wallet desktop app. Open it in Restore.");
     if (typeof parsed.privateKeyHex !== "string") throw new Error("The wallet file has no private key in it.");
     const wallet = walletFromPrivateKeyHex(parsed.privateKeyHex);
     if (parsed.address && String(parsed.address).toLowerCase() !== wallet.address) {
@@ -4563,9 +6960,9 @@ body.is-previewing { overflow: hidden; }
     const ok = Number.isInteger(logN) && logN >= MIN_LOG_N && logN <= MAX_LOG_N && r === 8 && p === 1 && dkLen === 32;
     if (!ok) throw new Error("This backup has invalid or unsafe key-stretching settings.");
   }
-  async function deriveKey(password, salt, kdf, onProgress) {
+  async function deriveKey(password, salt, kdf, onProgress, { normalize: normalize2 = true } = {}) {
     checkKdf(kdf);
-    const pw = new TextEncoder().encode(password.normalize("NFKC"));
+    const pw = new TextEncoder().encode(normalize2 ? password.normalize("NFKC") : password);
     const raw = await scryptAsync(pw, salt, {
       N: 2 ** kdf.logN,
       r: kdf.r,
@@ -4621,8 +7018,8 @@ body.is-previewing { overflow: hidden; }
   async function encryptWallet(wallet, password, { kdf = DEFAULT_KDF, onProgress } = {}) {
     const problems = passwordProblems(password);
     if (problems.length) throw new Error(problems.join(" "));
-    const salt = randomBytes2(16);
-    const iv = randomBytes2(12);
+    const salt = randomBytes3(16);
+    const iv = randomBytes3(12);
     const saltHex = bytesToHex2(salt);
     const ivHex = bytesToHex2(iv);
     const key = await deriveKey(password, salt, kdf, onProgress);
@@ -4661,6 +7058,98 @@ body.is-previewing { overflow: hidden; }
     }
     const wallet = { privateKey: pt, address: addressFromPrivateKey(pt) };
     if (wallet.address !== b.address) throw new Error("The decrypted key does not match the address in the backup.");
+    return wallet;
+  }
+  var DESKTOP_FORMAT = "brc-wallet-desktop";
+  var checkTag = HEX_FIELD("check code", 16);
+  var checkDesktopCiphertext = HEX_FIELD("locked key", 32);
+  function validateDesktopBackup(d) {
+    if (!d || typeof d !== "object" || d.type !== BROWSERCOIN_WALLET_TYPE || d.encrypted !== true) {
+      throw new Error("This is not a password-protected BRC Wallet file.");
+    }
+    if (d.version !== 2) throw new Error(`This BRC Wallet file is version ${String(d.version).slice(0, 8)}; BRC Vault reads version 2.`);
+    if (d.kdf !== "scrypt" || d.cipher !== "aes-256-gcm") throw new Error("This wallet file uses an encryption method BRC Vault does not know.");
+    const kp = d.kdfParams || {};
+    const N2 = kp.N;
+    const logN = Number.isInteger(N2) && N2 > 1 && (N2 & N2 - 1) === 0 ? Math.log2(N2) : NaN;
+    const kdf = { name: "scrypt", logN, r: kp.r, p: kp.p, dkLen: 32 };
+    checkKdf(kdf);
+    return {
+      format: DESKTOP_FORMAT,
+      address: checkAddress(d.address),
+      kdf: { ...kdf, salt: checkSalt(kp.salt) },
+      iv: checkIv(d.iv),
+      authTag: checkTag(d.authTag),
+      ciphertext: checkDesktopCiphertext(d.ciphertext)
+    };
+  }
+  async function decryptDesktopBackup(backup2, password, { onProgress } = {}) {
+    const b = validateDesktopBackup({
+      type: BROWSERCOIN_WALLET_TYPE,
+      version: 2,
+      encrypted: true,
+      kdf: "scrypt",
+      cipher: "aes-256-gcm",
+      address: backup2.address,
+      kdfParams: { N: 2 ** backup2.kdf.logN, r: backup2.kdf.r, p: backup2.kdf.p, salt: backup2.kdf.salt },
+      iv: backup2.iv,
+      authTag: backup2.authTag,
+      ciphertext: backup2.ciphertext
+    });
+    const { salt: saltHex, ...kdf } = b.kdf;
+    const key = await deriveKey(password, hexToBytes2(saltHex, 16), kdf, onProgress, { normalize: false });
+    let pt;
+    try {
+      pt = new Uint8Array(await globalThis.crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: hexToBytes2(b.iv, 12), tagLength: 128 },
+        key,
+        hexToBytes2(b.ciphertext + b.authTag, 48)
+      ));
+    } catch {
+      throw new Error("Wrong password, or the wallet file has been changed or damaged.");
+    }
+    const wallet = { privateKey: pt, address: addressFromPrivateKey(pt) };
+    if (wallet.address !== b.address) {
+      wipeWallet(wallet);
+      throw new Error("The unlocked key does not match the address in the wallet file.");
+    }
+    return wallet;
+  }
+  function unlockAny(backup2, password, opts) {
+    return backup2 && backup2.format === DESKTOP_FORMAT ? decryptDesktopBackup(backup2, password, opts) : decryptBackup(backup2, password, opts);
+  }
+  function walletToWords(wallet) {
+    return entropyToMnemonic(wallet.privateKey, wordlist).split(" ");
+  }
+  var WORD_SET = new Set(wordlist);
+  var BY_PREFIX = new Map(wordlist.map((w) => [w.slice(0, 4), w]));
+  function looksLikeWords(text) {
+    const t = String(text).trim();
+    if (!/^[\sa-z0-9.,):;-]+$/i.test(t)) return false;
+    return wordTokens(t).filter((w) => /^[a-z]+$/.test(w)).length >= 6;
+  }
+  function wordTokens(text) {
+    return String(text).toLowerCase().split(/[\s,;]+/).map((t) => t.replace(/^\d{1,2}[.):-]*/, "").replace(/[.]$/, "")).filter(Boolean);
+  }
+  function walletFromWords(text) {
+    const tokens = wordTokens(text);
+    if (tokens.length !== 24) {
+      throw new Error(tokens.length === 12 ? "That is 12 words. BrowserCoin wallets use 24 recovery words." : `That is ${tokens.length} words. BrowserCoin recovery words are a list of 24.`);
+    }
+    const words = tokens.map((t, i) => {
+      if (WORD_SET.has(t)) return t;
+      const full = t.length >= 4 ? BY_PREFIX.get(t.slice(0, 4)) : void 0;
+      if (full && full.startsWith(t)) return full;
+      throw new Error(`Word ${i + 1} ("${t.slice(0, 20)}") isn't on the recovery word list. Check its spelling against the paper.`);
+    });
+    let entropy;
+    try {
+      entropy = mnemonicToEntropy(words.join(" "), wordlist);
+    } catch {
+      throw new Error("These words don't pass their built-in check, so one of them is wrong or two are swapped. Compare them with the paper, word by word.");
+    }
+    const wallet = { privateKey: Uint8Array.from(entropy), address: addressFromPrivateKey(entropy) };
+    entropy.fill(0);
     return wallet;
   }
   function backupToCompact(b) {
@@ -4776,6 +7265,7 @@ body.is-previewing { overflow: hidden; }
       const parsed = parseJsonLoose(t);
       if (parsed) {
         if (parsed.type === BACKUP_TYPE) return { kind: "vault-backup", backup: validateBackup(parsed) };
+        if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: "desktop-backup", backup: validateDesktopBackup(parsed) };
         if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: "browsercoin-wallet", wallet: parseBrowserCoinWallet(JSON.stringify(parsed)) };
         throw new Error("This file is neither a BrowserCoin wallet nor a BRC Vault backup.");
       }
@@ -4788,6 +7278,7 @@ body.is-previewing { overflow: hidden; }
     }
     const hex = t.replace(/\s+/g, "").toLowerCase().replace(/^0x/, "");
     if (/^[0-9a-f]{64}$/.test(hex)) return { kind: "private-key", wallet: walletFromPrivateKeyHex(hex), ambiguous: true };
+    if (looksLikeWords(t)) return { kind: "private-key", wallet: walletFromWords(t), ambiguous: false, checked: true, words: true };
     throw new Error("Could not recognise this. Use a BrowserCoin wallet file, a BRC Vault backup, or a private key.");
   }
   function parseJsonLoose(text) {
@@ -4832,7 +7323,7 @@ body.is-previewing { overflow: hidden; }
     } catch {
       return null;
     }
-    const canon = (o) => o && o.type === BROWSERCOIN_WALLET_TYPE ? `wallet:${String(o.privateKeyHex).toLowerCase()}` : JSON.stringify(o);
+    const canon = (o) => o && o.type === BROWSERCOIN_WALLET_TYPE && typeof o.privateKeyHex === "string" ? `wallet:${o.privateKeyHex.toLowerCase()}` : JSON.stringify(o);
     if (!parsed.every((o) => canon(o) === canon(parsed[0]))) {
       throw new Error(MULTIPLE);
     }
@@ -5448,8 +7939,9 @@ body.is-previewing { overflow: hidden; }
     try {
       const id = identifyInput(text);
       if (id.kind === "vault-backup") throw new Error("That is already a BRC Vault backup. To open it, switch to Restore.");
+      if (id.kind === "desktop-backup") throw new Error("That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.");
       backup.wallet = id.wallet;
-      backup.kind = id.kind === "private-key" ? id.ambiguous ? "ambiguous-key" : "key" : "file";
+      backup.kind = id.kind === "private-key" ? id.words ? "words" : id.ambiguous ? "ambiguous-key" : "key" : "file";
       renderAddress($("#b-address"), id.wallet.address);
       show($("#b-loaded"), true);
       show($("#b-key-confirm-wrap"), backup.kind === "ambiguous-key");
@@ -5460,8 +7952,11 @@ body.is-previewing { overflow: hidden; }
       } else {
         setMessage(msg, "");
       }
-      $("#b-tip-delete").textContent = backup.kind === "file" ? "Your unlocked wallet file is still in your Downloads folder. Delete it once your backup is safe." : "Remove the private key from wherever you copied it once your backup is safe.";
-      intakes.b.setMode("loaded", backup.kind === "file" ? source || "Wallet file" : "Pasted private key");
+      $("#b-tip-delete").textContent = {
+        file: "Your unlocked wallet file is still in your Downloads folder. Delete it once your backup is safe.",
+        words: "If you typed or pasted your recovery words anywhere else, delete them there once your backup is safe."
+      }[backup.kind] || "Remove the private key from wherever you copied it once your backup is safe.";
+      intakes.b.setMode("loaded", backup.kind === "file" ? source || "Wallet file" : backup.kind === "words" ? "Recovery words" : source || "Pasted private key");
     } catch (e) {
       backup.wallet = null;
       backup.kind = null;
@@ -5577,6 +8072,8 @@ body.is-previewing { overflow: hidden; }
   var restore = { pending: null, wallet: null, busy: false };
   function resetRestore() {
     gen.restore++;
+    $("#r-words-wrap").open = false;
+    $("#r-words").innerHTML = "";
     show($("#r-reprint-row"), false);
     $("#r-success").classList.remove("is-in");
     delete $("#r-step1").dataset.collapsed;
@@ -5599,15 +8096,16 @@ body.is-previewing { overflow: hidden; }
     resetRestore();
     try {
       const id = identifyInput(text);
-      intakes.r.setMode("loaded", source || (id.kind === "vault-backup" ? "Pasted backup code" : "Pasted key"));
+      const pasted = { "vault-backup": "Pasted backup code", "desktop-backup": "Pasted wallet file" }[id.kind] || (id.words ? "Recovery words" : "Pasted key");
+      intakes.r.setMode("loaded", source || pasted);
       setStep("#r-step1", "done");
       show($("#r-loaded"), true);
-      if (id.kind === "vault-backup") {
+      if (id.kind === "vault-backup" || id.kind === "desktop-backup") {
         restore.pending = id.backup;
-        $("#r-address-label").textContent = "In backup";
+        $("#r-address-label").textContent = id.kind === "vault-backup" ? "In backup" : "In wallet file";
         renderAddress($("#r-address"), id.backup.address);
         show($("#r-address-note"), true);
-        setMessage(msg, id.rescued ? "This file had been changed by another app, such as a text editor. BRC Vault recovered the backup from it; unlocking will confirm it." : "", "info");
+        setMessage(msg, id.kind === "desktop-backup" ? "This is a password-protected file from the BRC Wallet desktop app. Unlock it with the password you set in that app." : id.rescued ? "This file had been changed by another app, such as a text editor. BRC Vault recovered the backup from it; unlocking will confirm it." : "", "info");
         setStep("#r-step2", "active");
         $("#r-password").focus();
       } else {
@@ -5615,7 +8113,7 @@ body.is-previewing { overflow: hidden; }
         renderAddress($("#r-address"), id.wallet.address);
         show($("#r-address-note"), false);
         setStep("#r-step2", "done");
-        finishRestore(id.wallet, id.ambiguous || id.checked === false);
+        finishRestore(id.wallet, id.ambiguous || id.checked === false, id.words ? "words" : "key");
       }
     } catch (e) {
       resetRestore();
@@ -5625,7 +8123,7 @@ body.is-previewing { overflow: hidden; }
   }
   wireIntake("r", loadForRestore, $("#r-load-msg"), () => !restore.busy && !restore.wallet);
   $("#r-reprint").addEventListener("click", () => {
-    if (!restore.pending || !restore.wallet || restore.wallet.address !== restore.pending.address) return;
+    if (!restore.pending || restore.pending.format || !restore.wallet || restore.wallet.address !== restore.pending.address) return;
     openPaperPreview(encryptedSheet({ ...restore.pending, created: `copy printed ${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}` }), "encrypted");
   });
   $("#r-unlock").addEventListener("click", async () => {
@@ -5641,7 +8139,7 @@ body.is-previewing { overflow: hidden; }
     setMessage(msg, "");
     await startBusy($("#r-progress"));
     try {
-      const wallet = await decryptBackup(pending, $("#r-password").value);
+      const wallet = await unlockAny(pending, $("#r-password").value);
       if (myGen !== gen.restore) {
         wipeWallet(wallet);
         return;
@@ -5661,12 +8159,14 @@ body.is-previewing { overflow: hidden; }
   $("#r-password").addEventListener("keydown", (e) => {
     if (e.key === "Enter") $("#r-unlock").click();
   });
-  function finishRestore(wallet, ambiguous) {
+  function finishRestore(wallet, ambiguous, from = "key") {
     restore.wallet = wallet;
     const unlocked = Boolean(restore.pending);
-    show($("#r-reprint-row"), unlocked);
-    $("#r-done-title").textContent = unlocked ? "Backup unlocked" : "Wallet ready";
-    $("#r-done-check").textContent = unlocked ? "The key matches the address in the backup" : "Address worked out from this key";
+    const desktop = unlocked && restore.pending.format === DESKTOP_FORMAT;
+    show($("#r-reprint-row"), unlocked && !desktop);
+    show($("#r-to-backup-row"), !unlocked || desktop);
+    $("#r-done-title").textContent = desktop ? "Wallet file unlocked" : unlocked ? "Backup unlocked" : "Wallet ready";
+    $("#r-done-check").textContent = desktop ? "The key matches the address in the wallet file" : unlocked ? "The key matches the address in the backup" : from === "words" ? "Address worked out from these words" : "Address worked out from this key";
     $("#r-sum-unlock").textContent = unlocked ? "Unlocked with your password" : "No password needed";
     $("#r-step1").dataset.collapsed = "";
     $("#r-step2").dataset.collapsed = "";
@@ -5680,6 +8180,20 @@ body.is-previewing { overflow: hidden; }
     updateRestoreDownload();
     $("#r-ok-address").focus();
   }
+  $("#r-to-backup").addEventListener("click", () => {
+    const w = restore.wallet;
+    if (!w) return;
+    selectTab("backup");
+    restartBackup();
+    loadWalletForBackup(browserCoinWalletJson(w), "Wallet from Restore");
+    $("#b-tip-delete").textContent = "Once your backup is safe, delete any other copies of the words, key or wallet file you restored from.";
+  });
+  $("#r-words-wrap").addEventListener("toggle", () => {
+    const list = $("#r-words");
+    list.innerHTML = "";
+    if (!$("#r-words-wrap").open || !restore.wallet) return;
+    list.innerHTML = walletToWords(restore.wallet).map((w, i) => `<li><span class="n">${i + 1}</span>${escapeHtml(w)}</li>`).join("");
+  });
   function updateRestoreDownload() {
     $("#r-download").disabled = !(restore.wallet && $("#r-ok-address").checked && $("#r-ok-replace").checked);
   }
@@ -5730,7 +8244,7 @@ body.is-previewing { overflow: hidden; }
           <li>Open BRC Vault and choose Restore.</li>
           <li>Choose Scan paper backup and hold this sheet up to the camera, or type the code exactly as printed.</li>
           <li>Enter your password and download the wallet file.</li>
-          <li>In BrowserCoin, open Settings and choose Import key.</li>
+          <li>At browsercoin.org/app, open Settings and choose Import key\u2026</li>
         </ol>
       </div>
       <div>
@@ -5764,14 +8278,21 @@ body.is-previewing { overflow: hidden; }
         <p class="ps-mono sheet-code">${keyLines}</p>
       </div>
     </section>
+    <section class="ps-panel ps-words is-key">
+      <div class="ps-label">Never share</div>
+      <h2>24 recovery words</h2>
+      <p class="ps-note">The same wallet as standard recovery words. They restore in BRC Vault and in the BRC Wallet Android app.</p>
+      <ol class="ps-wordgrid">${walletToWords(wallet).map((w, i) => `<li><span class="n">${i + 1}</span>${escapeHtml(w)}</li>`).join("")}</ol>
+    </section>
     <section class="ps-steps">
       <div>
         <h3>To get your coins back</h3>
         <ol>
           <li>Open BRC Vault and choose Restore.</li>
-          <li>Choose Scan paper backup and hold this sheet up to the camera, or type every line of the private key code, including BRCKEY1: and the checks in brackets.</li>
-          <li>Download the wallet file and use Import key in BrowserCoin Settings.</li>
+          <li>Choose Scan paper backup and hold this sheet up to the camera. Or type every line of the private key code, with BRCKEY1: and the checks in brackets, or the 24 recovery words.</li>
+          <li>Download the wallet file. At browsercoin.org/app, open Settings and choose Import key\u2026</li>
         </ol>
+        <p class="ps-warn">In the BRC Wallet Android app, import the 24 recovery words instead.</p>
       </div>
     </section>
     ${sheetFoot((/* @__PURE__ */ new Date()).toISOString().slice(0, 10), false)}`;

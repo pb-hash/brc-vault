@@ -158,6 +158,11 @@ with sync_playwright() as pw:
     page.screenshot(path=str(OUT / "4-paper-plain.png"), full_page=True)
     key_qr = decode_qr(page.locator("#print-sheet .ps-qr").nth(1), "qr-key")
     assert key_qr == "BRCKEY1:" + wallet["privateKeyHex"].upper() + ":" + wallet["address"][:8].upper(), key_qr
+    sheet_words = [re.sub(r"^\d+\s*", "", t) for t in page.locator("#print-sheet .ps-wordgrid li").all_inner_texts()]
+    assert sheet_words == node(f"""
+import * as c from './build/core.mjs';
+process.stdout.write(c.walletToWords(c.walletFromPrivateKeyHex('{wallet["privateKeyHex"]}')).join(' '));
+""").split(), sheet_words
     plain_lines = page.locator("#print-sheet .sheet-code .ps-codeline").all_inner_texts()
     assert len(plain_lines) == 4 and all(re.search(r"\[[0-9A-F]{4}\]$", l) for l in plain_lines), plain_lines
     ok("unprotected paper wallet needs a confirmation, and its QR is clearly marked as a key")
@@ -272,6 +277,67 @@ with sync_playwright() as pw:
     expect(page.locator("#r-done-title")).to_have_text("Wallet ready")
     expect(page.locator("#r-download")).to_be_disabled()
     ok("restores a BRCKEY1 key; a bare 64-character code gets an address warning and stays locked")
+
+    # --- 24 recovery words (as the BRC Wallet Android app shows them) ---
+    words = node(f"""
+import * as c from './build/core.mjs';
+process.stdout.write(c.walletToWords(c.walletFromPrivateKeyHex('{wallet["privateKeyHex"]}')).join(' '));
+""").split()
+    assert len(words) == 24
+    page.click("#clear-all")
+    page.click("#tab-restore")
+    open_paste(page, "restore")
+    page.fill("#r-paste", "\n".join(f"{i + 1}. {w}" for i, w in enumerate(words)))
+    page.click("#r-paste-go")
+    expect(page.locator("#r-done-address")).to_have_text(wallet["address"])
+    expect(page.locator("#r-done-title")).to_have_text("Wallet ready")
+    expect(page.locator("#r-done-check")).to_contain_text("these words")
+    expect(page.locator("#r-chip-name")).to_have_text("Recovery words")
+    expect(page.locator("#r-done-msg")).to_be_hidden()
+    expect(page.locator("#r-words li")).to_have_count(0)  # not on screen until asked for
+    page.click("#r-words-wrap summary")
+    expect(page.locator("#r-words li")).to_have_count(24)
+    shown = [re.sub(r"^\d+\s*", "", t) for t in page.locator("#r-words li").all_inner_texts()]
+    assert shown == words, shown
+    page.click("#r-words-wrap summary")
+    expect(page.locator("#r-words li")).to_have_count(0)
+    tick_restore_confirms(page)
+    with page.expect_download() as dl3:
+        page.click("#r-download")
+    p3 = OUT / ("from-words-" + dl3.value.suggested_filename); dl3.value.save_as(p3)
+    assert p3.read_text() == wallet_json
+    page.click("#r-to-backup")
+    expect(page.locator("#b-address")).to_have_text(wallet["address"])
+    expect(page.locator("#b-chip-name")).to_have_text("Wallet from Restore")
+    ok("24 recovery words restore the exact wallet file; the words show only on request; one click backs it up")
+
+    # --- A password-protected file from the BRC Wallet desktop app ---
+    desktop_json = node(f"""
+import {{ desktopEncryptedWalletJson }} from './test/desktop-wallet-reference.mjs';
+process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["privateKeyHex"]}', address: '{wallet["address"]}' }}, 'windows wallet pw'));
+""")
+    desktop_file = OUT / "brc-wallet-desktop-encrypted.json"; desktop_file.write_text(desktop_json)
+    page.click("#clear-all")
+    page.click("#tab-backup")
+    page.set_input_files("#b-file", str(desktop_file))
+    expect(page.locator("#b-load-msg")).to_contain_text("BRC Wallet desktop app")
+    page.click("#tab-restore")
+    page.set_input_files("#r-file", str(desktop_file))
+    expect(page.locator("#r-address-label")).to_have_text("In wallet file")
+    expect(page.locator("#r-load-msg")).to_contain_text("desktop app")
+    page.fill("#r-password", "wrong password here")
+    page.click("#r-unlock")
+    expect(page.locator("#r-unlock-msg")).to_contain_text("Wrong password", timeout=60000)
+    page.fill("#r-password", "windows wallet pw")
+    page.click("#r-unlock")
+    expect(page.locator("#r-done-title")).to_have_text("Wallet file unlocked", timeout=60000)
+    expect(page.locator("#r-reprint-row")).to_be_hidden()
+    tick_restore_confirms(page)
+    with page.expect_download() as dl4:
+        page.click("#r-download")
+    p4 = OUT / ("from-desktop-" + dl4.value.suggested_filename); dl4.value.save_as(p4)
+    assert p4.read_text() == wallet_json
+    ok("a password-protected BRC Wallet desktop file unlocks into the exact BrowserCoin wallet file")
 
     # --- Pasting into a box with leftover text replaces it; a doubled paste still loads ---
     page.click("#clear-all")
