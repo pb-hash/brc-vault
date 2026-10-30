@@ -11,8 +11,9 @@ Or download it: https://github.com/pb-hash/brc-vault/releases (brc-vault.html),
                 save it, and open the saved file with Wi-Fi off.
 Tested in Chrome on desktop and Safari on iPhone.
 
-Part of the BRC family, with BRC Pulse, the live BrowserCoin network
-dashboard: https://pb-hash.github.io/brc-pulse/
+BRC Works: Vault · Pulse (the live BrowserCoin network dashboard,
+https://pb-hash.github.io/brc-pulse/).
+Independent tools by pb-hash. Not part of the official BrowserCoin project.
 
 What it does
 ------------
