@@ -373,7 +373,8 @@ function renderConnection() {
   const el = $('#connection');
   const online = navigator.onLine;
   el.dataset.state = online ? 'online' : 'offline';
-  el.querySelector('.connection-text').textContent = online ? 'Online' : 'Offline';
+  // Plain words, never an alarm: the page sends nothing either way; offline is simply the safest.
+  el.querySelector('.connection-text').textContent = online ? 'Sends nothing' : 'Offline: safest';
   el.title = online
     ? 'BRC Vault never sends anything. For extra safety you can turn off Wi‑Fi before loading a key.'
     : 'You are offline. Nothing can leave this page.';
@@ -594,9 +595,14 @@ function loadWalletForBackup(text, source) {
       : 'I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.';
     renderAddress($('#b-address'), id.wallet.address);
     show($('#b-loaded'), true);
-    show($('#b-key-confirm-wrap'), backup.confirm);
-    if (backup.kind === 'ambiguous-key') {
-      setMessage(msg, 'Check the address below before going on. A wallet address looks exactly like a private key, and backing up an address protects nothing.', 'warn');
+    const askWhich = backup.kind === 'ambiguous-key';
+    show($('#b-key-confirm-wrap'), backup.confirm && !askWhich);
+    show($('#b-which'), askWhich);
+    if (askWhich) {
+      const a = id.wallet.address, s = `${a.slice(0, 8)}…${a.slice(-4)}`;
+      $('#b-which-addr').textContent = s; $('#b-which-addr2').textContent = s;
+      paintIdenticon($('#b-which-idc'), a);
+      setMessage(msg, '');
     } else if (backup.confirm) {
       setMessage(msg, 'Check the address below against the one your wallet shows before going on.', 'warn');
     } else if (id.rescued) {
@@ -624,6 +630,18 @@ function loadWalletForBackup(text, source) {
 
 wireIntake('b', loadWalletForBackup, $('#b-load-msg'), () => !backup.busy && !backup.result);
 $('#b-key-confirm').addEventListener('change', () => { updatePasswordState(); if ($('#b-key-confirm').checked) $('#b-password').focus(); });
+$('#b-which-yes').addEventListener('click', () => {
+  $('#b-key-confirm').checked = true; show($('#b-which'), false);
+  setMessage($('#b-load-msg'), 'Good: this key opens the wallet whose address is below.', 'info');
+  updatePasswordState(); $('#b-password').focus();
+});
+$('#b-which-no').addEventListener('click', () => {
+  gen.backup++; core.wipeWallet(backup.wallet); backup.wallet = null; backup.kind = null; backup.confirm = false;
+  resetBackupOutput(); show($('#b-loaded'), false); show($('#b-which'), false); show($('#b-key-confirm-wrap'), false);
+  if (intakes.b.mode() === 'loaded') intakes.b.setMode('file');
+  setMessage($('#b-load-msg'), "Your address is public, so there's nothing to back up. What you need is the wallet file: in browsercoin.org/app open Settings → Export key…, then drop the file here.", 'info');
+  updatePasswordState();
+});
 
 function updatePasswordState() {
   const pw = $('#b-password').value;
@@ -1248,6 +1266,9 @@ $('#n-make').addEventListener('click', async () => {
     $('#n-note').innerHTML = mailbox
       ? 'This file is your mailbox. To read letters, open <strong>BRC Post</strong>, tap <strong>Your mailbox</strong>, choose <strong>I already have a mailbox</strong> and pick this file; BRC Post can remember it, so next time you only type the password. The address above is public: share it so people can write to you. <strong>Don\'t send coins to it.</strong>'
       : 'To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in <strong>Restore</strong>: it gives you a wallet file for the app\'s <strong>Settings &gt; Import key…</strong> Importing replaces the wallet the app has open, so back that one up first.';
+    // The next step, one tap away: see a coin wallet on BRC Pulse (its balance as coins arrive), or use a mailbox in BRC Post.
+    $('#n-next-link').href = mailbox ? 'https://brc-post.github.io/' : `https://pb-hash.github.io/brc-pulse/#my=${result.address}`;
+    $('#n-next-link').textContent = mailbox ? 'Open BRC Post' : 'See it on BRC Pulse';
     $('#n-tip').textContent = mailbox
       ? 'Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can\'t be opened.'
       : 'Nothing else holds this wallet\'s key. Without the backup and its password, the wallet and anything sent to it are gone.';

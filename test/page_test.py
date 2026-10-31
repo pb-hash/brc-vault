@@ -70,11 +70,23 @@ with sync_playwright() as pw:
     open_paste(page, "backup")
     page.fill("#b-paste", wallet["address"])
     page.click("#b-paste-go")
-    expect(page.locator("#b-key-confirm-wrap")).to_be_visible()
-    expect(page.locator("#b-load-msg")).to_contain_text("looks exactly like a private key")
+    expect(page.locator("#b-which")).to_be_visible()
+    expect(page.locator("#b-which")).to_contain_text("Is this your secret key, or your address?")
+    expect(page.locator("#b-key-confirm-wrap")).to_be_hidden()
     assert page.locator("#b-address").inner_text() != wallet["address"]
     expect(page.locator("#b-step2")).to_have_attribute("data-state", "waiting")
-    ok("pasting a wallet address on Back up is flagged, and password step stays locked until confirmed")
+    page.click("#b-which-no")
+    expect(page.locator("#b-which")).to_be_hidden()
+    expect(page.locator("#b-loaded")).to_be_hidden()
+    expect(page.locator("#b-load-msg")).to_contain_text("Export key")
+    expect(page.locator("#b-step2")).to_have_attribute("data-state", "waiting")
+    open_paste(page, "backup")
+    page.fill("#b-paste", wallet["address"])
+    page.click("#b-paste-go")
+    page.click("#b-which-yes")
+    expect(page.locator("#b-which")).to_be_hidden()
+    expect(page.locator("#b-step2")).not_to_have_attribute("data-state", "waiting")
+    ok("a bare 64-character code on Back up asks key or address: No explains the wallet file, Yes goes on")
 
     # --- Back up from the real wallet file ---
     page.set_input_files("#b-file", str(wallet_file))
@@ -703,6 +715,14 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     expect(vp.locator("#app-version")).to_have_text(json.loads((ROOT / "package.json").read_text())["version"])
     vp.close()
     ok("the footer shows the version from package.json")
+    narrow = browser.new_page(viewport={"width": 390, "height": 844}, is_mobile=True)
+    narrow.goto(PAGE)
+    narrow.click("#tab-restore")
+    narrow.set_input_files("#r-file", str(backup_path))
+    expect(narrow.locator("#r-loaded")).to_be_visible()
+    assert narrow.evaluate("document.documentElement.scrollWidth") <= 390, "Restore runs off the side of a phone once a backup is loaded"
+    narrow.close()
+    ok("Restore fits a phone once a backup is loaded (no cut-off file name or address)")
     assert not errors, errors
     ok("no script errors")
 

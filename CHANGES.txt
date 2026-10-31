@@ -5,6 +5,16 @@ features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
 1.1.1 (in testing)
+  - test.3: fixes from the "it just works" review (Oct 31). On a phone,
+    Restore no longer runs off the right edge once a backup is loaded (file
+    name and address now fit). Pasting a bare 64-character code on Back up
+    asks "Is this your secret key, or your address?" with two buttons
+    instead of a tick box; "No, I pasted my address" explains that the
+    wallet file is what's needed (Settings → Export key…). The status pill
+    says "Sends nothing" (or "Offline: safest") instead of a grey "Online".
+    "Protection" reads "Locked with your password". A new wallet ends with
+    one tap to the next step: See it on BRC Pulse, or Open BRC Post for a
+    mailbox. The Holding coins choice says the app holds one wallet at a time.
   - test.2: a mailbox restored in Restore now says what to do with it: step 3
     becomes "Use it in BRC Post", with Open BRC Post and Save the locked
     mailbox file, and explains that the 64-character code is the public
