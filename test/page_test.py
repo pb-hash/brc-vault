@@ -586,6 +586,17 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     expect(nw.locator("#b-load-msg")).to_contain_text("Finish the backup")
     expect(nw.locator("#b-password")).to_be_focused()
     new_addr = nw.locator("#b-address").text_content()
+    # The address picture matches BRC Seal's and BRC Pulse's (same 3x3 rule, same colours).
+    COLS = ['#5956fd', '#0d7a5f', '#e0552f', '#1f8fd6', '#c2417a', '#7c5cff', '#d99a0b', '#2f9e8f']
+    bb = bytes.fromhex(new_addr[:16]); c1 = COLS[bb[0] % 8]; c2 = COLS[bb[1] % 8]
+    if c2 == c1: c2 = COLS[(bb[1] + 3) % 8]
+    rgb = lambda h: f"rgb({int(h[1:3],16)}, {int(h[3:5],16)}, {int(h[5:7],16)})"
+    want = []
+    for r in range(3):
+        l, m = bb[2 + r] & 3, bb[5 + r] & 3
+        want += [('rgba(0, 0, 0, 0)' if v == 0 else rgb(c2) if v == 3 else rgb(c1)) for v in (l, m, l)]
+    got_idc = nw.locator("#b-loaded .idc i").evaluate_all("els => els.map(e => getComputedStyle(e).backgroundColor)")
+    assert got_idc == want, (got_idc, want)
     assert re.fullmatch(r"[0-9a-f]{64}", new_addr) and new_addr != wallet["address"], new_addr
     page_text = nw.evaluate("document.body.innerText")
     nw.fill("#b-password", PASSWORD); nw.fill("#b-confirm", PASSWORD); nw.check("#b-understand")

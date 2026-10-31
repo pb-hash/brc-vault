@@ -350,6 +350,9 @@ kbd { display: inline-block; min-width: 1.35rem; padding: 0.05rem 0.35rem; borde
 
 /* ---------- Addresses: easy to compare, one click to copy ---------- */
 .addr-cell { display: flex; align-items: flex-start; gap: 0.5rem; }
+/* The same little picture for an address in every BRC Works tool, so a swapped address stands out. */
+.idc { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; width: 1.5rem; height: 1.5rem; padding: 3px; border-radius: 7px; background: var(--brand-tint, #eeeeff); margin-top: 0.05rem; }
+.idc i { border-radius: 1.5px; }
 .addr { flex: 1; min-width: 0; color: var(--muted); word-break: normal; }
 .addr .g { display: inline-block; margin-right: 0.55em; }
 .addr .g:last-child { margin-right: 0; }
@@ -539,7 +542,7 @@ body.is-previewing { overflow: hidden; }
                 </div>
                 <p class="msg" id="b-load-msg" role="status" hidden></p>
                 <dl class="kv" id="b-loaded" hidden>
-                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="b-check">The key matches this address</dd></div>
                 </dl>
                 <fieldset class="purpose" id="b-purpose" hidden>
@@ -584,7 +587,7 @@ body.is-previewing { overflow: hidden; }
                   <h3 id="b-done-title">Wallet locked</h3>
                   <p>Your backup was test-opened with your password before saving. Keep it one or both ways.</p>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                     <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
                   </dl>
                   <div class="actions">
@@ -699,7 +702,7 @@ body.is-previewing { overflow: hidden; }
                     <h3 id="r-done-title">Backup unlocked</h3>
                   </div>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                     <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="r-done-check">The key matches this address</dd></div>
                   </dl>
                   <p class="msg" id="r-done-msg" role="status" hidden></p>
@@ -783,7 +786,8 @@ body.is-previewing { overflow: hidden; }
       <span>BRC Vault <span id="app-version">/*__VERSION__*/</span>, build /*__BUILD__*/</span>
       <span>Free and open source under the MIT License</span>
       <div class="works">
-        <p><b>BRC Works:</b> <span aria-current="page">Vault</span> · <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer">Pulse</a></p>
+        <p><b>BRC Works:</b> <span aria-current="page">Vault keeps it</span> · <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer">Pulse checks it</a></p>
+        <p class="rule"><b>The BRC Works rule:</b> no BRC Works page ever asks for a key that holds coins, except this one, BRC Vault, to back it up, best with Wi-Fi off. If any other page asks, it isn't us.</p>
         <p>Independent tools by <a href="https://github.com/pb-hash" target="_blank" rel="noopener noreferrer">pb-hash</a>. Not part of the official BrowserCoin project. · <a href="https://github.com/pb-hash/brc-vault" target="_blank" rel="noopener noreferrer">Source</a></p>
       </div>
     </footer>

@@ -164,8 +164,28 @@ window.addEventListener('drop', (e) => {
   if (it) it.handleFile(e.dataTransfer?.files?.[0]);
 });
 
+/** The 3x3 address picture BRC Seal and BRC Pulse draw too: same address, same picture, in every BRC Works tool. */
+const IDC_COLORS = ['#5956fd', '#0d7a5f', '#e0552f', '#1f8fd6', '#c2417a', '#7c5cff', '#d99a0b', '#2f9e8f'];
+function paintIdenticon(node, address) {
+  node.replaceChildren();
+  const b = address.slice(0, 16).match(/../g).map((x) => parseInt(x, 16));
+  const c1 = IDC_COLORS[b[0] % 8];
+  let c2 = IDC_COLORS[b[1] % 8];
+  if (c2 === c1) c2 = IDC_COLORS[(b[1] + 3) % 8];
+  for (let row = 0; row < 3; row++) {
+    const left = b[2 + row] & 3, mid = b[5 + row] & 3;
+    for (const v of [left, mid, left]) {
+      const cell = document.createElement('i');
+      cell.style.background = v === 0 ? 'transparent' : v === 3 ? c2 : c1;
+      node.append(cell);
+    }
+  }
+}
+
 /** Show an address with its first 8 and last 4 characters emphasised, for easy comparison. */
 function renderAddress(el, addr) {
+  const idc = el.parentElement && el.parentElement.querySelector('.idc');
+  if (idc) paintIdenticon(idc, addr);
   // Groups of 8, spaced with CSS so a copy still gives the plain 64 characters.
   const groups = addr.match(/.{1,8}/g).map((g, i, all) => {
     const span = document.createElement('span');
