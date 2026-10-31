@@ -575,17 +575,26 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     fp.close(); srv.shutdown()
     ok("inside a locked-down preview, the scanner explains the camera can't be used and offers typing instead")
 
-    # --- New wallet: made on the page, locked straight away, restored into a wallet file BrowserCoin imports ---
+    # --- New wallet: its own tab; made and backed up in one step, restored into a wallet file BrowserCoin imports ---
     nw = ctx.new_page(); nw.on("pageerror", lambda e: errors.append(str(e))); nw.goto(PAGE)
-    expect(nw.locator("#b-new")).to_be_visible()
-    nw.click("#b-new")
-    expect(nw.locator("#b-chip-name")).to_have_text("New wallet")
-    expect(nw.locator("#b-new")).to_be_hidden()
-    expect(nw.locator("#b-check")).to_contain_text("holds no coins yet")
-    expect(nw.locator("#b-key-confirm-wrap")).to_be_hidden()
-    expect(nw.locator("#b-load-msg")).to_contain_text("Finish the backup")
-    expect(nw.locator("#b-password")).to_be_focused()
-    new_addr = nw.locator("#b-address").text_content()
+    expect(nw.locator("#tab-new")).to_be_visible()
+    expect(nw.locator("#b-intake")).not_to_contain_text("new wallet")  # Back up is only for wallets you already have
+    nw.click("#tab-new")
+    expect(nw.locator("#panel-new")).to_be_visible()
+    expect(nw.locator("#panel-backup")).to_be_hidden()
+    expect(nw.locator("#n-make")).to_be_disabled()
+    expect(nw.locator("#n-make")).to_have_text("Make my wallet")
+    page_text = nw.evaluate("document.body.innerText")
+    assert not re.search(r"\b[0-9a-f]{64}\b", page_text), "no key or address exists before the button is pressed"
+    nw.fill("#n-password", PASSWORD); nw.fill("#n-confirm", PASSWORD)
+    expect(nw.locator("#n-make")).to_be_disabled()
+    nw.check("#n-understand")
+    expect(nw.locator("#n-make")).to_be_enabled()
+    nw.click("#n-make")
+    expect(nw.locator("#n-done")).to_be_visible(timeout=60000)
+    expect(nw.locator("#n-done-title")).to_have_text("Your new wallet is ready")
+    new_addr = nw.locator("#n-done-address").text_content()
+    assert re.fullmatch(r"[0-9a-f]{64}", new_addr) and new_addr != wallet["address"], new_addr
     # The address picture matches BRC Seal's and BRC Pulse's: the same rule, from SHA-256 of the address.
     import hashlib
     COLS = ['#5956fd', '#0d7a5f', '#e0552f', '#1f8fd6', '#c2417a', '#7c5cff', '#d99a0b', '#2f9e8f']
@@ -596,32 +605,29 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     for r in range(3):
         l, m = bb[2 + r] & 3, bb[5 + r] & 3
         want += [('rgba(0, 0, 0, 0)' if v == 0 else rgb(c2) if v == 3 else rgb(c1)) for v in (l, m, l)]
-    got_idc = nw.locator("#b-loaded .idc i").evaluate_all("els => els.map(e => getComputedStyle(e).backgroundColor)")
+    got_idc = nw.locator("#n-done .idc i").evaluate_all("els => els.map(e => getComputedStyle(e).backgroundColor)")
     assert got_idc == want, (got_idc, want)
-    expect(nw.locator("#b-plain-wrap")).to_be_hidden()
-    assert re.fullmatch(r"[0-9a-f]{64}", new_addr) and new_addr != wallet["address"], new_addr
-    page_text = nw.evaluate("document.body.innerText")
-    nw.fill("#b-password", PASSWORD); nw.fill("#b-confirm", PASSWORD); nw.check("#b-understand")
-    nw.click("#b-make")
-    expect(nw.locator("#b-done")).to_be_visible(timeout=60000)
-    expect(nw.locator("#b-done-address")).to_have_text(new_addr)
-    expect(nw.locator("#b-new-note")).to_be_visible()
-    expect(nw.locator("#b-tip-delete")).to_contain_text("Nothing else holds")
+    expect(nw.locator("#n-note")).to_contain_text("Restore")
+    expect(nw.locator("#n-tip")).to_contain_text("Nothing else holds")
+    assert nw.evaluate("document.body.innerText").count(new_addr[:8]) >= 1
+    # Leaving before saving is caught; making another without saving needs a second press.
+    nw.click("[data-restart='n']")
+    expect(nw.locator("#n-saved-msg")).to_contain_text("only copy")
+    expect(nw.locator("#n-done")).to_be_visible()
     with nw.expect_download() as dl_new:
-        nw.click("#b-download")
+        nw.click("#n-download")
     new_backup = OUT / ("new-" + dl_new.value.suggested_filename); dl_new.value.save_as(new_backup)
+    assert dl_new.value.suggested_filename == f"brc-vault-backup-{new_addr[:8]}.json"
     nw.screenshot(path=str(OUT / "7-new-wallet.png"), full_page=True)
-    ok("Make a new wallet goes straight to a locked backup of a fresh address, with no unlocked key shown or saved")
-    nw.click("[data-restart='b']")
-    expect(nw.locator("#b-new")).to_be_visible()
-    nw.click("#b-new")
-    second = nw.locator("#b-address").text_content()
+    ok("New wallet is its own tab: one press makes the key and its locked backup, nothing unlocked is shown or saved, and unsaved work is guarded")
+    nw.click("[data-restart='n']")
+    expect(nw.locator("#n-done")).to_be_hidden()
+    expect(nw.locator("#n-password")).to_have_value("")
+    nw.fill("#n-password", PASSWORD); nw.fill("#n-confirm", PASSWORD); nw.check("#n-understand"); nw.click("#n-make")
+    expect(nw.locator("#n-done")).to_be_visible(timeout=60000)
+    second = nw.locator("#n-done-address").text_content()
     assert second != new_addr
-    nw.click("[data-intake-change='b']")
-    nw.set_input_files("#b-file", str(wallet_file))
-    expect(nw.locator("#b-check")).to_have_text("The key matches this address")
-    expect(nw.locator("#b-new-note")).to_be_hidden()
-    ok("each new wallet is different, and loading an ordinary wallet afterwards resets the new-wallet wording")
+    ok("each new wallet is different")
     nw.click("#tab-restore")
     nw.set_input_files("#r-file", str(new_backup))
     expect(nw.locator("#r-address")).to_have_text(new_addr)
@@ -638,30 +644,28 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     ok("the new wallet's backup restores to a wallet file BrowserCoin imports, with the same address")
 
     mb = ctx.new_page(); mb.on("pageerror", lambda e: errors.append(str(e))); mb.goto(PAGE)
-    mb.click("#b-new")
-    expect(mb.locator("#b-purpose")).to_be_visible()
-    mb.check('input[name="b-purpose"][value="mailbox"]')
-    mb_addr = mb.locator("#b-address").text_content()
-    mb.fill("#b-password", PASSWORD); mb.fill("#b-confirm", PASSWORD); mb.check("#b-understand")
-    mb.click("#b-make")
-    expect(mb.locator("#b-done-title")).to_have_text("Mailbox key locked", timeout=60000)
-    expect(mb.locator("#b-new-note")).to_contain_text("BRC Seal")
-    expect(mb.locator('input[name="b-purpose"]:checked')).to_be_disabled()
+    mb.click("#tab-new")
+    mb.check('input[name="n-purpose"][value="mailbox"]')
+    expect(mb.locator("#n-make")).to_have_text("Make my mailbox key")
+    mb.fill("#n-password", PASSWORD); mb.fill("#n-confirm", PASSWORD); mb.check("#n-understand")
+    mb.click("#n-make")
+    expect(mb.locator("#n-done-title")).to_have_text("Your new mailbox key is ready", timeout=60000)
+    mb_addr = mb.locator("#n-done-address").text_content()
+    expect(mb.locator("#n-note")).to_contain_text("BRC Seal")
+    expect(mb.locator('input[name="n-purpose"]:checked')).to_be_disabled()
     with mb.expect_download() as dl_mb:
-        mb.click("#b-download")
+        mb.click("#n-download")
     assert dl_mb.value.suggested_filename == f"brc-mailbox-key-{mb_addr[:8]}.json", dl_mb.value.suggested_filename
     mb_file = OUT / dl_mb.value.suggested_filename; dl_mb.value.save_as(mb_file)
     assert json.loads(mb_file.read_text())["type"] == "brc-vault-mailbox-key"
     mb.evaluate("() => { window.print = () => {}; }")
-    mb.click("#b-print")
+    mb.click("#n-print")
     expect(mb.locator("#print-sheet")).to_contain_text("mailbox key")
     mb_qr = decode_qr(mb.locator("#print-sheet .ps-qr").nth(1), "qr-mailbox")
     assert mb_qr.startswith("BRCMBOX1:"), mb_qr[:12]
     mb.keyboard.press("Escape")
     mb.screenshot(path=str(OUT / "8-mailbox-key.png"), full_page=True)
     ok("a new wallet can be made as a mailbox key: its own file name, type and paper code")
-    mb.click("[data-restart='b']")
-    expect(mb.locator("#b-purpose")).to_be_hidden()
     mb.click("#tab-restore")
     mb.set_input_files("#r-file", str(mb_file))
     mb.fill("#r-password", PASSWORD); mb.click("#r-unlock")
@@ -675,12 +679,11 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     ok("Restore recognises a mailbox key and says what it is for, and never turns it into a wallet file or recovery words")
 
     hp = browser.new_page(); hp.goto(PAGE + "#new-mailbox")
-    expect(hp.locator("#b-new-title")).to_have_text("Make a mailbox key")
-    expect(hp.locator("#b-loaded")).to_be_hidden()  # nothing is made until the button is pressed
-    hp.click("#b-new")
-    expect(hp.locator('input[name="b-purpose"][value="mailbox"]')).to_be_checked()
+    expect(hp.locator("#panel-new")).to_be_visible()
+    expect(hp.locator('input[name="n-purpose"][value="mailbox"]')).to_be_checked()
+    expect(hp.locator("#n-done")).to_be_hidden()  # nothing is made until the button is pressed
     hp.close()
-    ok("a link from BRC Seal (#new-mailbox) offers a mailbox key, and makes nothing until asked")
+    ok("a link from BRC Seal (#new-mailbox) opens New wallet set to a mailbox key, and makes nothing until asked")
     vp = browser.new_page(); vp.goto(PAGE)
     expect(vp.locator("#app-version")).to_have_text(json.loads((ROOT / "package.json").read_text())["version"])
     vp.close()

@@ -119,7 +119,9 @@ function wireIntake(prefix, onText, msgEl, isOpen) {
 }
 
 function activeIntake() {
-  const tab = $('#segmented').dataset.active === 'restore' ? 'r' : 'b';
+  const active = $('#segmented').dataset.active;
+  if (active === 'new') return null; // New wallet has nothing to load
+  const tab = active === 'restore' ? 'r' : 'b';
   const it = intakes[tab];
   return it && it.isOpen() && $('#paper-preview').hidden ? it : null;
 }
@@ -404,7 +406,7 @@ $$('[role="tab"]').forEach((t) => {
   t.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
     const tabs = $$('[role="tab"]');
-    const next = tabs[(tabs.indexOf(t) + 1) % tabs.length];
+    const next = tabs[(tabs.indexOf(t) + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
     selectTab(next.dataset.tab);
     next.focus();
   });
@@ -552,13 +554,8 @@ document.addEventListener('visibilitychange', () => {
 
 const backup = { wallet: null, result: null, kind: null, busy: false };
 
-function backupPurpose() {
-  return backup.kind === 'new' && $('input[name="b-purpose"]:checked')?.value === 'mailbox' ? 'mailbox' : 'coins';
-}
-
 function resetBackupOutput() {
   backup.result = null;
-  $$('input[name="b-purpose"]').forEach((r) => { r.disabled = false; });
   delete $('#b-step1').dataset.collapsed;
   delete $('#b-step2').dataset.collapsed;
   $('#b-step2 .step-sub').hidden = false;
@@ -588,8 +585,6 @@ function loadWalletForBackup(text, source) {
     if (id.kind === 'desktop-backup') throw new Error('That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.');
     backup.wallet = id.wallet;
     $('#b-check').textContent = 'The key matches this address';
-    show($('#b-purpose'), false);
-    show($('#b-plain-wrap'), true);
     backup.kind = id.kind === 'private-key' ? (id.words ? 'words' : id.ambiguous ? 'ambiguous-key' : 'key') : 'file';
     // A bare key, an old key code with no check, or recovery words: ask the
     // person to compare the address before anything is locked.
@@ -626,36 +621,6 @@ function loadWalletForBackup(text, source) {
   if (backup.wallet && backupKeyConfirmed()) $('#b-password').focus();
 }
 
-// Arriving from BRC Seal's "Make one in BRC Vault" (#new-mailbox): a new wallet
-// starts as a mailbox key. Nothing happens until the person presses the button.
-let wantMailbox = false;
-
-// A fresh wallet, made here, that goes straight into a locked backup. Its key
-// is never shown or saved unlocked: the backup is the only copy.
-function makeNewWalletForBackup() {
-  if (backup.busy || backup.result) return;
-  gen.backup++;
-  core.wipeWallet(backup.wallet);
-  resetBackupOutput();
-  $('#b-key-confirm').checked = false;
-  backup.wallet = core.newWallet();
-  backup.kind = 'new';
-  backup.confirm = false;
-  $(`input[name="b-purpose"][value="${wantMailbox ? 'mailbox' : 'coins'}"]`).checked = true;
-  show($('#b-purpose'), true);
-  // A new wallet's key is only ever saved inside the locked backup: no unprotected paper copy.
-  show($('#b-plain-wrap'), false);
-  renderAddress($('#b-address'), backup.wallet.address);
-  $('#b-check').textContent = 'Made just now on this page. It holds no coins yet.';
-  show($('#b-loaded'), true);
-  show($('#b-key-confirm-wrap'), false);
-  setMessage($('#b-load-msg'), 'This wallet exists only on this page until you lock it. Finish the backup before you close the tab.', 'info');
-  $('#b-tip-delete').textContent = 'Nothing else holds this wallet\'s key. Without the backup and its password, the wallet and anything sent to it are gone.';
-  intakes.b.setMode('loaded', 'New wallet');
-  updatePasswordState();
-  $('#b-password').focus();
-}
-$('#b-new').addEventListener('click', makeNewWalletForBackup);
 
 wireIntake('b', loadWalletForBackup, $('#b-load-msg'), () => !backup.busy && !backup.result);
 $('#b-key-confirm').addEventListener('change', () => { updatePasswordState(); if ($('#b-key-confirm').checked) $('#b-password').focus(); });
@@ -701,15 +666,13 @@ $('#b-make').addEventListener('click', async () => {
   await startBusy($('#b-progress'));
   try {
     const password = $('#b-password').value;
-    const purpose = backupPurpose();
-    const result = await core.encryptWallet(wallet, password, { purpose });
+    const result = await core.encryptWallet(wallet, password);
     // Prove the backup opens before handing it over.
     const check = await core.decryptBackup(result, password);
     core.wipeWallet(check);
     if (myGen !== gen.backup) { setMessage(msg, ''); return; } // cleared, or another wallet loaded meanwhile
     if (check.address !== wallet.address) throw new Error('Self-check failed. No backup was made.');
     backup.result = result;
-    if (backup.kind === 'new') { core.wipeWallet(backup.wallet); backup.wallet = null; } // the locked backup is now the only copy
     $('#b-password').value = '';
     $('#b-confirm').value = '';
     $('#b-meter').dataset.level = '0';
@@ -723,14 +686,6 @@ $('#b-make').addEventListener('click', async () => {
     $('#b-step2').dataset.collapsed = '';
     $('#b-step2 .step-sub').hidden = true;
     renderAddress($('#b-done-address'), result.address);
-    const mailbox = result.type === core.MAILBOX_TYPE;
-    $('#b-done-title').textContent = mailbox ? 'Mailbox key locked' : 'Wallet locked';
-    $('#b-new-note').innerHTML = mailbox
-      ? 'Open this file in <strong>BRC Seal</strong> with your password to read letters sealed to this address and to sign. <strong>Don\'t send coins to it:</strong> it\'s a mailbox, and BRC Seal will hold its key.'
-      : 'To use this wallet in the BrowserCoin app later, open the backup in <strong>Restore</strong>. It gives you a wallet file for the app\'s <strong>Settings &gt; Import key…</strong> Importing replaces the wallet the app has open, so back that one up first. To receive coins, all anyone needs is the address.';
-    show($('#b-new-note'), backup.kind === 'new');
-    if (mailbox) $('#b-tip-delete').textContent = 'Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can\'t be opened.';
-    $$('input[name="b-purpose"]').forEach((r) => { r.disabled = true; });
     const done = $('#b-done');
     show(done, true);
     playLockMoment(done, 'lock');
@@ -756,7 +711,7 @@ $('#b-print').addEventListener('click', () => openPaperPreview(encryptedSheet(ba
 
 $('#b-plain-ok').addEventListener('change', () => { $('#b-print-plain').disabled = !$('#b-plain-ok').checked; });
 $('#b-print-plain').addEventListener('click', () => {
-  if (!$('#b-plain-ok').checked || backup.kind === 'new') return;
+  if (!$('#b-plain-ok').checked) return;
   if (!backup.wallet || !backupKeyConfirmed()) {
     setMessage($('#b-load-msg'), 'Load and confirm a wallet in step 1 first.', 'bad');
     $('#b-step1').scrollIntoView({ block: 'center' });
@@ -1129,8 +1084,6 @@ function restartBackup() {
   $('#b-key-confirm').checked = false;
   show($('#b-loaded'), false);
   show($('#b-key-confirm-wrap'), false);
-  show($('#b-purpose'), false);
-  show($('#b-plain-wrap'), true);
   resetBackupOutput();
   intakes.b.setMode('file');
   setMessage($('#b-load-msg'), '');
@@ -1151,8 +1104,172 @@ function restartRestore() {
 }
 
 $$('[data-restart]').forEach((btn) => btn.addEventListener('click', () => {
-  if (btn.dataset.restart === 'b') restartBackup(); else restartRestore();
+  if (btn.dataset.restart === 'b') restartBackup();
+  else if (btn.dataset.restart === 'n') restartNewWallet();
+  else restartRestore();
 }));
+
+// ---------------------------------------------------------------------------
+// New wallet: made and backed up in one step
+// ---------------------------------------------------------------------------
+// The key is created only when the button is pressed, locked with the password
+// straight away, test-opened, and then wiped from the page. It is never shown or
+// saved unlocked: the locked backup is the wallet.
+
+const fresh = { result: null, busy: false, saved: false, gen: 0, discardAsked: false };
+
+function newPurpose() {
+  return $('input[name="n-purpose"]:checked')?.value === 'mailbox' ? 'mailbox' : 'coins';
+}
+
+function updateNewWalletState() {
+  const mailbox = newPurpose() === 'mailbox';
+  if (!fresh.busy) $('#n-make').textContent = mailbox ? 'Make my mailbox key' : 'Make my wallet';
+  $('#n-understand-text').textContent = mailbox
+    ? 'I understand that if I forget this password, the backup can\'t be opened and letters sealed to this mailbox can\'t be read.'
+    : 'I understand that if I forget this password, the backup can\'t be opened and anything sent to this wallet is lost.';
+  const pw = $('#n-password').value;
+  const confirm = $('#n-confirm').value;
+  const problems = core.passwordProblems(pw, confirm);
+  const level = strength(pw);
+  $('#n-meter').dataset.level = String(level);
+  $('#n-meter-label').dataset.level = String(level);
+  $('#n-meter-label').textContent = ['', 'Too weak', 'Fair', 'Good', 'Strong'][level];
+  const hint = $('#n-pw-hint');
+  if (fresh.result) setMessage(hint, '');
+  else if (!pw && !confirm) setMessage(hint, `At least ${core.MIN_PASSWORD_LENGTH} characters. A short sentence you'll remember works well.`, 'info');
+  else if (problems.length) setMessage(hint, problems[0], pw.length >= core.MIN_PASSWORD_LENGTH ? 'warn' : 'info');
+  else setMessage(hint, 'Passwords match.', 'good');
+  const ready = problems.length === 0 && $('#n-understand').checked;
+  if (!fresh.result) {
+    setStep('#n-step1', pw || confirm ? 'done' : 'active');
+    setStep('#n-step2', ready ? 'done' : 'active'); // the purpose has a default, so the password is open from the start
+    setStep('#n-step3', ready ? 'active' : 'waiting');
+  }
+  $('#n-make').disabled = !ready || fresh.busy || Boolean(fresh.result);
+}
+
+function resetNewWallet() {
+  fresh.gen++;
+  fresh.result = null;
+  fresh.saved = false;
+  fresh.discardAsked = false;
+  ['#n-password', '#n-confirm'].forEach((sel) => { $(sel).value = ''; });
+  $('#n-understand').checked = false;
+  $$('input[name="n-purpose"]').forEach((r) => { r.disabled = false; });
+  ['#n-step1', '#n-step2'].forEach((sel) => { delete $(sel).dataset.collapsed; });
+  $('#n-step2 .step-sub').hidden = false;
+  const done = $('#n-done');
+  done.classList.remove('is-in');
+  show(done, false);
+  show($('#n-make').parentElement, true);
+  show($('#n-born'), true);
+  ['#n-make-msg', '#n-saved-msg'].forEach((sel) => setMessage($(sel), ''));
+  updateNewWalletState();
+}
+
+function restartNewWallet() {
+  if (fresh.result && !fresh.saved && !fresh.discardAsked) {
+    fresh.discardAsked = true;
+    setMessage($('#n-saved-msg'), 'This backup hasn\'t been downloaded or printed yet, and it is the only copy of the key. Save it first, or press Make another again to discard it.', 'warn');
+    return;
+  }
+  resetNewWallet();
+  $('#n-step1').scrollIntoView({ block: 'nearest' });
+  $('input[name="n-purpose"]:checked').focus({ preventScroll: true });
+}
+
+$$('input[name="n-purpose"]').forEach((r) => r.addEventListener('change', updateNewWalletState));
+['#n-password', '#n-confirm'].forEach((sel) => $(sel).addEventListener('input', updateNewWalletState));
+$('#n-understand').addEventListener('change', updateNewWalletState);
+$('#n-confirm').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !$('#n-make').disabled) $('#n-make').click(); });
+
+$('#n-make').addEventListener('click', async () => {
+  if (fresh.busy || fresh.result) return;
+  primeAudio();
+  const btn = $('#n-make');
+  const msg = $('#n-make-msg');
+  const myGen = fresh.gen;
+  const purpose = newPurpose();
+  fresh.busy = true;
+  btn.disabled = true;
+  setBusy(btn, 'Making and locking…');
+  setMessage(msg, 'This takes a few seconds on purpose. It makes password guessing slow.', 'info');
+  await startBusy($('#n-progress'));
+  let wallet = null;
+  try {
+    const password = $('#n-password').value;
+    wallet = core.newWallet();
+    const result = await core.encryptWallet(wallet, password, { purpose });
+    // Prove the backup opens before handing it over.
+    const check = await core.decryptBackup(result, password);
+    core.wipeWallet(check);
+    if (check.address !== wallet.address) throw new Error('Self-check failed. No wallet was made.');
+    if (myGen !== fresh.gen) { setMessage(msg, ''); return; } // cleared meanwhile: the key is dropped below
+    fresh.result = result;
+    fresh.saved = false;
+    ['#n-password', '#n-confirm'].forEach((sel) => { $(sel).value = ''; });
+    $('#n-meter').dataset.level = '0';
+    $('#n-meter-label').textContent = '';
+    setMessage($('#n-pw-hint'), '');
+    setMessage(msg, '');
+    show(btn.parentElement, false);
+    show($('#n-born'), false);
+    setStep('#n-step1', 'done'); setStep('#n-step2', 'done'); setStep('#n-step3', 'done');
+    const mailbox = result.type === core.MAILBOX_TYPE;
+    $('#n-sum-purpose').textContent = mailbox ? 'Mailbox key for BRC Seal' : 'Holding coins';
+    $('#n-step1').dataset.collapsed = '';
+    $('#n-step2').dataset.collapsed = '';
+    $('#n-step2 .step-sub').hidden = true;
+    $$('input[name="n-purpose"]').forEach((r) => { r.disabled = true; });
+    renderAddress($('#n-done-address'), result.address);
+    $('#n-done-title').textContent = mailbox ? 'Your new mailbox key is ready' : 'Your new wallet is ready';
+    $('#n-note').innerHTML = mailbox
+      ? 'Open this file in <strong>BRC Seal</strong> with your password to read letters sealed to this address and to sign. <strong>Don\'t send coins to it:</strong> it\'s a mailbox, and BRC Seal will hold its key.'
+      : 'To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in <strong>Restore</strong>: it gives you a wallet file for the app\'s <strong>Settings &gt; Import key…</strong> Importing replaces the wallet the app has open, so back that one up first.';
+    $('#n-tip').textContent = mailbox
+      ? 'Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can\'t be opened.'
+      : 'Nothing else holds this wallet\'s key. Without the backup and its password, the wallet and anything sent to it are gone.';
+    const done = $('#n-done');
+    show(done, true);
+    playLockMoment(done, 'lock');
+    $('#n-download').focus({ preventScroll: true });
+    done.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  } catch (e) {
+    setMessage(msg, myGen === fresh.gen ? e.message : '', 'bad');
+  } finally {
+    core.wipeWallet(wallet); // the locked backup is now the only copy
+    fresh.busy = false;
+    setBusy(btn, null);
+    show($('#n-progress'), false);
+    updateNewWalletState();
+  }
+});
+
+function newWalletSaved(how) {
+  fresh.saved = true;
+  fresh.discardAsked = false;
+  setMessage($('#n-saved-msg'), how, 'good');
+}
+
+$('#n-download').addEventListener('click', () => {
+  const r = fresh.result;
+  if (!r) return;
+  download(`${r.type === core.MAILBOX_TYPE ? 'brc-mailbox-key' : 'brc-vault-backup'}-${r.address.slice(0, 8)}.json`, JSON.stringify(r, null, 2));
+  newWalletSaved('Backup file downloaded. Keep a second copy somewhere else.');
+});
+$('#n-print').addEventListener('click', () => {
+  if (!fresh.result) return;
+  openPaperPreview(encryptedSheet(fresh.result), 'encrypted');
+  newWalletSaved('Paper backup opened for printing. Keep the file too, or a second paper copy somewhere else.');
+});
+
+// The new key exists nowhere but this backup: warn before the page is closed unsaved.
+window.addEventListener('beforeunload', (e) => {
+  if (fresh.result && !fresh.saved) { e.preventDefault(); e.returnValue = ''; }
+});
+
+$$('[data-goto]').forEach((b) => b.addEventListener('click', () => { selectTab(b.dataset.goto); $(`#tab-${b.dataset.goto}`).focus(); }));
 
 // ---------------------------------------------------------------------------
 // Clear everything
@@ -1175,9 +1292,8 @@ $('#clear-all').addEventListener('click', () => {
   });
   $$('.msg').forEach((m) => setMessage(m, ''));
   show($('#b-loaded'), false);
-  show($('#b-purpose'), false);
-  show($('#b-plain-wrap'), true);
   resetBackupOutput();
+  resetNewWallet();
   $('#b-print-plain').disabled = true;
   resetRestore();
   if (!$('#paper-preview').hidden) closePaperPreview();
@@ -1197,12 +1313,14 @@ $$('.kbd-mod').forEach((k) => { k.textContent = IS_MAC ? '⌘' : 'Ctrl'; });
 renderSoundToggle();
 renderConnection();
 selectTab('backup');
+updateNewWalletState();
 updatePasswordState();
 setMessage($('#b-pw-hint'), '');
-if (location.hash === '#new-mailbox') {
-  wantMailbox = true;
-  $('#b-new-title').textContent = 'Make a mailbox key';
-  $('#b-new-sub').textContent = 'for BRC Seal';
-  $('#b-new').focus({ preventScroll: true });
-  $('#b-new').scrollIntoView({ block: 'center' });
+// Links: #new opens New wallet; #new-mailbox (from BRC Seal) opens it set to a mailbox key.
+// Nothing is made until the person chooses a password and presses the button.
+if (location.hash === '#new' || location.hash === '#new-mailbox') {
+  if (location.hash === '#new-mailbox') $('input[name="n-purpose"][value="mailbox"]').checked = true;
+  updateNewWalletState();
+  selectTab('new');
+  $('#tab-new').scrollIntoView({ block: 'start' });
 }

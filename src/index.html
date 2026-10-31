@@ -84,12 +84,26 @@ button, input, textarea { font: inherit; color: inherit; }
 .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); border: 1px solid rgba(16, 19, 24, 0.05); overflow: hidden; }
 .card-head { padding: 1.25rem 1.5rem 0; }
 
-.segmented { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; background: var(--sunken); border-radius: 12px; position: relative; }
+.segmented { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 4px; background: var(--sunken); border-radius: 12px; position: relative; }
 .segmented button { appearance: none; border: 0; background: transparent; height: 2.6rem; border-radius: 9px; font-weight: 500; font-size: 0.95rem; color: var(--muted); cursor: pointer; position: relative; z-index: 1; transition: color 0.2s var(--ease); }
 .segmented button[aria-selected="true"] { color: var(--ink); }
 .segmented button[aria-selected="true"] { color: var(--ink); }
-.segmented .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); background: var(--surface); border-radius: 9px; box-shadow: 0 1px 2px rgba(16,19,24,.08), 0 2px 8px rgba(16,19,24,.06); transition: transform 0.35s var(--ease); }
+.segmented .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); background: var(--surface); border-radius: 9px; box-shadow: 0 1px 2px rgba(16,19,24,.08), 0 2px 8px rgba(16,19,24,.06); transition: transform 0.35s var(--ease); }
 .segmented[data-active="restore"] .thumb { transform: translateX(100%); }
+.segmented[data-active="new"] .thumb { transform: translateX(200%); }
+/* New wallet is its own job, not a step of a backup: it carries the brand colour and a plus. */
+.segmented .seg-new { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; color: var(--brand); font-weight: 600; }
+.segmented .seg-new svg { width: 1rem; height: 1rem; flex: none; }
+.segmented .seg-new[aria-selected="true"] { color: var(--brand); }
+.segmented .seg-new::before { content: ""; position: absolute; left: 0; top: 22%; bottom: 22%; width: 1px; background: var(--hairline-strong); transition: opacity 0.2s var(--ease); }
+.segmented[data-active="restore"] .seg-new::before, .segmented[data-active="new"] .seg-new::before { opacity: 0; }
+.segmented button { white-space: nowrap; }
+@media (max-width: 420px) { .segmented button { font-size: 0.86rem; } .segmented .seg-new { gap: 0.2rem; } .segmented .seg-new svg { width: 0.85rem; height: 0.85rem; } }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.link-btn.inline-link { border: 0; padding: 0; margin: 0; font: inherit; font-weight: 600; color: var(--brand); }
+.born { display: flex; gap: 0.7rem; align-items: flex-start; margin: 0 0 0.9rem; padding: 0.8rem 0.95rem; border-radius: var(--radius-md); background: var(--brand-tint); color: var(--ink-2); font-size: 0.88rem; line-height: 1.5; }
+.born svg { width: 1.15rem; height: 1.15rem; flex: none; margin-top: 0.1rem; color: var(--brand); }
+.born strong { color: var(--ink); }
 
 .panel { padding: 0.5rem 1.5rem 1.75rem; }
 .panel-lede { margin: 1.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
@@ -296,8 +310,8 @@ button, input, textarea { font: inherit; color: inherit; }
 /* ---------- Intake: choose a file or paste ---------- */
 .intake { margin-top: 0.9rem; }
 .intake-choices { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.6rem; }
-#r-intake .intake-choices, #b-intake .intake-choices { grid-template-columns: 1fr 1fr; }
-#r-intake .intake-choices .drop, #b-intake .intake-choices .drop { grid-column: 1 / -1; }
+#r-intake .intake-choices { grid-template-columns: 1fr 1fr; }
+#r-intake .intake-choices .drop { grid-column: 1 / -1; }
 .intake[data-mode="scan"] .intake-choices { display: none; }
 .scan-panel { border: 1px solid var(--hairline-strong); border-radius: var(--radius-md); background: var(--surface); overflow: hidden; }
 .scan-view { position: relative; background: #0d1015; aspect-ratio: 4 / 3; max-height: 22rem; width: 100%; overflow: hidden; }
@@ -491,7 +505,7 @@ body.is-previewing { overflow: hidden; }
     <p class="frame-warning" id="frame-warning" role="status" hidden>You're viewing BRC Vault inside another app's preview, which can block printing and downloads. Save brc-vault.html and open it directly in Chrome, Safari, Edge, or Firefox.</p>
     <section class="hero">
       <h1>Your BrowserCoin, safely backed up.</h1>
-      <p>Lock your wallet with a password, print a paper copy, and restore it whenever you need to. <strong>Everything happens on this page. Nothing is uploaded.</strong></p>
+      <p>Lock your wallet with a password, print a paper copy, and restore it whenever you need to. Or start a new wallet that is backed up from the moment it exists. <strong>Everything happens on this page. Nothing is uploaded.</strong></p>
     </section>
 
     <section class="card" aria-label="BRC Vault">
@@ -500,12 +514,13 @@ body.is-previewing { overflow: hidden; }
           <span class="thumb" aria-hidden="true"></span>
           <button role="tab" id="tab-backup" data-tab="backup" aria-controls="panel-backup">Back up</button>
           <button role="tab" id="tab-restore" data-tab="restore" aria-controls="panel-restore">Restore</button>
+          <button role="tab" id="tab-new" data-tab="new" aria-controls="panel-new" class="seg-new"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>New wallet</button>
         </div>
       </div>
 
       <!-- ===================== Back up ===================== -->
       <div class="panel" role="tabpanel" id="panel-backup" aria-labelledby="tab-backup">
-        <p class="panel-lede">Start with your wallet file: at <strong>browsercoin.org/app</strong>, open <strong>Settings</strong> and choose <strong>Export key…</strong> You can also paste a private key, or the 24 recovery words from the BRC Wallet Android app, or make a brand-new wallet here.</p>
+        <p class="panel-lede">Start with your wallet file: at <strong>browsercoin.org/app</strong>, open <strong>Settings</strong> and choose <strong>Export key…</strong> You can also paste a private key, or the 24 recovery words from the BRC Wallet Android app. Starting from scratch? Use <button type="button" class="link-btn inline-link" data-goto="new">New wallet</button>.</p>
         <ol class="steps">
           <li class="step" id="b-step1" data-state="active">
             <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
@@ -523,10 +538,6 @@ body.is-previewing { overflow: hidden; }
                     <button type="button" class="choice" id="b-paste-open">
                       <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="10" height="14" rx="1.8"/><path d="M7.75 3.5V3a1 1 0 0 1 1-1h2.5a1 1 0 0 1 1 1v.5"/><path d="M7.75 8.5h4.5M7.75 11.5h4.5M7.75 14.5h2.5"/></svg></span>
                       <span class="drop-text"><strong>Paste instead</strong>file text or a key</span>
-                    </button>
-                    <button type="button" class="choice" id="b-new">
-                      <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="14" height="11" rx="2"/><path d="M3 9h14M7 5.5V4.3a1.3 1.3 0 0 1 1.6-1.3l6.4 1.4"/><path d="M13.5 12.75h-3M12 11.25v3"/></svg></span>
-                      <span class="drop-text"><strong id="b-new-title">Make a new wallet</strong><span id="b-new-sub">for coins, or a mailbox key</span></span>
                     </button>
                   </div>
                   <div class="loaded-chip" id="b-chip" hidden>
@@ -548,11 +559,6 @@ body.is-previewing { overflow: hidden; }
                   <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="b-check">The key matches this address</dd></div>
                 </dl>
-                <fieldset class="purpose" id="b-purpose" hidden>
-                  <legend>What's this wallet for?</legend>
-                  <label class="purpose-opt"><input type="radio" name="b-purpose" value="coins" checked><span><strong>Holding coins</strong>A second BrowserCoin wallet.</span></label>
-                  <label class="purpose-opt"><input type="radio" name="b-purpose" value="mailbox"><span><strong>Mailbox key for BRC Seal</strong>Opens sealed letters and signs. Not for coins.</span></label>
-                </fieldset>
                 <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span id="b-key-confirm-text">I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
               </div>
             </div>
@@ -598,7 +604,6 @@ body.is-previewing { overflow: hidden; }
                     <button type="button" class="btn btn-secondary" id="b-print"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print paper backup</button>
                   </div>
                   <p class="msg" id="b-saved-msg" role="status" hidden></p>
-                  <p class="new-note" id="b-new-note" hidden>To use this wallet in the BrowserCoin app later, open the backup in <strong>Restore</strong>. It gives you a wallet file for the app's <strong>Settings &gt; Import key…</strong> Importing replaces the wallet the app has open, so back that one up first. To receive coins, all anyone needs is the address.</p>
                   <ul class="tips">
                     <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Keep at least two copies in different places.</li>
                     <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Store the password separately, for example in a password manager.</li>
@@ -617,6 +622,79 @@ body.is-previewing { overflow: hidden; }
           <label class="check check-danger"><input type="checkbox" id="b-plain-ok"><span>I understand. I'll print to a printer connected directly to this computer, not "Save as PDF" or a network or cloud printer, which can keep a copy of the key.</span></label>
           <div class="actions"><button type="button" class="btn btn-danger-quiet" id="b-print-plain" disabled>Print unprotected paper wallet</button></div>
         </details>
+      </div>
+
+      <!-- ===================== New wallet ===================== -->
+      <div class="panel" role="tabpanel" id="panel-new" aria-labelledby="tab-new" hidden>
+        <p class="panel-lede">A brand-new wallet, <strong>made and backed up in one step</strong>. Its key is created on this page when you press the button, locked with your password straight away, and never shown or saved unlocked. The backup <em>is</em> the wallet.</p>
+        <ol class="steps">
+          <li class="step" id="n-step1" data-state="active">
+            <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>What's it for?</h2>
+              <p class="step-summary"><span id="n-sum-purpose"></span> <button type="button" class="link-btn" data-restart="n">Make another</button></p>
+              <div class="step-content">
+                <fieldset class="purpose" id="n-purpose">
+                  <legend class="visually-hidden">What's this wallet for?</legend>
+                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="coins" checked><span><strong>Holding coins</strong>A new BrowserCoin wallet: a second wallet, savings, a prize pool.</span></label>
+                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="mailbox"><span><strong>Mailbox key for BRC Seal</strong>Opens sealed letters and signs. Not for coins.</span></label>
+                </fieldset>
+              </div>
+            </div>
+          </li>
+
+          <li class="step" id="n-step2" data-state="active">
+            <div class="node" aria-hidden="true"><span>2</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Choose a password</h2>
+              <p class="step-sub">It locks the backup, which is the only copy of the new key. It can't be reset or recovered.</p>
+              <p class="step-summary">Password set and tested</p>
+              <div class="step-content">
+                <label class="field"><span>Password</span>
+                  <span class="input-wrap"><input type="password" id="n-password" autocomplete="new-password" spellcheck="false"><button type="button" class="reveal" data-reveal="n-password n-confirm" aria-label="Show password">Show</button></span></label>
+                <div class="meter-row"><div class="meter" id="n-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span class="meter-label" id="n-meter-label" aria-live="polite"></span></div>
+                <label class="field"><span>Confirm password</span>
+                  <span class="input-wrap"><input type="password" id="n-confirm" autocomplete="new-password" spellcheck="false"></span></label>
+                <p class="msg" id="n-pw-hint" role="status" hidden></p>
+                <label class="check"><input type="checkbox" id="n-understand"><span id="n-understand-text">I understand that if I forget this password, the backup can't be opened and anything sent to this wallet is lost.</span></label>
+              </div>
+            </div>
+          </li>
+
+          <li class="step" id="n-step3" data-state="waiting">
+            <div class="node" aria-hidden="true"><span>3</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Make it and save it</h2>
+              <div class="step-content">
+                <p class="born" id="n-born"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="12" height="8.5" rx="2"/><path d="M6.75 9V6.5a3.25 3.25 0 0 1 6.5 0V9"/></svg><span>One press makes the key, locks it with your password and test-opens the backup. <strong>Then download or print it before you close this page</strong>: nothing else will ever hold this key.</span></p>
+                <div class="actions"><button type="button" class="btn btn-primary btn-block" id="n-make" disabled>Make my wallet</button></div>
+                <div class="progress" id="n-progress" hidden><i></i></div>
+                <p class="msg" id="n-make-msg" role="status" hidden></p>
+
+                <div class="success" id="n-done" hidden>
+                  <div class="logo-moment" data-variant="lock"><div class="lm-mark"><span class="lm-ring" aria-hidden="true"></span><svg viewBox="/*__MARK_VIEW__*/" aria-hidden="true">/*__MARK_MOMENT__*/</svg></div><span class="lm-word" aria-hidden="true"><span class="wm-light"><i style="--i:0">B</i><i style="--i:1">R</i><i style="--i:2">C</i></span><span class="wm-bold"><i style="--i:3">V</i><i style="--i:4">A</i><i style="--i:5">U</i><i style="--i:6">L</i><i style="--i:7">T</i></span></span></div>
+                  <h3 id="n-done-title">Your new wallet is ready</h3>
+                  <p>Made and locked in one step. Its key exists only inside this backup, which was test-opened with your password. Save it now, one or both ways.</p>
+                  <dl class="kv">
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="n-done-address"></span><button type="button" class="copy" data-copy="n-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
+                  </dl>
+                  <div class="actions">
+                    <button type="button" class="btn btn-primary" id="n-download"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download backup file</button>
+                    <button type="button" class="btn btn-secondary" id="n-print"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print paper backup</button>
+                  </div>
+                  <p class="msg" id="n-saved-msg" role="status" hidden></p>
+                  <p class="new-note" id="n-note"></p>
+                  <ul class="tips">
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Keep at least two copies in different places.</li>
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Store the password separately, for example in a password manager.</li>
+                    <li class="caution"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 17.5 16.5h-15z"/><path d="M10 8.5v3.5M10 14.25v.25"/></svg><span id="n-tip">Nothing else holds this wallet's key. Without the backup and its password, the wallet and anything sent to it are gone.</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ol>
       </div>
 
       <!-- ===================== Restore ===================== -->

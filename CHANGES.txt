@@ -5,6 +5,15 @@ features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
 1.1.0 (in testing)
+  - test.2: New wallet is its own tab (Back up · Restore · + New wallet),
+    no longer a choice inside Back up, which is now only for wallets you
+    already have. Making a wallet and backing it up are one step: choose
+    what it's for and a password, press Make my wallet, and the key is
+    created, locked, test-opened and wiped from the page in one go. It is
+    never shown or saved unlocked, and the address appears with the backup.
+    Closing the page or making another before the backup is downloaded or
+    printed asks first. #new opens the tab; #new-mailbox opens it set to a
+    mailbox key. Arrow keys move both ways between tabs.
   - Fixes from the Fable 5.1 security review (Oct 31): a mailbox key is never
     turned into a wallet file, recovery words or an unprotected paper wallet;
     a new wallet's key is wiped once its backup is locked.
