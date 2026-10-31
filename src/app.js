@@ -709,6 +709,7 @@ $('#b-make').addEventListener('click', async () => {
       ? 'Open this file in <strong>BRC Seal</strong> with your password to read letters sealed to this address and to sign. <strong>Don\'t send coins to it:</strong> it\'s a mailbox, and BRC Seal will hold its key.'
       : 'To use this wallet in the BrowserCoin app later, open the backup in <strong>Restore</strong>. It gives you a wallet file for the app\'s <strong>Settings &gt; Import key…</strong> Importing replaces the wallet the app has open, so back that one up first. To receive coins, all anyone needs is the address.';
     show($('#b-new-note'), backup.kind === 'new');
+    if (mailbox) $('#b-tip-delete').textContent = 'Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can\'t be opened.';
     $$('input[name="b-purpose"]').forEach((r) => { r.disabled = true; });
     const done = $('#b-done');
     show(done, true);
