@@ -667,11 +667,11 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     mb.fill("#r-password", PASSWORD); mb.click("#r-unlock")
     expect(mb.locator("#r-done-title")).to_have_text("Mailbox key unlocked", timeout=60000)
     expect(mb.locator("#r-done-msg")).to_contain_text("mailbox key for BRC Seal")
-    mb.close()
     expect(mb.locator("#r-download")).to_be_hidden()
     expect(mb.locator("#r-ok-replace")).to_be_hidden()
     expect(mb.locator("#r-words-wrap")).to_be_hidden()
     expect(mb.locator("#r-reprint-row")).to_be_visible()
+    mb.close()
     ok("Restore recognises a mailbox key and says what it is for, and never turns it into a wallet file or recovery words")
 
     hp = browser.new_page(); hp.goto(PAGE + "#new-mailbox")
