@@ -556,7 +556,7 @@ body.is-previewing { overflow: hidden; }
                 </div>
                 <p class="msg" id="b-load-msg" role="status" hidden></p>
                 <dl class="kv" id="b-loaded" hidden>
-                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Post and BRC Pulse"></span><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="b-check">The key matches this address</dd></div>
                 </dl>
                 <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span id="b-key-confirm-text">I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
@@ -596,7 +596,7 @@ body.is-previewing { overflow: hidden; }
                   <h3 id="b-done-title">Wallet locked</h3>
                   <p>Your backup was test-opened with your password before saving. Keep it one or both ways.</p>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Post and BRC Pulse"></span><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                     <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
                   </dl>
                   <div class="actions">
@@ -637,7 +637,7 @@ body.is-previewing { overflow: hidden; }
                 <fieldset class="purpose" id="n-purpose">
                   <legend class="visually-hidden">What's this wallet for?</legend>
                   <label class="purpose-opt"><input type="radio" name="n-purpose" value="coins" checked><span><strong>Holding coins</strong>A new BrowserCoin wallet: a second wallet, savings, a prize pool.</span></label>
-                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="mailbox"><span><strong>Mailbox key for BRC Seal</strong>Opens sealed letters and signs. Not for coins.</span></label>
+                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="mailbox"><span><strong>Mailbox key for BRC Post</strong>Opens sealed letters and signs. Not for coins.</span></label>
                 </fieldset>
               </div>
             </div>
@@ -676,7 +676,7 @@ body.is-previewing { overflow: hidden; }
                   <h3 id="n-done-title">Your new wallet is ready</h3>
                   <p>Made and locked in one step. Its key exists only inside this backup, which was test-opened with your password. Save it now, one or both ways.</p>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="n-done-address"></span><button type="button" class="copy" data-copy="n-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Post and BRC Pulse"></span><span class="mono addr" id="n-done-address"></span><button type="button" class="copy" data-copy="n-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                     <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
                   </dl>
                   <div class="actions">
@@ -783,7 +783,7 @@ body.is-previewing { overflow: hidden; }
                     <h3 id="r-done-title">Backup unlocked</h3>
                   </div>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Post and BRC Pulse"></span><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                     <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="r-done-check">The key matches this address</dd></div>
                   </dl>
                   <p class="msg" id="r-done-msg" role="status" hidden></p>

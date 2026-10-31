@@ -166,7 +166,7 @@ window.addEventListener('drop', (e) => {
   if (it) it.handleFile(e.dataTransfer?.files?.[0]);
 });
 
-/** The 3x3 address picture BRC Seal and BRC Pulse draw too: same address, same picture, in every BRC Works tool. */
+/** The 3x3 address picture BRC Post and BRC Pulse draw too: same address, same picture, in every BRC Works tool. */
 function paintIdenticon(node, address) {
   node.replaceChildren();
   for (const colour of core.addressPicture(address).colors) {
@@ -841,7 +841,7 @@ function finishRestore(wallet, ambiguous, from = 'key') {
     : ambiguous
     ? 'Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn\'t your address, use your locked backup code or the full BRCKEY1 code from your paper wallet.'
     : wallet.purpose === 'mailbox'
-    ? 'This is a mailbox key for BRC Seal. Open the locked file in BRC Seal itself to read letters. To keep it a mailbox key, BRC Vault doesn\'t turn it into a wallet file or recovery words; you can print a new paper copy of the locked backup.'
+    ? 'This is a mailbox key for BRC Post. Open the locked file in BRC Post itself to read letters. To keep it a mailbox key, BRC Vault doesn\'t turn it into a wallet file or recovery words; you can print a new paper copy of the locked backup.'
     : '', 'warn');
   renderAddress($('#r-done-address'), wallet.address);
   if (restore.pending) playLockMoment($('#r-success'), 'unlock');
@@ -948,7 +948,7 @@ function encryptedSheet(result) {
       <div>
         ${result.type === core.MAILBOX_TYPE ? `<h3>To use this mailbox key again</h3>
         <ol>
-          <li>Open BRC Seal and choose Your mailbox key.</li>
+          <li>Open BRC Post and choose Your mailbox key.</li>
           <li>Type the locked backup code exactly as printed, with the checks in brackets.</li>
           <li>Enter your password. Your letters open on that page; nothing is sent anywhere.</li>
         </ol>` : `<h3>To get your coins back</h3>
@@ -1227,7 +1227,7 @@ $('#n-make').addEventListener('click', async () => {
     show($('#n-born'), false);
     setStep('#n-step1', 'done'); setStep('#n-step2', 'done'); setStep('#n-step3', 'done');
     const mailbox = result.type === core.MAILBOX_TYPE;
-    $('#n-sum-purpose').textContent = mailbox ? 'Mailbox key for BRC Seal' : 'Holding coins';
+    $('#n-sum-purpose').textContent = mailbox ? 'Mailbox key for BRC Post' : 'Holding coins';
     $('#n-step1').dataset.collapsed = '';
     $('#n-step2').dataset.collapsed = '';
     $('#n-step2 .step-sub').hidden = true;
@@ -1235,7 +1235,7 @@ $('#n-make').addEventListener('click', async () => {
     renderAddress($('#n-done-address'), result.address);
     $('#n-done-title').textContent = mailbox ? 'Your new mailbox key is ready' : 'Your new wallet is ready';
     $('#n-note').innerHTML = mailbox
-      ? 'Open this file in <strong>BRC Seal</strong> with your password to read letters sealed to this address and to sign. <strong>Don\'t send coins to it:</strong> it\'s a mailbox, and BRC Seal will hold its key.'
+      ? 'Open this file in <strong>BRC Post</strong> with your password to read letters sealed to this address and to sign. <strong>Don\'t send coins to it:</strong> it\'s a mailbox, and BRC Post will hold its key.'
       : 'To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in <strong>Restore</strong>: it gives you a wallet file for the app\'s <strong>Settings &gt; Import key…</strong> Importing replaces the wallet the app has open, so back that one up first.';
     $('#n-tip').textContent = mailbox
       ? 'Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can\'t be opened.'
@@ -1337,7 +1337,7 @@ selectTab('backup');
 updateNewWalletState();
 updatePasswordState();
 setMessage($('#b-pw-hint'), '');
-// Links: #new opens New wallet; #new-mailbox (from BRC Seal) opens it set to a mailbox key.
+// Links: #new opens New wallet; #new-mailbox (from BRC Post) opens it set to a mailbox key.
 // Nothing is made until the person chooses a password and presses the button.
 if (location.hash === '#new' || location.hash === '#new-mailbox') {
   if (location.hash === '#new-mailbox') $('input[name="n-purpose"][value="mailbox"]').checked = true;

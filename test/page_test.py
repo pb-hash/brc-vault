@@ -597,7 +597,7 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     expect(nw.locator("#n-done-title")).to_have_text("Your new wallet is ready")
     new_addr = nw.locator("#n-done-address").text_content()
     assert re.fullmatch(r"[0-9a-f]{64}", new_addr) and new_addr != wallet["address"], new_addr
-    # The address picture matches BRC Seal's and BRC Pulse's: the same rule, from SHA-256 of the address.
+    # The address picture matches BRC Post's and BRC Pulse's: the same rule, from SHA-256 of the address.
     import hashlib
     COLS = ['#5956fd', '#0d7a5f', '#e0552f', '#1f8fd6', '#c2417a', '#7c5cff', '#d99a0b', '#2f9e8f']
     bb = hashlib.sha256(bytes.fromhex(new_addr)).digest(); c1 = COLS[bb[0] % 8]; c2 = COLS[bb[1] % 8]
@@ -660,7 +660,7 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     mb.click("#n-make")
     expect(mb.locator("#n-done-title")).to_have_text("Your new mailbox key is ready", timeout=60000)
     mb_addr = mb.locator("#n-done-address").text_content()
-    expect(mb.locator("#n-note")).to_contain_text("BRC Seal")
+    expect(mb.locator("#n-note")).to_contain_text("BRC Post")
     expect(mb.locator('input[name="n-purpose"]:checked')).to_be_disabled()
     with mb.expect_download() as dl_mb:
         mb.click("#n-download")
@@ -679,7 +679,7 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     mb.set_input_files("#r-file", str(mb_file))
     mb.fill("#r-password", PASSWORD); mb.click("#r-unlock")
     expect(mb.locator("#r-done-title")).to_have_text("Mailbox key unlocked", timeout=60000)
-    expect(mb.locator("#r-done-msg")).to_contain_text("mailbox key for BRC Seal")
+    expect(mb.locator("#r-done-msg")).to_contain_text("mailbox key for BRC Post")
     expect(mb.locator("#r-download")).to_be_hidden()
     expect(mb.locator("#r-ok-replace")).to_be_hidden()
     expect(mb.locator("#r-words-wrap")).to_be_hidden()
@@ -692,7 +692,7 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     expect(hp.locator('input[name="n-purpose"][value="mailbox"]')).to_be_checked()
     expect(hp.locator("#n-done")).to_be_hidden()  # nothing is made until the button is pressed
     hp.close()
-    ok("a link from BRC Seal (#new-mailbox) opens New wallet set to a mailbox key, and makes nothing until asked")
+    ok("a link from BRC Post (#new-mailbox) opens New wallet set to a mailbox key, and makes nothing until asked")
     vp = browser.new_page(); vp.goto(PAGE)
     expect(vp.locator("#app-version")).to_have_text(json.loads((ROOT / "package.json").read_text())["version"])
     vp.close()

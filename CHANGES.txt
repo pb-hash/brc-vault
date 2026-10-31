@@ -4,6 +4,10 @@ Version numbers: last number for fixes and wording, middle number for new
 features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
+1.1.1 (in testing)
+  - test.1: BRC Seal is now BRC Post: "Mailbox key for BRC Post", and every
+    other mention.
+
 1.1.0 (Oct 31, 2026)
   - Release: fixes from a pre-launch review of New wallet: the password and
     purpose are locked while the key is made; Clear page and Make another

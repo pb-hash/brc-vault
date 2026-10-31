@@ -17,7 +17,7 @@ export const BACKUP_TYPE = 'brc-vault-backup';
 export const BACKUP_VERSION = 1;
 export const COMPACT_PREFIX = 'BRCVAULT1';
 /**
- * A mailbox key: a key used only to open sealed letters and sign in BRC Seal,
+ * A mailbox key: a key used only to open sealed letters and sign in BRC Post,
  * never to hold coins. Its backup is the same format with its own type, which
  * is bound into the encryption, so a coin backup can't be relabelled as one.
  */
@@ -94,7 +94,7 @@ export function newWallet() {
 
 const PIC_COLORS = ['#5956fd', '#0d7a5f', '#e0552f', '#1f8fd6', '#c2417a', '#7c5cff', '#d99a0b', '#2f9e8f'];
 /**
- * The small 3x3 address picture every BRC Works tool draws (same rule as BRC Seal's
+ * The small 3x3 address picture every BRC Works tool draws (same rule as BRC Post's
  * known-core.js addressPicture). It comes from SHA-256 of the address, so an address
  * made to share a few characters with another still gets an unrelated picture.
  */
@@ -266,7 +266,7 @@ export async function encryptWallet(wallet, password, { kdf = DEFAULT_KDF, onPro
     ciphertext: bytesToHex(ct),
     created: new Date().toISOString().slice(0, 10),
     note: type === MAILBOX_TYPE
-      ? 'Locked BRC mailbox key. It opens sealed letters and signs in BRC Seal; it is not for holding coins. The key is encrypted inside "ciphertext" and only your password unlocks it, in BRC Seal or BRC Vault. The address is public and safe to share.'
+      ? 'Locked BRC mailbox key. It opens sealed letters and signs in BRC Post; it is not for holding coins. The key is encrypted inside "ciphertext" and only your password unlocks it, in BRC Post or BRC Vault. The address is public and safe to share.'
       : 'Locked BRC Vault backup. The private key is encrypted inside "ciphertext" and can only be unlocked with your password in BRC Vault. The address is public and safe to share.',
   };
 }
