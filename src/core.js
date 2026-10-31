@@ -75,6 +75,15 @@ export function addressFromPrivateKey(privateKeyBytes) {
   return bytesToHex(ed.getPublicKey(privateKeyBytes));
 }
 
+/**
+ * A brand-new wallet: 32 fresh bytes from the browser's secure random
+ * generator (crypto.getRandomValues), made entirely on this page.
+ */
+export function newWallet() {
+  const privateKey = randomBytes(32);
+  return { privateKey, address: addressFromPrivateKey(privateKey) };
+}
+
 /** Short form for display: first 10 and last 4 characters, like the BrowserCoin explorer. */
 export function shortAddress(address) {
   return `${address.slice(0, 10)}…${address.slice(-4)}`;

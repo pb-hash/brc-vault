@@ -575,6 +575,55 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     fp.close(); srv.shutdown()
     ok("inside a locked-down preview, the scanner explains the camera can't be used and offers typing instead")
 
+    # --- New wallet: made on the page, locked straight away, restored into a wallet file BrowserCoin imports ---
+    nw = ctx.new_page(); nw.on("pageerror", lambda e: errors.append(str(e))); nw.goto(PAGE)
+    expect(nw.locator("#b-new")).to_be_visible()
+    nw.click("#b-new")
+    expect(nw.locator("#b-chip-name")).to_have_text("New wallet")
+    expect(nw.locator("#b-new-row")).to_be_hidden()
+    expect(nw.locator("#b-check")).to_contain_text("holds no coins yet")
+    expect(nw.locator("#b-key-confirm-wrap")).to_be_hidden()
+    expect(nw.locator("#b-load-msg")).to_contain_text("Finish the backup")
+    expect(nw.locator("#b-password")).to_be_focused()
+    new_addr = nw.locator("#b-address").text_content()
+    assert re.fullmatch(r"[0-9a-f]{64}", new_addr) and new_addr != wallet["address"], new_addr
+    page_text = nw.evaluate("document.body.innerText")
+    nw.fill("#b-password", PASSWORD); nw.fill("#b-confirm", PASSWORD); nw.check("#b-understand")
+    nw.click("#b-make")
+    expect(nw.locator("#b-done")).to_be_visible(timeout=60000)
+    expect(nw.locator("#b-done-address")).to_have_text(new_addr)
+    expect(nw.locator("#b-new-note")).to_be_visible()
+    expect(nw.locator("#b-tip-delete")).to_contain_text("Nothing else holds")
+    with nw.expect_download() as dl_new:
+        nw.click("#b-download")
+    new_backup = OUT / ("new-" + dl_new.value.suggested_filename); dl_new.value.save_as(new_backup)
+    nw.screenshot(path=str(OUT / "7-new-wallet.png"), full_page=True)
+    ok("Make a new wallet goes straight to a locked backup of a fresh address, with no unlocked key shown or saved")
+    nw.click("[data-restart='b']")
+    expect(nw.locator("#b-new-row")).to_be_visible()
+    nw.click("#b-new")
+    second = nw.locator("#b-address").text_content()
+    assert second != new_addr
+    nw.click("[data-intake-change='b']")
+    nw.set_input_files("#b-file", str(wallet_file))
+    expect(nw.locator("#b-check")).to_have_text("The key matches this address")
+    expect(nw.locator("#b-new-note")).to_be_hidden()
+    ok("each new wallet is different, and loading an ordinary wallet afterwards resets the new-wallet wording")
+    nw.click("#tab-restore")
+    nw.set_input_files("#r-file", str(new_backup))
+    expect(nw.locator("#r-address")).to_have_text(new_addr)
+    nw.fill("#r-password", PASSWORD); nw.click("#r-unlock")
+    expect(nw.locator("#r-done")).to_be_visible(timeout=60000)
+    tick_restore_confirms(nw)
+    with nw.expect_download() as dl_w:
+        nw.click("#r-download")
+    new_wallet_file = OUT / ("new-" + dl_w.value.suggested_filename); dl_w.value.save_as(new_wallet_file)
+    got = node(f"""import * as bc from './test/browsercoin-reference.mjs'; import {{ readFileSync }} from 'node:fs';
+process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet_file))}, 'utf8')).address);""")
+    assert got == new_addr, (got, new_addr)
+    nw.close()
+    ok("the new wallet's backup restores to a wallet file BrowserCoin imports, with the same address")
+
     assert not errors, errors
     ok("no script errors")
 

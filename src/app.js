@@ -570,6 +570,7 @@ function loadWalletForBackup(text, source) {
     if (id.kind === 'vault-backup') throw new Error('That is already a BRC Vault backup. To open it, switch to Restore.');
     if (id.kind === 'desktop-backup') throw new Error('That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.');
     backup.wallet = id.wallet;
+    $('#b-check').textContent = 'The key matches this address';
     backup.kind = id.kind === 'private-key' ? (id.words ? 'words' : id.ambiguous ? 'ambiguous-key' : 'key') : 'file';
     // A bare key, an old key code with no check, or recovery words: ask the
     // person to compare the address before anything is locked.
@@ -605,6 +606,29 @@ function loadWalletForBackup(text, source) {
   updatePasswordState();
   if (backup.wallet && backupKeyConfirmed()) $('#b-password').focus();
 }
+
+// A fresh wallet, made here, that goes straight into a locked backup. Its key
+// is never shown or saved unlocked: the backup is the only copy.
+function makeNewWalletForBackup() {
+  if (backup.busy || backup.result) return;
+  gen.backup++;
+  core.wipeWallet(backup.wallet);
+  resetBackupOutput();
+  $('#b-key-confirm').checked = false;
+  backup.wallet = core.newWallet();
+  backup.kind = 'new';
+  backup.confirm = false;
+  renderAddress($('#b-address'), backup.wallet.address);
+  $('#b-check').textContent = 'Made just now on this page. It holds no coins yet.';
+  show($('#b-loaded'), true);
+  show($('#b-key-confirm-wrap'), false);
+  setMessage($('#b-load-msg'), 'This wallet exists only on this page until you lock it. Finish the backup before you close the tab.', 'info');
+  $('#b-tip-delete').textContent = 'Nothing else holds this wallet\'s key. Without the backup and its password, the wallet and anything sent to it are gone.';
+  intakes.b.setMode('loaded', 'New wallet');
+  updatePasswordState();
+  $('#b-password').focus();
+}
+$('#b-new').addEventListener('click', makeNewWalletForBackup);
 
 wireIntake('b', loadWalletForBackup, $('#b-load-msg'), () => !backup.busy && !backup.result);
 $('#b-key-confirm').addEventListener('change', () => { updatePasswordState(); if ($('#b-key-confirm').checked) $('#b-password').focus(); });
@@ -670,6 +694,7 @@ $('#b-make').addEventListener('click', async () => {
     $('#b-step2').dataset.collapsed = '';
     $('#b-step2 .step-sub').hidden = true;
     renderAddress($('#b-done-address'), result.address);
+    show($('#b-new-note'), backup.kind === 'new');
     const done = $('#b-done');
     show(done, true);
     playLockMoment(done, 'lock');

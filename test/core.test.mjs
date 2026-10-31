@@ -403,4 +403,21 @@ await test('a wallet file copied on a phone without its first or last brace stil
   assert.equal(core.identifyInput(JSON.stringify(b, null, 2).trim().slice(1, -1)).kind, 'vault-backup');
 });
 
+await test('a new wallet is a fresh random key, its address is what BrowserCoin derives, and it locks and unlocks', async () => {
+  const seen = new Set();
+  for (let i = 0; i < 50; i++) {
+    const w = core.newWallet();
+    const hex = core.bytesToHex(w.privateKey);
+    assert.ok(!seen.has(hex));
+    seen.add(hex);
+    assert.equal(bc.fromPrivateKey(w.privateKey).address, w.address);
+    assert.doesNotThrow(() => core.refuseWellKnownKey({ privateKey: w.privateKey.slice(), address: w.address }));
+  }
+  const w = core.newWallet();
+  const b = await core.encryptWallet(w, 'a very good password', { kdf: FAST });
+  const back = await core.decryptBackup(b, 'a very good password');
+  assert.equal(back.address, w.address);
+  assert.equal(bc.importWalletJson(core.browserCoinWalletJson(back)).address, w.address);
+});
+
 console.log(`\n${passed} tests passed`);
