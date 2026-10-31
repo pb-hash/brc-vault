@@ -420,4 +420,30 @@ await test('a new wallet is a fresh random key, its address is what BrowserCoin 
   assert.equal(bc.importWalletJson(core.browserCoinWalletJson(back)).address, w.address);
 });
 
+await test('a mailbox key backup is its own type, bound into the encryption, and reads back from JSON and paper codes', async () => {
+  const w = core.newWallet();
+  const b = await core.encryptWallet(w, 'a very good password', { kdf: FAST, purpose: 'mailbox' });
+  assert.equal(b.type, core.MAILBOX_TYPE);
+  assert.match(b.note, /not for holding coins/);
+  const back = await core.decryptBackup(b, 'a very good password');
+  assert.equal(back.address, w.address);
+  assert.equal(back.purpose, 'mailbox');
+  // Relabelling either way breaks it.
+  await assert.rejects(core.decryptBackup({ ...b, type: core.BACKUP_TYPE }, 'a very good password'), /Wrong password|changed/);
+  const coins = await core.encryptWallet(w, 'a very good password', { kdf: FAST });
+  assert.equal((await core.decryptBackup(coins, 'a very good password')).purpose, 'coins');
+  await assert.rejects(core.decryptBackup({ ...coins, type: core.MAILBOX_TYPE }, 'a very good password'), /Wrong password|changed/);
+  // Paper code and pasted text keep the type.
+  const code = core.backupToCompact(b);
+  assert.ok(code.startsWith('BRCMBOX1:'));
+  const fromCode = core.identifyInput(core.paperCodeText(code));
+  assert.equal(fromCode.kind, 'vault-backup');
+  assert.equal(fromCode.backup.type, core.MAILBOX_TYPE);
+  assert.equal((await core.decryptBackup(fromCode.backup, 'a very good password')).purpose, 'mailbox');
+  assert.equal(core.identifyInput(core.qrPayload(code).replace(':', ' ')).backup.type, core.MAILBOX_TYPE);
+  assert.equal(core.identifyInput(JSON.stringify(b)).backup.type, core.MAILBOX_TYPE);
+  const mangled = JSON.stringify(b, null, 2).replace(/"/g, '\u201c');
+  assert.equal(core.identifyInput(mangled).backup.type, core.MAILBOX_TYPE);
+});
+
 console.log(`\n${passed} tests passed`);

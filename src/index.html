@@ -316,6 +316,14 @@ button, input, textarea { font: inherit; color: inherit; }
 .scan-view:not([data-state="live"]) .scan-frame { display: none; }
 .scan-view[data-state="problem"] .scan-overlay-actions { display: flex; }
 .intake[data-mode="paste"] .intake-choices, .intake[data-mode="loaded"] .intake-choices { display: none; }
+.purpose { margin: 0.9rem 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.purpose legend { grid-column: 1 / -1; padding: 0; margin-bottom: 0.1rem; font-size: 0.9rem; font-weight: 600; }
+.purpose { border: 0; padding: 0; min-width: 0; }
+.purpose-opt { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.75rem 0.85rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; font-size: 0.86rem; color: var(--ink-2); transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+.purpose-opt strong { display: block; color: var(--ink); font-size: 0.92rem; }
+.purpose-opt input { margin-top: 0.2rem; accent-color: var(--brand); }
+.purpose-opt:has(input:checked) { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-tint); }
+@media (max-width: 560px) { .purpose { grid-template-columns: 1fr; } }
 .new-note { margin: 0.9rem 0 0; font-size: 0.9rem; color: var(--ink-2); }
 .new-row { margin: 0.75rem 0 0; font-size: 0.9rem; color: var(--muted); }
 .intake:not([data-mode="file"]) .new-row { display: none; }
@@ -534,6 +542,11 @@ body.is-previewing { overflow: hidden; }
                   <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="b-check">The key matches this address</dd></div>
                 </dl>
+                <fieldset class="purpose" id="b-purpose" hidden>
+                  <legend>What's this wallet for?</legend>
+                  <label class="purpose-opt"><input type="radio" name="b-purpose" value="coins" checked><span><strong>Holding coins</strong>A second BrowserCoin wallet.</span></label>
+                  <label class="purpose-opt"><input type="radio" name="b-purpose" value="mailbox"><span><strong>Mailbox key for BRC Seal</strong>Opens sealed letters and signs. Not for coins.</span></label>
+                </fieldset>
                 <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span id="b-key-confirm-text">I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
               </div>
             </div>
@@ -568,7 +581,7 @@ body.is-previewing { overflow: hidden; }
 
                 <div class="success" id="b-done" hidden>
                   <div class="logo-moment" data-variant="lock"><div class="lm-mark"><span class="lm-ring" aria-hidden="true"></span><svg viewBox="/*__MARK_VIEW__*/" aria-hidden="true">/*__MARK_MOMENT__*/</svg></div><span class="lm-word" aria-hidden="true"><span class="wm-light"><i style="--i:0">B</i><i style="--i:1">R</i><i style="--i:2">C</i></span><span class="wm-bold"><i style="--i:3">V</i><i style="--i:4">A</i><i style="--i:5">U</i><i style="--i:6">L</i><i style="--i:7">T</i></span></span></div>
-                  <h3>Wallet locked</h3>
+                  <h3 id="b-done-title">Wallet locked</h3>
                   <p>Your backup was test-opened with your password before saving. Keep it one or both ways.</p>
                   <dl class="kv">
                     <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>

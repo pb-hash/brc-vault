@@ -624,6 +624,39 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     nw.close()
     ok("the new wallet's backup restores to a wallet file BrowserCoin imports, with the same address")
 
+    mb = ctx.new_page(); mb.on("pageerror", lambda e: errors.append(str(e))); mb.goto(PAGE)
+    mb.click("#b-new")
+    expect(mb.locator("#b-purpose")).to_be_visible()
+    mb.check('input[name="b-purpose"][value="mailbox"]')
+    mb_addr = mb.locator("#b-address").text_content()
+    mb.fill("#b-password", PASSWORD); mb.fill("#b-confirm", PASSWORD); mb.check("#b-understand")
+    mb.click("#b-make")
+    expect(mb.locator("#b-done-title")).to_have_text("Mailbox key locked", timeout=60000)
+    expect(mb.locator("#b-new-note")).to_contain_text("BRC Seal")
+    expect(mb.locator('input[name="b-purpose"]:checked')).to_be_disabled()
+    with mb.expect_download() as dl_mb:
+        mb.click("#b-download")
+    assert dl_mb.value.suggested_filename == f"brc-mailbox-key-{mb_addr[:8]}.json", dl_mb.value.suggested_filename
+    mb_file = OUT / dl_mb.value.suggested_filename; dl_mb.value.save_as(mb_file)
+    assert json.loads(mb_file.read_text())["type"] == "brc-vault-mailbox-key"
+    mb.evaluate("() => { window.print = () => {}; }")
+    mb.click("#b-print")
+    expect(mb.locator("#print-sheet")).to_contain_text("mailbox key")
+    mb_qr = decode_qr(mb.locator("#print-sheet .ps-qr").nth(1), "qr-mailbox")
+    assert mb_qr.startswith("BRCMBOX1:"), mb_qr[:12]
+    mb.keyboard.press("Escape")
+    mb.screenshot(path=str(OUT / "8-mailbox-key.png"), full_page=True)
+    ok("a new wallet can be made as a mailbox key: its own file name, type and paper code")
+    mb.click("[data-restart='b']")
+    expect(mb.locator("#b-purpose")).to_be_hidden()
+    mb.click("#tab-restore")
+    mb.set_input_files("#r-file", str(mb_file))
+    mb.fill("#r-password", PASSWORD); mb.click("#r-unlock")
+    expect(mb.locator("#r-done-title")).to_have_text("Mailbox key unlocked", timeout=60000)
+    expect(mb.locator("#r-done-msg")).to_contain_text("mailbox key for BRC Seal")
+    mb.close()
+    ok("Restore recognises a mailbox key and says what it is for")
+
     assert not errors, errors
     ok("no script errors")
 

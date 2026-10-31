@@ -16,6 +16,14 @@ ed.etc.sha512Sync = (...m) => sha512(ed.etc.concatBytes(...m));
 export const BACKUP_TYPE = 'brc-vault-backup';
 export const BACKUP_VERSION = 1;
 export const COMPACT_PREFIX = 'BRCVAULT1';
+/**
+ * A mailbox key: a key used only to open sealed letters and sign in BRC Seal,
+ * never to hold coins. Its backup is the same format with its own type, which
+ * is bound into the encryption, so a coin backup can't be relabelled as one.
+ */
+export const MAILBOX_TYPE = 'brc-vault-mailbox-key';
+export const MAILBOX_COMPACT_PREFIX = 'BRCMBOX1';
+const isBackupType = (t) => t === BACKUP_TYPE || t === MAILBOX_TYPE;
 // Prefix for an unprotected private key on a paper wallet, so it can't be confused with an address.
 export const KEY_PREFIX = 'BRCKEY1';
 export const BROWSERCOIN_WALLET_TYPE = 'browsercoin-wallet';
@@ -168,9 +176,9 @@ async function deriveKey(password, salt, kdf, onProgress, { normalize = true } =
  * Everything except the ciphertext is bound into the encryption as associated
  * data, so swapping the address or weakening the settings makes decryption fail.
  */
-function associatedData(address, kdf, saltHex, ivHex) {
+function associatedData(type, address, kdf, saltHex, ivHex) {
   return new TextEncoder().encode(
-    [BACKUP_TYPE, BACKUP_VERSION, address, kdf.name, kdf.logN, kdf.r, kdf.p, kdf.dkLen, saltHex, ivHex].join('|'),
+    [type, BACKUP_VERSION, address, kdf.name, kdf.logN, kdf.r, kdf.p, kdf.dkLen, saltHex, ivHex].join('|'),
   );
 }
 
@@ -199,14 +207,14 @@ const checkCiphertext = HEX_FIELD('locked key', 48);
  * done, and return a clean copy. Throws a plain-English error if anything is off.
  */
 export function validateBackup(b) {
-  if (!b || typeof b !== 'object' || b.type !== BACKUP_TYPE) throw new Error('This is not a BRC Vault backup.');
+  if (!b || typeof b !== 'object' || !isBackupType(b.type)) throw new Error('This is not a BRC Vault backup.');
   if (b.version !== BACKUP_VERSION) throw new Error(`This backup is version ${String(b.version).slice(0, 8)}; this copy of BRC Vault reads version ${BACKUP_VERSION}.`);
   const k = b.kdf || {};
   const kdf = { name: k.name, logN: k.logN, r: k.r, p: k.p, dkLen: k.dkLen };
   checkKdf(kdf);
   if (!b.cipher || b.cipher.name !== 'aes-256-gcm') throw new Error('Unsupported encryption method in this backup.');
   return {
-    type: BACKUP_TYPE,
+    type: b.type,
     version: BACKUP_VERSION,
     address: checkAddress(b.address),
     kdf: { ...kdf, salt: checkSalt(k.salt) },
@@ -216,7 +224,8 @@ export function validateBackup(b) {
 }
 
 /** Encrypt a wallet with a password. Returns the backup object (format described on the page). */
-export async function encryptWallet(wallet, password, { kdf = DEFAULT_KDF, onProgress } = {}) {
+export async function encryptWallet(wallet, password, { kdf = DEFAULT_KDF, onProgress, purpose = 'coins' } = {}) {
+  const type = purpose === 'mailbox' ? MAILBOX_TYPE : BACKUP_TYPE;
   const problems = passwordProblems(password);
   if (problems.length) throw new Error(problems.join(' '));
   const salt = randomBytes(16);
@@ -225,19 +234,21 @@ export async function encryptWallet(wallet, password, { kdf = DEFAULT_KDF, onPro
   const ivHex = bytesToHex(iv);
   const key = await deriveKey(password, salt, kdf, onProgress);
   const ct = new Uint8Array(await globalThis.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv, additionalData: associatedData(wallet.address, kdf, saltHex, ivHex), tagLength: 128 },
+    { name: 'AES-GCM', iv, additionalData: associatedData(type, wallet.address, kdf, saltHex, ivHex), tagLength: 128 },
     key,
     wallet.privateKey,
   ));
   return {
-    type: BACKUP_TYPE,
+    type,
     version: BACKUP_VERSION,
     address: wallet.address,
     kdf: { ...kdf, salt: saltHex },
     cipher: { name: 'aes-256-gcm', iv: ivHex },
     ciphertext: bytesToHex(ct),
     created: new Date().toISOString().slice(0, 10),
-    note: 'Locked BRC Vault backup. The private key is encrypted inside "ciphertext" and can only be unlocked with your password in BRC Vault. The address is public and safe to share.',
+    note: type === MAILBOX_TYPE
+      ? 'Locked BRC mailbox key. It opens sealed letters and signs in BRC Seal; it is not for holding coins. The key is encrypted inside "ciphertext" and only your password unlocks it, in BRC Seal or BRC Vault. The address is public and safe to share.'
+      : 'Locked BRC Vault backup. The private key is encrypted inside "ciphertext" and can only be unlocked with your password in BRC Vault. The address is public and safe to share.',
   };
 }
 
@@ -252,15 +263,15 @@ export async function decryptBackup(backup, password, { onProgress } = {}) {
   let pt;
   try {
     pt = new Uint8Array(await globalThis.crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv, additionalData: associatedData(b.address, kdf, saltHex, b.cipher.iv), tagLength: 128 },
+      { name: 'AES-GCM', iv, additionalData: associatedData(b.type, b.address, kdf, saltHex, b.cipher.iv), tagLength: 128 },
       key,
       ct,
     ));
   } catch {
     throw new Error('Wrong password, or the backup has been changed or damaged.');
   }
-  const wallet = { privateKey: pt, address: addressFromPrivateKey(pt) };
-  if (wallet.address !== b.address) throw new Error('The decrypted key does not match the address in the backup.');
+  const wallet = { privateKey: pt, address: addressFromPrivateKey(pt), purpose: b.type === MAILBOX_TYPE ? 'mailbox' : 'coins' };
+  if (wallet.address !== b.address) { wipeWallet(wallet); throw new Error('The decrypted key does not match the address in the backup.'); }
   return wallet;
 }
 
@@ -447,21 +458,22 @@ export function refuseWellKnownKey(wallet) {
 
 export function backupToCompact(b) {
   // Upper case keeps it inside the QR "alphanumeric" alphabet, which gives a smaller code.
-  return [COMPACT_PREFIX, b.address, b.kdf.logN, b.kdf.r, b.kdf.p, b.kdf.salt, b.cipher.iv, b.ciphertext].join(':').toUpperCase();
+  return [b.type === MAILBOX_TYPE ? MAILBOX_COMPACT_PREFIX : COMPACT_PREFIX, b.address, b.kdf.logN, b.kdf.r, b.kdf.p, b.kdf.salt, b.cipher.iv, b.ciphertext].join(':').toUpperCase();
 }
 
 const SMALL_INT = /^(0|[1-9][0-9]{0,2})$/;
 
 export function compactToBackup(text) {
   const parts = String(text).replace(/\s+/g, '').split(':');
-  if (parts[0].toUpperCase() !== COMPACT_PREFIX) throw new Error('This is not a BRC Vault backup code.');
+  const prefix = parts[0].toUpperCase();
+  if (prefix !== COMPACT_PREFIX && prefix !== MAILBOX_COMPACT_PREFIX) throw new Error('This is not a BRC Vault backup code.');
   if (parts.length !== 8) throw new Error('This backup code has the wrong number of parts. Check that every line, including the colons, was copied.');
   const [, address, logN, r, p, salt, iv, ciphertext] = parts;
   for (const [label, v] of [['strength settings', logN], ['strength settings', r], ['strength settings', p]]) {
     if (!SMALL_INT.test(v)) throw new Error(`The ${label} in this backup code are damaged.`);
   }
   return validateBackup({
-    type: BACKUP_TYPE,
+    type: prefix === MAILBOX_COMPACT_PREFIX ? MAILBOX_TYPE : BACKUP_TYPE,
     version: BACKUP_VERSION,
     address,
     kdf: { name: 'scrypt', logN: Number(logN), r: Number(r), p: Number(p), dkLen: 32, salt },
@@ -482,7 +494,7 @@ export function compactToBackup(text) {
  * meant to be scanned with BRC Vault's own scanner.
  */
 export function qrPayload(compactOrKey) {
-  return String(compactOrKey).replace(/^(BRCVAULT1|BRCKEY1) /, '$1:');
+  return String(compactOrKey).replace(/^(BRCVAULT1|BRCMBOX1|BRCKEY1) /, '$1:');
 }
 
 /** 4-character check for one printed line, so a typo is caught before the slow password step. */
@@ -599,10 +611,10 @@ export function identifyInput(text) {
     .replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, '')
     .replace(/[\u00A0\u2007\u202F]/g, ' ')
     .replace(/[\u2028\u2029\r]/g, '\n');
-  const t = clean.trim().replace(/^(BRCVAULT1|BRCKEY1)[ \t]+(?=[0-9A-Fa-f])/i, (m, p) => `${p.toUpperCase()}:`);
+  const t = clean.trim().replace(/^(BRCVAULT1|BRCMBOX1|BRCKEY1)[ \t]+(?=[0-9A-Fa-f])/i, (m, p) => `${p.toUpperCase()}:`);
   if (!t) throw new Error('Nothing to read yet.');
   const squashed = t.toUpperCase().replace(/\s+/g, '');
-  if (squashed.startsWith(COMPACT_PREFIX + ':')) {
+  if (squashed.startsWith(COMPACT_PREFIX + ':') || squashed.startsWith(MAILBOX_COMPACT_PREFIX + ':')) {
     return { kind: 'vault-backup', backup: compactToBackup(stripPaperChecks(t)) };
   }
   if (squashed.startsWith(KEY_PREFIX + ':')) {
@@ -630,7 +642,7 @@ export function identifyInput(text) {
   // When the text is plainly the inside of a wallet file or backup, put them
   // back; every value is still checked exactly as usual afterwards.
   let body = t;
-  if (!body.startsWith('{') && /browsercoin-wallet|brc-vault-backup|privateKeyHex/.test(body)) {
+  if (!body.startsWith('{') && /browsercoin-wallet|brc-vault-backup|brc-vault-mailbox-key|privateKeyHex/.test(body)) {
     body = `{${body.replace(/^[\s{]*/, '').replace(/[\s}]*$/, '')}}`;
   } else if (body.startsWith('{') && !body.endsWith('}') && /"(type|privateKeyHex)"\s*:/.test(body)) {
     body = `${body.replace(/[\s,]*$/, '')}}`;
@@ -643,7 +655,7 @@ export function identifyInput(text) {
       parsed = { ...parsed, type: BROWSERCOIN_WALLET_TYPE };
     }
     if (parsed) {
-      if (parsed.type === BACKUP_TYPE) return { kind: 'vault-backup', backup: validateBackup(parsed) };
+      if (isBackupType(parsed.type)) return { kind: 'vault-backup', backup: validateBackup(parsed) };
       if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: 'desktop-backup', backup: validateDesktopBackup(parsed) };
       if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: 'browsercoin-wallet', wallet: refuseWellKnownKey(parseBrowserCoinWallet(JSON.stringify(parsed))) };
       throw new Error('This file is neither a BrowserCoin wallet nor a BRC Vault backup.');
@@ -772,7 +784,8 @@ function rescueFromDamagedText(text) {
     if (wallet.address !== address.toLowerCase()) { wipeWallet(wallet); return null; }
     return { kind: 'browsercoin-wallet', wallet, rescued: true };
   }
-  if (/brc-vault-backup/.test(text)) {
+  const rescueType = /brc-vault-mailbox-key/.test(text) ? MAILBOX_TYPE : /brc-vault-backup/.test(text) ? BACKUP_TYPE : null;
+  if (rescueType) {
     // Read every field first, so "more than one backup" is reported as such.
     const f = {
       address: field(text, 'address', '[0-9a-fA-F]{64}'),
@@ -785,7 +798,7 @@ function rescueFromDamagedText(text) {
     };
     try {
       const backup = validateBackup({
-        type: BACKUP_TYPE,
+        type: rescueType,
         version: BACKUP_VERSION,
         address: f.address,
         kdf: { name: 'scrypt', logN: Number(f.logN), r: Number(f.r), p: Number(f.p), dkLen: 32, salt: f.salt },

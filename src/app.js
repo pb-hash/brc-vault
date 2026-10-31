@@ -431,7 +431,7 @@ const scanner = { stream: null, raf: 0, onCode: null, canvas: null, token: 0 };
 /** Codes the scanner accepts. Anything else is named and ignored, and scanning carries on. */
 function scanProblem(text) {
   const t = String(text).trim();
-  if (/^(BRCVAULT1|BRCKEY1)[:\s]/i.test(t)) return null;
+  if (/^(BRCVAULT1|BRCMBOX1|BRCKEY1)[:\s]/i.test(t)) return null;
   if (/^(0x)?[0-9a-fA-F]{64}$/.test(t)) return "That's the wallet address QR code, which can't restore anything. Hold up the larger locked backup QR code instead.";
   return "That QR code isn't from a BRC Vault paper backup. Hold up the locked backup QR code.";
 }
@@ -540,8 +540,13 @@ document.addEventListener('visibilitychange', () => {
 
 const backup = { wallet: null, result: null, kind: null, busy: false };
 
+function backupPurpose() {
+  return backup.kind === 'new' && $('input[name="b-purpose"]:checked')?.value === 'mailbox' ? 'mailbox' : 'coins';
+}
+
 function resetBackupOutput() {
   backup.result = null;
+  $$('input[name="b-purpose"]').forEach((r) => { r.disabled = false; });
   delete $('#b-step1').dataset.collapsed;
   delete $('#b-step2').dataset.collapsed;
   $('#b-step2 .step-sub').hidden = false;
@@ -571,6 +576,7 @@ function loadWalletForBackup(text, source) {
     if (id.kind === 'desktop-backup') throw new Error('That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.');
     backup.wallet = id.wallet;
     $('#b-check').textContent = 'The key matches this address';
+    show($('#b-purpose'), false);
     backup.kind = id.kind === 'private-key' ? (id.words ? 'words' : id.ambiguous ? 'ambiguous-key' : 'key') : 'file';
     // A bare key, an old key code with no check, or recovery words: ask the
     // person to compare the address before anything is locked.
@@ -618,6 +624,8 @@ function makeNewWalletForBackup() {
   backup.wallet = core.newWallet();
   backup.kind = 'new';
   backup.confirm = false;
+  $('input[name="b-purpose"][value="coins"]').checked = true;
+  show($('#b-purpose'), true);
   renderAddress($('#b-address'), backup.wallet.address);
   $('#b-check').textContent = 'Made just now on this page. It holds no coins yet.';
   show($('#b-loaded'), true);
@@ -674,7 +682,8 @@ $('#b-make').addEventListener('click', async () => {
   await startBusy($('#b-progress'));
   try {
     const password = $('#b-password').value;
-    const result = await core.encryptWallet(wallet, password);
+    const purpose = backupPurpose();
+    const result = await core.encryptWallet(wallet, password, { purpose });
     // Prove the backup opens before handing it over.
     const check = await core.decryptBackup(result, password);
     core.wipeWallet(check);
@@ -694,7 +703,13 @@ $('#b-make').addEventListener('click', async () => {
     $('#b-step2').dataset.collapsed = '';
     $('#b-step2 .step-sub').hidden = true;
     renderAddress($('#b-done-address'), result.address);
+    const mailbox = result.type === core.MAILBOX_TYPE;
+    $('#b-done-title').textContent = mailbox ? 'Mailbox key locked' : 'Wallet locked';
+    $('#b-new-note').innerHTML = mailbox
+      ? 'Open this file in <strong>BRC Seal</strong> with your password to read letters sealed to this address and to sign. <strong>Don\'t send coins to it:</strong> it\'s a mailbox, and BRC Seal will hold its key.'
+      : 'To use this wallet in the BrowserCoin app later, open the backup in <strong>Restore</strong>. It gives you a wallet file for the app\'s <strong>Settings &gt; Import key…</strong> Importing replaces the wallet the app has open, so back that one up first. To receive coins, all anyone needs is the address.';
     show($('#b-new-note'), backup.kind === 'new');
+    $$('input[name="b-purpose"]').forEach((r) => { r.disabled = true; });
     const done = $('#b-done');
     show(done, true);
     playLockMoment(done, 'lock');
@@ -712,7 +727,7 @@ $('#b-make').addEventListener('click', async () => {
 
 $('#b-download').addEventListener('click', () => {
   const r = backup.result;
-  download(`brc-vault-backup-${r.address.slice(0, 8)}.json`, JSON.stringify(r, null, 2));
+  download(`${r.type === core.MAILBOX_TYPE ? 'brc-mailbox-key' : 'brc-vault-backup'}-${r.address.slice(0, 8)}.json`, JSON.stringify(r, null, 2));
   setMessage($('#b-saved-msg'), 'Backup file downloaded. Keep a second copy somewhere else.', 'good');
 });
 
@@ -837,7 +852,7 @@ function finishRestore(wallet, ambiguous, from = 'key') {
   show($('#r-reprint-row'), unlocked && !desktop);
   restore.unverified = Boolean(ambiguous);
   restore.toBackup = !unlocked || desktop;
-  $('#r-done-title').textContent = desktop ? 'Wallet file unlocked' : unlocked ? 'Backup unlocked' : 'Wallet ready';
+  $('#r-done-title').textContent = desktop ? 'Wallet file unlocked' : wallet.purpose === 'mailbox' ? 'Mailbox key unlocked' : unlocked ? 'Backup unlocked' : 'Wallet ready';
   $('#r-done-check').textContent = desktop ? 'The key matches the address in the wallet file'
     : unlocked ? 'The key matches the address in the backup'
     : from === 'words' ? 'Address worked out from these words' : 'Address worked out from this key';
@@ -849,6 +864,8 @@ function finishRestore(wallet, ambiguous, from = 'key') {
     ? 'Check this address against the one your wallet app shows. A mistyped or out-of-order word can, rarely, still pass the words\' built-in check and open a different, empty wallet.'
     : ambiguous
     ? 'Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn\'t your address, use your locked backup code or the full BRCKEY1 code from your paper wallet.'
+    : wallet.purpose === 'mailbox'
+    ? 'This is a mailbox key for BRC Seal. To read letters, open the locked file in BRC Seal itself; you don\'t need an unlocked copy. It isn\'t meant to hold coins.'
     : '', 'warn');
   renderAddress($('#r-done-address'), wallet.address);
   if (restore.pending) playLockMoment($('#r-success'), 'unlock');
@@ -928,7 +945,7 @@ function encryptedSheet(result) {
     .map((l) => `<span class="ps-codeline">${escapeHtml(l.text)} <span class="ps-check">[${escapeHtml(l.check)}]</span></span>`)
     .join('<br>');
   return `
-    ${sheetHead('Paper backup', 'Password-protected BrowserCoin wallet')}
+    ${sheetHead('Paper backup', result.type === core.MAILBOX_TYPE ? 'Password-protected BRC mailbox key' : 'Password-protected BrowserCoin wallet')}
     <section class="ps-panel">
       <div class="ps-qr">${qrSvg(result.address, { label: 'Wallet address QR code' })}</div>
       <div>
@@ -949,13 +966,18 @@ function encryptedSheet(result) {
     </section>
     <section class="ps-steps">
       <div>
-        <h3>To get your coins back</h3>
+        ${result.type === core.MAILBOX_TYPE ? `<h3>To use this mailbox key again</h3>
+        <ol>
+          <li>Open BRC Seal and choose Your mailbox key.</li>
+          <li>Type the locked backup code exactly as printed, with the checks in brackets.</li>
+          <li>Enter your password. Your letters open on that page; nothing is sent anywhere.</li>
+        </ol>` : `<h3>To get your coins back</h3>
         <ol>
           <li>Open BRC Vault and choose Restore.</li>
           <li>Choose Scan paper backup and hold this sheet up to the camera, or type the code exactly as printed.</li>
           <li>Enter your password and download the wallet file.</li>
           <li>At browsercoin.org/app, open Settings and choose Import key…</li>
-        </ol>
+        </ol>`}
       </div>
       <div>
         <h3>About the password</h3>
@@ -1082,6 +1104,7 @@ function restartBackup() {
   $('#b-key-confirm').checked = false;
   show($('#b-loaded'), false);
   show($('#b-key-confirm-wrap'), false);
+  show($('#b-purpose'), false);
   resetBackupOutput();
   intakes.b.setMode('file');
   setMessage($('#b-load-msg'), '');
@@ -1126,6 +1149,7 @@ $('#clear-all').addEventListener('click', () => {
   });
   $$('.msg').forEach((m) => setMessage(m, ''));
   show($('#b-loaded'), false);
+  show($('#b-purpose'), false);
   resetBackupOutput();
   $('#b-print-plain').disabled = true;
   resetRestore();
