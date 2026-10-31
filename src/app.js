@@ -1201,8 +1201,8 @@ updatePasswordState();
 setMessage($('#b-pw-hint'), '');
 if (location.hash === '#new-mailbox') {
   wantMailbox = true;
-  $('#b-new').textContent = 'Make a mailbox key';
-  $('#b-new-row').firstChild.textContent = 'Here from BRC Seal? ';
+  $('#b-new-title').textContent = 'Make a mailbox key';
+  $('#b-new-sub').textContent = 'for BRC Seal';
   $('#b-new').focus({ preventScroll: true });
-  $('#b-new-row').scrollIntoView({ block: 'center' });
+  $('#b-new').scrollIntoView({ block: 'center' });
 }

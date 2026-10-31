@@ -580,7 +580,7 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     expect(nw.locator("#b-new")).to_be_visible()
     nw.click("#b-new")
     expect(nw.locator("#b-chip-name")).to_have_text("New wallet")
-    expect(nw.locator("#b-new-row")).to_be_hidden()
+    expect(nw.locator("#b-new")).to_be_hidden()
     expect(nw.locator("#b-check")).to_contain_text("holds no coins yet")
     expect(nw.locator("#b-key-confirm-wrap")).to_be_hidden()
     expect(nw.locator("#b-load-msg")).to_contain_text("Finish the backup")
@@ -613,7 +613,7 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     nw.screenshot(path=str(OUT / "7-new-wallet.png"), full_page=True)
     ok("Make a new wallet goes straight to a locked backup of a fresh address, with no unlocked key shown or saved")
     nw.click("[data-restart='b']")
-    expect(nw.locator("#b-new-row")).to_be_visible()
+    expect(nw.locator("#b-new")).to_be_visible()
     nw.click("#b-new")
     second = nw.locator("#b-address").text_content()
     assert second != new_addr
@@ -675,7 +675,7 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     ok("Restore recognises a mailbox key and says what it is for, and never turns it into a wallet file or recovery words")
 
     hp = browser.new_page(); hp.goto(PAGE + "#new-mailbox")
-    expect(hp.locator("#b-new")).to_have_text("Make a mailbox key")
+    expect(hp.locator("#b-new-title")).to_have_text("Make a mailbox key")
     expect(hp.locator("#b-loaded")).to_be_hidden()  # nothing is made until the button is pressed
     hp.click("#b-new")
     expect(hp.locator('input[name="b-purpose"][value="mailbox"]')).to_be_checked()
