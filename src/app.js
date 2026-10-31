@@ -165,20 +165,12 @@ window.addEventListener('drop', (e) => {
 });
 
 /** The 3x3 address picture BRC Seal and BRC Pulse draw too: same address, same picture, in every BRC Works tool. */
-const IDC_COLORS = ['#5956fd', '#0d7a5f', '#e0552f', '#1f8fd6', '#c2417a', '#7c5cff', '#d99a0b', '#2f9e8f'];
 function paintIdenticon(node, address) {
   node.replaceChildren();
-  const b = address.slice(0, 16).match(/../g).map((x) => parseInt(x, 16));
-  const c1 = IDC_COLORS[b[0] % 8];
-  let c2 = IDC_COLORS[b[1] % 8];
-  if (c2 === c1) c2 = IDC_COLORS[(b[1] + 3) % 8];
-  for (let row = 0; row < 3; row++) {
-    const left = b[2 + row] & 3, mid = b[5 + row] & 3;
-    for (const v of [left, mid, left]) {
-      const cell = document.createElement('i');
-      cell.style.background = v === 0 ? 'transparent' : v === 3 ? c2 : c1;
-      node.append(cell);
-    }
+  for (const colour of core.addressPicture(address).colors) {
+    const cell = document.createElement('i');
+    cell.style.background = colour;
+    node.append(cell);
   }
 }
 
@@ -597,6 +589,7 @@ function loadWalletForBackup(text, source) {
     backup.wallet = id.wallet;
     $('#b-check').textContent = 'The key matches this address';
     show($('#b-purpose'), false);
+    show($('#b-plain-wrap'), true);
     backup.kind = id.kind === 'private-key' ? (id.words ? 'words' : id.ambiguous ? 'ambiguous-key' : 'key') : 'file';
     // A bare key, an old key code with no check, or recovery words: ask the
     // person to compare the address before anything is locked.
@@ -650,6 +643,8 @@ function makeNewWalletForBackup() {
   backup.confirm = false;
   $(`input[name="b-purpose"][value="${wantMailbox ? 'mailbox' : 'coins'}"]`).checked = true;
   show($('#b-purpose'), true);
+  // A new wallet's key is only ever saved inside the locked backup: no unprotected paper copy.
+  show($('#b-plain-wrap'), false);
   renderAddress($('#b-address'), backup.wallet.address);
   $('#b-check').textContent = 'Made just now on this page. It holds no coins yet.';
   show($('#b-loaded'), true);
@@ -714,6 +709,7 @@ $('#b-make').addEventListener('click', async () => {
     if (myGen !== gen.backup) { setMessage(msg, ''); return; } // cleared, or another wallet loaded meanwhile
     if (check.address !== wallet.address) throw new Error('Self-check failed. No backup was made.');
     backup.result = result;
+    if (backup.kind === 'new') { core.wipeWallet(backup.wallet); backup.wallet = null; } // the locked backup is now the only copy
     $('#b-password').value = '';
     $('#b-confirm').value = '';
     $('#b-meter').dataset.level = '0';
@@ -760,7 +756,7 @@ $('#b-print').addEventListener('click', () => openPaperPreview(encryptedSheet(ba
 
 $('#b-plain-ok').addEventListener('change', () => { $('#b-print-plain').disabled = !$('#b-plain-ok').checked; });
 $('#b-print-plain').addEventListener('click', () => {
-  if (!$('#b-plain-ok').checked) return;
+  if (!$('#b-plain-ok').checked || backup.kind === 'new') return;
   if (!backup.wallet || !backupKeyConfirmed()) {
     setMessage($('#b-load-msg'), 'Load and confirm a wallet in step 1 first.', 'bad');
     $('#b-step1').scrollIntoView({ block: 'center' });
@@ -890,7 +886,7 @@ function finishRestore(wallet, ambiguous, from = 'key') {
     : ambiguous
     ? 'Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn\'t your address, use your locked backup code or the full BRCKEY1 code from your paper wallet.'
     : wallet.purpose === 'mailbox'
-    ? 'This is a mailbox key for BRC Seal. To read letters, open the locked file in BRC Seal itself; you don\'t need an unlocked copy. It isn\'t meant to hold coins.'
+    ? 'This is a mailbox key for BRC Seal. Open the locked file in BRC Seal itself to read letters. To keep it a mailbox key, BRC Vault doesn\'t turn it into a wallet file or recovery words; you can print a new paper copy of the locked backup.'
     : '', 'warn');
   renderAddress($('#r-done-address'), wallet.address);
   if (restore.pending) playLockMoment($('#r-success'), 'unlock');
@@ -927,19 +923,23 @@ function closeRestoreWords() {
 }
 
 function updateRestoreDownload() {
-  $('#r-download').disabled = !(restore.wallet && $('#r-ok-address').checked && $('#r-ok-replace').checked);
+  // A mailbox key is never turned into a wallet file or recovery words: it stays a mailbox key.
+  const mailbox = Boolean(restore.wallet && restore.wallet.purpose === 'mailbox');
+  show($('#r-ok-replace').closest('label'), !mailbox);
+  show($('#r-download').parentElement, !mailbox);
+  $('#r-download').disabled = mailbox || !(restore.wallet && $('#r-ok-address').checked && $('#r-ok-replace').checked);
   // Until an unchecked address has been confirmed, don't offer to back it up
   // or show its words: they might belong to the wrong wallet.
   const confirmed = Boolean(restore.wallet) && (!restore.unverified || $('#r-ok-address').checked);
   show($('#r-to-backup-row'), confirmed && Boolean(restore.toBackup));
-  show($('#r-words-wrap'), confirmed);
+  show($('#r-words-wrap'), confirmed && !mailbox);
   if (!confirmed) closeRestoreWords();
 }
 ['#r-ok-address', '#r-ok-replace'].forEach((s) => $(s).addEventListener('change', updateRestoreDownload));
 
 $('#r-download').addEventListener('click', () => {
   const w = restore.wallet;
-  if (!w || $('#r-download').disabled) return;
+  if (!w || $('#r-download').disabled || w.purpose === 'mailbox') return;
   download(core.browserCoinWalletFilename(w), core.browserCoinWalletJson(w));
   toast('Wallet file saved to your Downloads');
   setStep('#r-step3', 'done');
@@ -1130,6 +1130,7 @@ function restartBackup() {
   show($('#b-loaded'), false);
   show($('#b-key-confirm-wrap'), false);
   show($('#b-purpose'), false);
+  show($('#b-plain-wrap'), true);
   resetBackupOutput();
   intakes.b.setMode('file');
   setMessage($('#b-load-msg'), '');
@@ -1175,6 +1176,7 @@ $('#clear-all').addEventListener('click', () => {
   $$('.msg').forEach((m) => setMessage(m, ''));
   show($('#b-loaded'), false);
   show($('#b-purpose'), false);
+  show($('#b-plain-wrap'), true);
   resetBackupOutput();
   $('#b-print-plain').disabled = true;
   resetRestore();

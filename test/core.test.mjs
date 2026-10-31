@@ -446,4 +446,9 @@ await test('a mailbox key backup is its own type, bound into the encryption, and
   assert.equal(core.identifyInput(mangled).backup.type, core.MAILBOX_TYPE);
 });
 
+await test('the address picture matches BRC Seal and BRC Pulse (shared vector)', async () => {
+  assert.deepEqual(core.addressPicture('9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60').colors,
+    ['transparent', '#c2417a', 'transparent', '#7c5cff', 'transparent', '#7c5cff', 'transparent', 'transparent', 'transparent']);
+});
+
 console.log(`\n${passed} tests passed`);

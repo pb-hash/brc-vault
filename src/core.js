@@ -92,6 +92,25 @@ export function newWallet() {
   return { privateKey, address: addressFromPrivateKey(privateKey) };
 }
 
+const PIC_COLORS = ['#5956fd', '#0d7a5f', '#e0552f', '#1f8fd6', '#c2417a', '#7c5cff', '#d99a0b', '#2f9e8f'];
+/**
+ * The small 3x3 address picture every BRC Works tool draws (same rule as BRC Seal's
+ * known-core.js addressPicture). It comes from SHA-256 of the address, so an address
+ * made to share a few characters with another still gets an unrelated picture.
+ */
+export function addressPicture(address) {
+  const b = sha256(hexToBytes(String(address).toLowerCase(), 32));
+  const c1 = PIC_COLORS[b[0] % 8];
+  let c2 = PIC_COLORS[b[1] % 8];
+  if (c2 === c1) c2 = PIC_COLORS[(b[1] + 3) % 8];
+  const colors = [];
+  for (let row = 0; row < 3; row++) {
+    const left = b[2 + row] & 3, mid = b[5 + row] & 3;
+    for (const v of [left, mid, left]) colors.push(v === 0 ? 'transparent' : v === 3 ? c2 : c1);
+  }
+  return { colors };
+}
+
 /** Short form for display: first 10 and last 4 characters, like the BrowserCoin explorer. */
 export function shortAddress(address) {
   return `${address.slice(0, 10)}…${address.slice(-4)}`;
