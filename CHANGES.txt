@@ -1,0 +1,18 @@
+BRC Vault changes
+=================
+Version numbers: last number for fixes and wording, middle number for new
+features, first number for changes to file formats or the security model.
+Test builds carry "-test.N" and are never published.
+
+1.1.0 (in testing)
+  - Make a new wallet: a fresh key made on the page that goes straight into a
+    locked backup. Its key is never shown or saved unlocked.
+  - Mailbox keys: a new wallet can be made as a mailbox key for BRC Seal. Its
+    backup has its own type (brc-vault-mailbox-key, paper code BRCMBOX1), bound
+    into the encryption so a coin backup can't be relabelled as one.
+  - Restore names a mailbox key and says what it is for.
+  - The version is shown in the footer next to the build code.
+
+1.0.0
+  - Password-protected backups, paper backups with per-line checks, restore to
+    a BrowserCoin wallet file, recovery words, desktop wallet files, QR scan.

@@ -657,6 +657,10 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     mb.close()
     ok("Restore recognises a mailbox key and says what it is for")
 
+    vp = browser.new_page(); vp.goto(PAGE)
+    expect(vp.locator("#app-version")).to_have_text(json.loads((ROOT / "package.json").read_text())["version"])
+    vp.close()
+    ok("the footer shows the version from package.json")
     assert not errors, errors
     ok("no script errors")
 

@@ -95,6 +95,9 @@ html = html.replace("'__SCRIPT_HASH__'", `'sha256-${scriptHash}'`);
 // rebuilds from the same source gets a byte-for-byte identical file and hash.
 const buildId = createHash('sha256').update(scriptBody, 'utf8').digest('hex').slice(0, 8);
 html = html.replace('/*__BUILD__*/', () => buildId);
+const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+if (!/^\d+\.\d+\.\d+(-test\.\d+)?$/.test(version)) throw new Error(`package.json version ${version} is not like 1.2.3 or 1.2.3-test.4`);
+html = html.replace('/*__VERSION__*/', () => version);
 if ((html.match(/<script/g) || []).length !== 1) throw new Error('Expected exactly one script tag');
 
 mkdirSync('dist', { recursive: true });
