@@ -5,6 +5,11 @@ features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
 1.1.0 (in testing)
+  - Fixes from the Fable 5.1 security review (Oct 31): a mailbox key is never
+    turned into a wallet file, recovery words or an unprotected paper wallet;
+    a new wallet's key is wiped once its backup is locked.
+  - The address picture (same in Seal and Pulse), from SHA-256 of the address.
+  - The BRC Works rule and keep it / check it in the footer.
   - Make a new wallet: a fresh key made on the page that goes straight into a
     locked backup. Its key is never shown or saved unlocked.
   - Mailbox keys: a new wallet can be made as a mailbox key for BRC Seal. Its
