@@ -637,7 +637,7 @@ body.is-previewing { overflow: hidden; }
                 <fieldset class="purpose" id="n-purpose">
                   <legend class="visually-hidden">What's this wallet for?</legend>
                   <label class="purpose-opt"><input type="radio" name="n-purpose" value="coins" checked><span><strong>Holding coins</strong>A new BrowserCoin wallet: a second wallet, savings, a prize pool.</span></label>
-                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="mailbox"><span><strong>Mailbox key for BRC Post</strong>Opens sealed letters and signs. Not for coins.</span></label>
+                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="mailbox"><span><strong>Mailbox for BRC Post</strong>Opens sealed letters and signs. Not for coins. (BRC Post can also make one for you.)</span></label>
                 </fieldset>
               </div>
             </div>
@@ -775,7 +775,7 @@ body.is-previewing { overflow: hidden; }
           <li class="step" id="r-step3" data-state="waiting">
             <div class="node" aria-hidden="true"><span>3</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
             <div>
-              <h2>Import into BrowserCoin</h2>
+              <h2 id="r-step3-title">Import into BrowserCoin</h2>
               <div class="step-content">
                 <div id="r-done" hidden>
                   <div class="success success-compact" id="r-success">
@@ -790,6 +790,7 @@ body.is-previewing { overflow: hidden; }
                   <label class="check check-plain"><input type="checkbox" id="r-ok-address"><span>This is the wallet address I expected.</span></label>
                   <label class="check"><input type="checkbox" id="r-ok-replace"><span>I understand that <strong>importing</strong> this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.</span></label>
                   <div class="actions"><button type="button" class="btn btn-primary btn-block" id="r-download" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download wallet file</button></div>
+                  <div class="actions" id="r-mailbox-row" hidden><a class="btn btn-primary" id="r-open-post" href="https://brc-post.github.io/" target="_blank" rel="noopener noreferrer">Open BRC Post</a><button type="button" class="btn btn-secondary" id="r-save-mailbox">Save the locked mailbox file</button></div>
                   <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a new paper copy of this backup</button></div>
                   <div class="actions" id="r-to-backup-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-to-backup"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg>Make a password-protected backup of this wallet</button></div>
                   <details class="disclosure risky" id="r-words-wrap">

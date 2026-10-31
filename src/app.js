@@ -732,6 +732,8 @@ function resetRestore() {
   restore.unverified = false;
   restore.toBackup = false;
   show($('#r-reprint-row'), false);
+  show($('#r-mailbox-row'), false);
+  $('#r-step3-title').textContent = 'Import into BrowserCoin';
   $('#r-success').classList.remove('is-in');
   delete $('#r-step1').dataset.collapsed;
   delete $('#r-step2').dataset.collapsed;
@@ -787,6 +789,12 @@ wireIntake('r', loadForRestore, $('#r-load-msg'), () => !restore.busy && !restor
 
 // A new paper copy of a backup, offered once the password has unlocked it, so
 // the address printed on it has been confirmed against the key.
+$('#r-save-mailbox').addEventListener('click', () => {
+  const b = restore.pending;
+  if (!b || b.format || b.type !== core.MAILBOX_TYPE || !restore.wallet || restore.wallet.address !== b.address) return;
+  download(`brc-mailbox-key-${b.address.slice(0, 8)}.json`, JSON.stringify(b, null, 2));
+});
+
 $('#r-reprint').addEventListener('click', () => {
   if (!restore.pending || restore.pending.format || !restore.wallet || restore.wallet.address !== restore.pending.address) return;
   openPaperPreview(encryptedSheet({ ...restore.pending, created: `copy printed ${new Date().toISOString().slice(0, 10)}` }), 'encrypted');
@@ -841,8 +849,11 @@ function finishRestore(wallet, ambiguous, from = 'key') {
     : ambiguous
     ? 'Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn\'t your address, use your locked backup code or the full BRCKEY1 code from your paper wallet.'
     : wallet.purpose === 'mailbox'
-    ? 'This is a mailbox key for BRC Post. Open the locked file in BRC Post itself to read letters. To keep it a mailbox key, BRC Vault doesn\'t turn it into a wallet file or recovery words; you can print a new paper copy of the locked backup.'
-    : '', 'warn');
+    ? 'This is a mailbox, and your backup and password work. To read your letters, open BRC Post, tap Your mailbox, choose I already have a mailbox, and pick this same backup file. The 64-character code above is the mailbox address: it is public, for people to write to you, and it can\'t open anything.'
+    : '', wallet.purpose === 'mailbox' && !ambiguous ? 'info' : 'warn');
+  const isMailbox = wallet.purpose === 'mailbox';
+  $('#r-step3-title').textContent = isMailbox ? 'Use it in BRC Post' : 'Import into BrowserCoin';
+  show($('#r-mailbox-row'), isMailbox && unlocked && !desktop);
   renderAddress($('#r-done-address'), wallet.address);
   if (restore.pending) playLockMoment($('#r-success'), 'unlock');
   else $('#r-success').classList.add('is-in');
@@ -1227,7 +1238,7 @@ $('#n-make').addEventListener('click', async () => {
     show($('#n-born'), false);
     setStep('#n-step1', 'done'); setStep('#n-step2', 'done'); setStep('#n-step3', 'done');
     const mailbox = result.type === core.MAILBOX_TYPE;
-    $('#n-sum-purpose').textContent = mailbox ? 'Mailbox key for BRC Post' : 'Holding coins';
+    $('#n-sum-purpose').textContent = mailbox ? 'Mailbox for BRC Post' : 'Holding coins';
     $('#n-step1').dataset.collapsed = '';
     $('#n-step2').dataset.collapsed = '';
     $('#n-step2 .step-sub').hidden = true;
@@ -1235,7 +1246,7 @@ $('#n-make').addEventListener('click', async () => {
     renderAddress($('#n-done-address'), result.address);
     $('#n-done-title').textContent = mailbox ? 'Your new mailbox key is ready' : 'Your new wallet is ready';
     $('#n-note').innerHTML = mailbox
-      ? 'Open this file in <strong>BRC Post</strong> with your password to read letters sealed to this address and to sign. <strong>Don\'t send coins to it:</strong> it\'s a mailbox, and BRC Post will hold its key.'
+      ? 'This file is your mailbox. To read letters, open <strong>BRC Post</strong>, tap <strong>Your mailbox</strong>, choose <strong>I already have a mailbox</strong> and pick this file; BRC Post can remember it, so next time you only type the password. The address above is public: share it so people can write to you. <strong>Don\'t send coins to it.</strong>'
       : 'To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in <strong>Restore</strong>: it gives you a wallet file for the app\'s <strong>Settings &gt; Import key…</strong> Importing replaces the wallet the app has open, so back that one up first.';
     $('#n-tip').textContent = mailbox
       ? 'Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can\'t be opened.'

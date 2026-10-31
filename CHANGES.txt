@@ -5,6 +5,11 @@ features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
 1.1.1 (in testing)
+  - test.2: a mailbox restored in Restore now says what to do with it: step 3
+    becomes "Use it in BRC Post", with Open BRC Post and Save the locked
+    mailbox file, and explains that the 64-character code is the public
+    address, which can't open anything (Patrick pasted it into Post as a key).
+    The family line reads "Post seals it".
   - test.1: BRC Seal is now BRC Post: "Mailbox key for BRC Post", and every
     other mention.
 
