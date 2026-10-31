@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- No network access at all: this page cannot load or send anything. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Z7+6RT4eCpLZpX9H7NEg3Kz2oGNYqCYlrAep/F5GP00='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-OMl7uWh039sGNkR4eW1btJkbOD1WHgfwUvW0ZG5Pl2c='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="x-dns-prefetch-control" content="off">
 <meta name="color-scheme" content="light">
@@ -113,7 +113,7 @@ button, input, textarea { font: inherit; color: inherit; }
 
 /* ---------- Stepper: an ordered process, so the steps are numbered ---------- */
 .steps { list-style: none; margin: 1.5rem 0 0; padding: 0; }
-.step { position: relative; display: grid; grid-template-columns: 2rem 1fr; column-gap: 1rem; padding-bottom: 1.9rem; }
+.step { position: relative; display: grid; grid-template-columns: 2rem minmax(0, 1fr); column-gap: 1rem; padding-bottom: 1.9rem; }
 .step:last-child { padding-bottom: 0.25rem; }
 .step::before { content: ""; position: absolute; left: calc(1rem - 0.5px); top: 2.25rem; bottom: 0.25rem; width: 1px; background: var(--hairline); }
 .step:last-child::before { display: none; }
@@ -174,10 +174,18 @@ button, input, textarea { font: inherit; color: inherit; }
 
 /* ---------- Data display ---------- */
 .kv { margin-top: 0.9rem; border: 1px solid var(--hairline); border-radius: var(--radius-md); overflow: hidden; }
-.kv-row { display: grid; grid-template-columns: 6rem 1fr; gap: 1rem; padding: 0.75rem 1rem; font-size: 0.9rem; align-items: baseline; }
+.kv-row { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 1rem; padding: 0.75rem 1rem; font-size: 0.9rem; align-items: baseline; }
+.muted-sm { color: var(--muted); font-size: 0.82rem; }
 .kv-row + .kv-row { border-top: 1px solid var(--hairline); }
 .kv-row dt { color: var(--muted); }
-.kv-row dd { margin: 0; color: var(--ink); }
+.kv-row dd { margin: 0; min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
+.step > div, .intake, .loaded-chip { min-width: 0; }
+/* "Is this your key or your address?": asked, not ticked, because the two look identical. */
+.which { margin-top: 0.9rem; padding: 0.95rem 1rem; border-radius: var(--radius-md); background: #fff7e6; border: 1px solid #f1d39a; font-size: 0.92rem; color: var(--ink-2); }
+.which p { margin: 0 0 0.6rem; }
+.which .who { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; color: var(--ink); }
+.which .who .idc { margin: 0; }
+.which-acts { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .mono { font-family: var(--mono); font-size: 0.77rem; letter-spacing: -0.01em; word-break: break-all; line-height: 1.55; }
 .ok-text { color: var(--vault); font-weight: 500; }
 
@@ -558,9 +566,14 @@ body.is-previewing { overflow: hidden; }
                 </div>
                 <p class="msg" id="b-load-msg" role="status" hidden></p>
                 <dl class="kv" id="b-loaded" hidden>
-                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Post and BRC Pulse"></span><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                   <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="b-check">The key matches this address</dd></div>
                 </dl>
+                <div class="which" id="b-which" role="group" aria-labelledby="b-which-q" hidden>
+                  <p id="b-which-q"><strong>Is this your secret key, or your address?</strong> They look exactly the same. If it's your key, it opens wallet <span class="who"><span class="idc" id="b-which-idc" aria-hidden="true"></span><span class="mono" id="b-which-addr"></span></span>.</p>
+                  <p>Does the BrowserCoin app show <strong id="b-which-addr2"></strong> as your address?</p>
+                  <div class="which-acts"><button type="button" class="btn btn-primary btn-sm" id="b-which-yes">Yes, that's my wallet</button><button type="button" class="btn btn-secondary btn-sm" id="b-which-no">No, I pasted my address</button></div>
+                </div>
                 <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span id="b-key-confirm-text">I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
               </div>
             </div>
@@ -598,8 +611,8 @@ body.is-previewing { overflow: hidden; }
                   <h3 id="b-done-title">Wallet locked</h3>
                   <p>Your backup was test-opened with your password before saving. Keep it one or both ways.</p>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
-                    <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Post and BRC Pulse"></span><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Protection</dt><dd>Locked with your password <span class="muted-sm">(AES-256, scrypt)</span></dd></div>
                   </dl>
                   <div class="actions">
                     <button type="button" class="btn btn-primary" id="b-download"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download backup file</button>
@@ -628,7 +641,7 @@ body.is-previewing { overflow: hidden; }
 
       <!-- ===================== New wallet ===================== -->
       <div class="panel" role="tabpanel" id="panel-new" aria-labelledby="tab-new" hidden>
-        <p class="panel-lede">A brand-new wallet, <strong>made and backed up in one step</strong>. Its key is created on this page when you press the button, locked with your password straight away, and never shown or saved unlocked. The backup <em>is</em> the wallet.</p>
+        <p class="panel-lede">A brand-new wallet, <strong>made and backed up in one step</strong>. Its key is created on this page when you press the button, locked with your password straight away, and never shown or saved unlocked. This file is the only copy of the new wallet.</p>
         <ol class="steps">
           <li class="step" id="n-step1" data-state="active">
             <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
@@ -638,8 +651,8 @@ body.is-previewing { overflow: hidden; }
               <div class="step-content">
                 <fieldset class="purpose" id="n-purpose">
                   <legend class="visually-hidden">What's this wallet for?</legend>
-                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="coins" checked><span><strong>Holding coins</strong>A new BrowserCoin wallet: a second wallet, savings, a prize pool.</span></label>
-                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="mailbox"><span><strong>Mailbox key for BRC Seal</strong>Opens sealed letters and signs. Not for coins.</span></label>
+                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="coins" checked><span><strong>Holding coins</strong>A new BrowserCoin wallet: savings, a second wallet, a prize pool. To spend from it later, you swap it into the BrowserCoin app, which holds one wallet at a time.</span></label>
+                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="mailbox"><span><strong>Mailbox for BRC Post</strong>Opens sealed letters and signs. Not for coins. (BRC Post can also make one for you.)</span></label>
                 </fieldset>
               </div>
             </div>
@@ -678,8 +691,8 @@ body.is-previewing { overflow: hidden; }
                   <h3 id="n-done-title">Your new wallet is ready</h3>
                   <p>Made and locked in one step. Its key exists only inside this backup, which was test-opened with your password. Save it now, one or both ways.</p>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="n-done-address"></span><button type="button" class="copy" data-copy="n-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
-                    <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Post and BRC Pulse"></span><span class="mono addr" id="n-done-address"></span><button type="button" class="copy" data-copy="n-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Protection</dt><dd>Locked with your password <span class="muted-sm">(AES-256, scrypt)</span></dd></div>
                   </dl>
                   <div class="actions">
                     <button type="button" class="btn btn-primary" id="n-download"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download backup file</button>
@@ -687,6 +700,7 @@ body.is-previewing { overflow: hidden; }
                   </div>
                   <p class="msg" id="n-saved-msg" role="status" hidden></p>
                   <p class="new-note" id="n-note"></p>
+                  <div class="actions" id="n-next"><a class="btn btn-secondary" id="n-next-link" href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer"></a></div>
                   <ul class="tips">
                     <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Keep at least two copies in different places.</li>
                     <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Store the password separately, for example in a password manager.</li>
@@ -777,7 +791,7 @@ body.is-previewing { overflow: hidden; }
           <li class="step" id="r-step3" data-state="waiting">
             <div class="node" aria-hidden="true"><span>3</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
             <div>
-              <h2>Import into BrowserCoin</h2>
+              <h2 id="r-step3-title">Import into BrowserCoin</h2>
               <div class="step-content">
                 <div id="r-done" hidden>
                   <div class="success success-compact" id="r-success">
@@ -785,13 +799,14 @@ body.is-previewing { overflow: hidden; }
                     <h3 id="r-done-title">Backup unlocked</h3>
                   </div>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Post and BRC Pulse"></span><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                     <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="r-done-check">The key matches this address</dd></div>
                   </dl>
                   <p class="msg" id="r-done-msg" role="status" hidden></p>
                   <label class="check check-plain"><input type="checkbox" id="r-ok-address"><span>This is the wallet address I expected.</span></label>
                   <label class="check"><input type="checkbox" id="r-ok-replace"><span>I understand that <strong>importing</strong> this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.</span></label>
                   <div class="actions"><button type="button" class="btn btn-primary btn-block" id="r-download" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download wallet file</button></div>
+                  <div class="actions" id="r-mailbox-row" hidden><a class="btn btn-primary" id="r-open-post" href="https://brc-post.github.io/" target="_blank" rel="noopener noreferrer">Open BRC Post</a><button type="button" class="btn btn-secondary" id="r-save-mailbox">Save the locked mailbox file</button></div>
                   <div class="actions" id="r-reprint-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-reprint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print a new paper copy of this backup</button></div>
                   <div class="actions" id="r-to-backup-row" hidden><button type="button" class="btn btn-quiet btn-sm" id="r-to-backup"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg>Make a password-protected backup of this wallet</button></div>
                   <details class="disclosure risky" id="r-words-wrap">
@@ -866,7 +881,7 @@ body.is-previewing { overflow: hidden; }
     </details>
 
     <footer class="site-foot">
-      <span>BRC Vault <span id="app-version">1.1.0</span>, build 67bfba45</span>
+      <span>BRC Vault <span id="app-version">1.1.1</span>, build 38c97bb9</span>
       <span>Free and open source under the MIT License</span>
       <div class="works">
         <p><b>BRC Works:</b> <span aria-current="page">Vault keeps it</span> · <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer">Pulse checks it</a></p>
@@ -7201,7 +7216,7 @@ zoo`.split("\n");
       cipher: { name: "aes-256-gcm", iv: ivHex },
       ciphertext: bytesToHex2(ct),
       created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
-      note: type === MAILBOX_TYPE ? 'Locked BRC mailbox key. It opens sealed letters and signs in BRC Seal; it is not for holding coins. The key is encrypted inside "ciphertext" and only your password unlocks it, in BRC Seal or BRC Vault. The address is public and safe to share.' : 'Locked BRC Vault backup. The private key is encrypted inside "ciphertext" and can only be unlocked with your password in BRC Vault. The address is public and safe to share.'
+      note: type === MAILBOX_TYPE ? 'Locked BRC mailbox key. It opens sealed letters and signs in BRC Post; it is not for holding coins. The key is encrypted inside "ciphertext" and only your password unlocks it, in BRC Post or BRC Vault. The address is public and safe to share.' : 'Locked BRC Vault backup. The private key is encrypted inside "ciphertext" and can only be unlocked with your password in BRC Vault. The address is public and safe to share.'
     };
   }
   async function decryptBackup(backup2, password, { onProgress } = {}) {
@@ -7986,7 +8001,7 @@ zoo`.split("\n");
     const el = $("#connection");
     const online = navigator.onLine;
     el.dataset.state = online ? "online" : "offline";
-    el.querySelector(".connection-text").textContent = online ? "Online" : "Offline";
+    el.querySelector(".connection-text").textContent = online ? "Sends nothing" : "Offline: safest";
     el.title = online ? "BRC Vault never sends anything. For extra safety you can turn off Wi\u2011Fi before loading a key." : "You are offline. Nothing can leave this page.";
   }
   window.addEventListener("online", renderConnection);
@@ -8190,9 +8205,15 @@ zoo`.split("\n");
       $("#b-key-confirm-text").innerHTML = backup.kind === "words" ? "The address above is the one my wallet app shows. <strong>A mistyped or out-of-order word</strong> can, rarely, make a different, empty wallet." : "I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.";
       renderAddress($("#b-address"), id.wallet.address);
       show($("#b-loaded"), true);
-      show($("#b-key-confirm-wrap"), backup.confirm);
-      if (backup.kind === "ambiguous-key") {
-        setMessage(msg, "Check the address below before going on. A wallet address looks exactly like a private key, and backing up an address protects nothing.", "warn");
+      const askWhich = backup.kind === "ambiguous-key";
+      show($("#b-key-confirm-wrap"), backup.confirm && !askWhich);
+      show($("#b-which"), askWhich);
+      if (askWhich) {
+        const a = id.wallet.address, s = `${a.slice(0, 8)}\u2026${a.slice(-4)}`;
+        $("#b-which-addr").textContent = s;
+        $("#b-which-addr2").textContent = s;
+        paintIdenticon($("#b-which-idc"), a);
+        setMessage(msg, "");
       } else if (backup.confirm) {
         setMessage(msg, "Check the address below against the one your wallet shows before going on.", "warn");
       } else if (id.rescued) {
@@ -8220,6 +8241,27 @@ zoo`.split("\n");
   $("#b-key-confirm").addEventListener("change", () => {
     updatePasswordState();
     if ($("#b-key-confirm").checked) $("#b-password").focus();
+  });
+  $("#b-which-yes").addEventListener("click", () => {
+    $("#b-key-confirm").checked = true;
+    show($("#b-which"), false);
+    setMessage($("#b-load-msg"), "Good: this key opens the wallet whose address is below.", "info");
+    updatePasswordState();
+    $("#b-password").focus();
+  });
+  $("#b-which-no").addEventListener("click", () => {
+    gen.backup++;
+    wipeWallet(backup.wallet);
+    backup.wallet = null;
+    backup.kind = null;
+    backup.confirm = false;
+    resetBackupOutput();
+    show($("#b-loaded"), false);
+    show($("#b-which"), false);
+    show($("#b-key-confirm-wrap"), false);
+    if (intakes.b.mode() === "loaded") intakes.b.setMode("file");
+    setMessage($("#b-load-msg"), "Your address is public, so there's nothing to back up. What you need is the wallet file: in browsercoin.org/app open Settings \u2192 Export key\u2026, then drop the file here.", "info");
+    updatePasswordState();
   });
   function updatePasswordState() {
     const pw = $("#b-password").value;
@@ -8325,6 +8367,8 @@ zoo`.split("\n");
     restore.unverified = false;
     restore.toBackup = false;
     show($("#r-reprint-row"), false);
+    show($("#r-mailbox-row"), false);
+    $("#r-step3-title").textContent = "Import into BrowserCoin";
     $("#r-success").classList.remove("is-in");
     delete $("#r-step1").dataset.collapsed;
     delete $("#r-step2").dataset.collapsed;
@@ -8372,6 +8416,11 @@ zoo`.split("\n");
     }
   }
   wireIntake("r", loadForRestore, $("#r-load-msg"), () => !restore.busy && !restore.wallet);
+  $("#r-save-mailbox").addEventListener("click", () => {
+    const b = restore.pending;
+    if (!b || b.format || b.type !== MAILBOX_TYPE || !restore.wallet || restore.wallet.address !== b.address) return;
+    download(`brc-mailbox-key-${b.address.slice(0, 8)}.json`, JSON.stringify(b, null, 2));
+  });
   $("#r-reprint").addEventListener("click", () => {
     if (!restore.pending || restore.pending.format || !restore.wallet || restore.wallet.address !== restore.pending.address) return;
     openPaperPreview(encryptedSheet({ ...restore.pending, created: `copy printed ${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}` }), "encrypted");
@@ -8422,7 +8471,10 @@ zoo`.split("\n");
     $("#r-step1").dataset.collapsed = "";
     $("#r-step2").dataset.collapsed = "";
     setMessage($("#r-load-msg"), "");
-    setMessage($("#r-done-msg"), ambiguous && from === "words" ? "Check this address against the one your wallet app shows. A mistyped or out-of-order word can, rarely, still pass the words' built-in check and open a different, empty wallet." : ambiguous ? "Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn't your address, use your locked backup code or the full BRCKEY1 code from your paper wallet." : wallet.purpose === "mailbox" ? "This is a mailbox key for BRC Seal. Open the locked file in BRC Seal itself to read letters. To keep it a mailbox key, BRC Vault doesn't turn it into a wallet file or recovery words; you can print a new paper copy of the locked backup." : "", "warn");
+    setMessage($("#r-done-msg"), ambiguous && from === "words" ? "Check this address against the one your wallet app shows. A mistyped or out-of-order word can, rarely, still pass the words' built-in check and open a different, empty wallet." : ambiguous ? "Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn't your address, use your locked backup code or the full BRCKEY1 code from your paper wallet." : wallet.purpose === "mailbox" ? "This is a mailbox, and your backup and password work. To read your letters, open BRC Post, tap Your mailbox, choose I already have a mailbox, and pick this same backup file. The 64-character code above is the mailbox address: it is public, for people to write to you, and it can't open anything." : "", wallet.purpose === "mailbox" && !ambiguous ? "info" : "warn");
+    const isMailbox = wallet.purpose === "mailbox";
+    $("#r-step3-title").textContent = isMailbox ? "Use it in BRC Post" : "Import into BrowserCoin";
+    show($("#r-mailbox-row"), isMailbox && unlocked && !desktop);
     renderAddress($("#r-done-address"), wallet.address);
     if (restore.pending) playLockMoment($("#r-success"), "unlock");
     else $("#r-success").classList.add("is-in");
@@ -8504,7 +8556,7 @@ zoo`.split("\n");
       <div>
         ${result.type === MAILBOX_TYPE ? `<h3>To use this mailbox key again</h3>
         <ol>
-          <li>Open BRC Seal and choose Your mailbox key.</li>
+          <li>Open BRC Post and choose Your mailbox key.</li>
           <li>Type the locked backup code exactly as printed, with the checks in brackets.</li>
           <li>Enter your password. Your letters open on that page; nothing is sent anywhere.</li>
         </ol>` : `<h3>To get your coins back</h3>
@@ -8784,7 +8836,7 @@ zoo`.split("\n");
       setStep("#n-step2", "done");
       setStep("#n-step3", "done");
       const mailbox = result.type === MAILBOX_TYPE;
-      $("#n-sum-purpose").textContent = mailbox ? "Mailbox key for BRC Seal" : "Holding coins";
+      $("#n-sum-purpose").textContent = mailbox ? "Mailbox for BRC Post" : "Holding coins";
       $("#n-step1").dataset.collapsed = "";
       $("#n-step2").dataset.collapsed = "";
       $("#n-step2 .step-sub").hidden = true;
@@ -8793,7 +8845,9 @@ zoo`.split("\n");
       });
       renderAddress($("#n-done-address"), result.address);
       $("#n-done-title").textContent = mailbox ? "Your new mailbox key is ready" : "Your new wallet is ready";
-      $("#n-note").innerHTML = mailbox ? "Open this file in <strong>BRC Seal</strong> with your password to read letters sealed to this address and to sign. <strong>Don't send coins to it:</strong> it's a mailbox, and BRC Seal will hold its key." : "To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in <strong>Restore</strong>: it gives you a wallet file for the app's <strong>Settings &gt; Import key\u2026</strong> Importing replaces the wallet the app has open, so back that one up first.";
+      $("#n-note").innerHTML = mailbox ? "This file is your mailbox. To read letters, open <strong>BRC Post</strong>, tap <strong>Your mailbox</strong>, choose <strong>I already have a mailbox</strong> and pick this file; BRC Post can remember it, so next time you only type the password. The address above is public: share it so people can write to you. <strong>Don't send coins to it.</strong>" : "To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in <strong>Restore</strong>: it gives you a wallet file for the app's <strong>Settings &gt; Import key\u2026</strong> Importing replaces the wallet the app has open, so back that one up first.";
+      $("#n-next-link").href = mailbox ? "https://brc-post.github.io/" : `https://pb-hash.github.io/brc-pulse/#my=${result.address}`;
+      $("#n-next-link").textContent = mailbox ? "Open BRC Post" : "See it on BRC Pulse";
       $("#n-tip").textContent = mailbox ? "Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can't be opened." : "Nothing else holds this wallet's key. Without the backup and its password, the wallet and anything sent to it are gone.";
       const done = $("#n-done");
       show(done, true);

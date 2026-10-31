@@ -4,7 +4,9 @@ Version numbers: last number for fixes and wording, middle number for new
 features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
-1.1.1 (in testing)
+1.1.1 (Oct 31, 2026)
+  - Release: BRC Seal is BRC Post everywhere; a restored mailbox points to
+    BRC Post; and the review fixes below (reviewed before release).
   - test.3: fixes from the "it just works" review (Oct 31). On a phone,
     Restore no longer runs off the right edge once a backup is loaded (file
     name and address now fit). Pasting a bare 64-character code on Back up
