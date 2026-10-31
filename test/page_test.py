@@ -591,6 +591,8 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     nw.check("#n-understand")
     expect(nw.locator("#n-make")).to_be_enabled()
     nw.click("#n-make")
+    expect(nw.locator("#n-password")).to_be_disabled()  # the password can't change while the key is locked with it
+    expect(nw.locator("#n-confirm")).to_be_disabled()
     expect(nw.locator("#n-done")).to_be_visible(timeout=60000)
     expect(nw.locator("#n-done-title")).to_have_text("Your new wallet is ready")
     new_addr = nw.locator("#n-done-address").text_content()
@@ -614,6 +616,13 @@ process.stdout.write(desktopEncryptedWalletJson({{ privateKeyHex: '{wallet["priv
     nw.click("[data-restart='n']")
     expect(nw.locator("#n-saved-msg")).to_contain_text("only copy")
     expect(nw.locator("#n-done")).to_be_visible()
+    nw.click("#clear-all")
+    expect(nw.locator("#n-saved-msg")).to_contain_text("Clear page again")
+    expect(nw.locator("#n-done")).to_be_visible()
+    nw.evaluate("() => { window.print = () => {}; }")
+    nw.click("#n-print"); nw.keyboard.press("Escape")
+    nw.click("[data-restart='n']")
+    expect(nw.locator("#n-done")).to_be_visible()  # opening the print preview without printing doesn't count as saved
     with nw.expect_download() as dl_new:
         nw.click("#n-download")
     new_backup = OUT / ("new-" + dl_new.value.suggested_filename); dl_new.value.save_as(new_backup)

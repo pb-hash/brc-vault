@@ -1032,6 +1032,7 @@ function openPaperPreview(html, kind) {
 
 function closePaperPreview() {
   clearTimeout(printWatch);
+  fresh.printing = false;
   show($('#paper-preview'), false);
   document.body.classList.remove('is-previewing');
   $('#print-sheet').innerHTML = '';
@@ -1116,7 +1117,13 @@ $$('[data-restart]').forEach((btn) => btn.addEventListener('click', () => {
 // straight away, test-opened, and then wiped from the page. It is never shown or
 // saved unlocked: the locked backup is the wallet.
 
-const fresh = { result: null, busy: false, saved: false, gen: 0, discardAsked: false };
+const fresh = { result: null, busy: false, saved: false, gen: 0, discardAsked: null, printing: false };
+
+function lockNewWalletForm(on) {
+  ['#n-password', '#n-confirm', '#n-understand'].forEach((sel) => { $(sel).disabled = on; });
+  // After a wallet is made, its purpose stays fixed until Make another.
+  $$('input[name="n-purpose"]').forEach((r) => { r.disabled = on || Boolean(fresh.result); });
+}
 
 function newPurpose() {
   return $('input[name="n-purpose"]:checked')?.value === 'mailbox' ? 'mailbox' : 'coins';
@@ -1153,7 +1160,7 @@ function resetNewWallet() {
   fresh.gen++;
   fresh.result = null;
   fresh.saved = false;
-  fresh.discardAsked = false;
+  fresh.discardAsked = null;
   ['#n-password', '#n-confirm'].forEach((sel) => { $(sel).value = ''; });
   $('#n-understand').checked = false;
   $$('input[name="n-purpose"]').forEach((r) => { r.disabled = false; });
@@ -1169,8 +1176,8 @@ function resetNewWallet() {
 }
 
 function restartNewWallet() {
-  if (fresh.result && !fresh.saved && !fresh.discardAsked) {
-    fresh.discardAsked = true;
+  if (fresh.result && !fresh.saved && fresh.discardAsked !== 'restart') {
+    fresh.discardAsked = 'restart'; // a second press of the same button discards
     setMessage($('#n-saved-msg'), 'This backup hasn\'t been downloaded or printed yet, and it is the only copy of the key. Save it first, or press Make another again to discard it.', 'warn');
     return;
   }
@@ -1195,9 +1202,12 @@ $('#n-make').addEventListener('click', async () => {
   btn.disabled = true;
   setBusy(btn, 'Making and locking…');
   setMessage(msg, 'This takes a few seconds on purpose. It makes password guessing slow.', 'info');
+  // The password and purpose are fixed at the press: lock the form so nothing can be changed mid-way.
+  lockNewWalletForm(true);
   await startBusy($('#n-progress'));
   let wallet = null;
   try {
+    if (myGen !== fresh.gen) return; // cleared before any key was made
     const password = $('#n-password').value;
     wallet = core.newWallet();
     const result = await core.encryptWallet(wallet, password, { purpose });
@@ -1240,6 +1250,7 @@ $('#n-make').addEventListener('click', async () => {
   } finally {
     core.wipeWallet(wallet); // the locked backup is now the only copy
     fresh.busy = false;
+    lockNewWalletForm(false);
     setBusy(btn, null);
     show($('#n-progress'), false);
     updateNewWalletState();
@@ -1248,7 +1259,7 @@ $('#n-make').addEventListener('click', async () => {
 
 function newWalletSaved(how) {
   fresh.saved = true;
-  fresh.discardAsked = false;
+  fresh.discardAsked = null;
   setMessage($('#n-saved-msg'), how, 'good');
 }
 
@@ -1261,7 +1272,10 @@ $('#n-download').addEventListener('click', () => {
 $('#n-print').addEventListener('click', () => {
   if (!fresh.result) return;
   openPaperPreview(encryptedSheet(fresh.result), 'encrypted');
-  newWalletSaved('Paper backup opened for printing. Keep the file too, or a second paper copy somewhere else.');
+  fresh.printing = true; // counts as saved only once the print window actually opens
+});
+window.addEventListener('beforeprint', () => {
+  if (fresh.printing && fresh.result && !$('#paper-preview').hidden) newWalletSaved('Paper backup sent to print. Keep the file too, or a second paper copy somewhere else.');
 });
 
 // The new key exists nowhere but this backup: warn before the page is closed unsaved.
@@ -1276,6 +1290,13 @@ $$('[data-goto]').forEach((b) => b.addEventListener('click', () => { selectTab(b
 // ---------------------------------------------------------------------------
 
 $('#clear-all').addEventListener('click', () => {
+  if (fresh.result && !fresh.saved && fresh.discardAsked !== 'clear') {
+    fresh.discardAsked = 'clear'; // a second press of the same button discards
+    selectTab('new');
+    setMessage($('#n-saved-msg'), 'Your new wallet\'s backup hasn\'t been downloaded or printed yet, and it is the only copy of the key. Save it first, or press Clear page again to discard it.', 'warn');
+    $('#n-saved-msg').scrollIntoView({ block: 'center' });
+    return;
+  }
   gen.backup++;
   stopScan();
   core.wipeWallet(backup.wallet);

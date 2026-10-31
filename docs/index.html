@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- No network access at all: this page cannot load or send anything. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-UFd2iZDwjLkOa6jJ/IOLWJ949CSMjUYPgCTWiLsOrIs='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Z7+6RT4eCpLZpX9H7NEg3Kz2oGNYqCYlrAep/F5GP00='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="x-dns-prefetch-control" content="off">
 <meta name="color-scheme" content="light">
@@ -86,12 +86,26 @@ button, input, textarea { font: inherit; color: inherit; }
 .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); border: 1px solid rgba(16, 19, 24, 0.05); overflow: hidden; }
 .card-head { padding: 1.25rem 1.5rem 0; }
 
-.segmented { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; background: var(--sunken); border-radius: 12px; position: relative; }
+.segmented { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 4px; background: var(--sunken); border-radius: 12px; position: relative; }
 .segmented button { appearance: none; border: 0; background: transparent; height: 2.6rem; border-radius: 9px; font-weight: 500; font-size: 0.95rem; color: var(--muted); cursor: pointer; position: relative; z-index: 1; transition: color 0.2s var(--ease); }
 .segmented button[aria-selected="true"] { color: var(--ink); }
 .segmented button[aria-selected="true"] { color: var(--ink); }
-.segmented .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); background: var(--surface); border-radius: 9px; box-shadow: 0 1px 2px rgba(16,19,24,.08), 0 2px 8px rgba(16,19,24,.06); transition: transform 0.35s var(--ease); }
+.segmented .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); background: var(--surface); border-radius: 9px; box-shadow: 0 1px 2px rgba(16,19,24,.08), 0 2px 8px rgba(16,19,24,.06); transition: transform 0.35s var(--ease); }
 .segmented[data-active="restore"] .thumb { transform: translateX(100%); }
+.segmented[data-active="new"] .thumb { transform: translateX(200%); }
+/* New wallet is its own job, not a step of a backup: it carries the brand colour and a plus. */
+.segmented .seg-new { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; color: var(--brand); font-weight: 600; }
+.segmented .seg-new svg { width: 1rem; height: 1rem; flex: none; }
+.segmented .seg-new[aria-selected="true"] { color: var(--brand); }
+.segmented .seg-new::before { content: ""; position: absolute; left: 0; top: 22%; bottom: 22%; width: 1px; background: var(--hairline-strong); transition: opacity 0.2s var(--ease); }
+.segmented[data-active="restore"] .seg-new::before, .segmented[data-active="new"] .seg-new::before { opacity: 0; }
+.segmented button { white-space: nowrap; }
+@media (max-width: 420px) { .segmented button { font-size: 0.86rem; } .segmented .seg-new { gap: 0.2rem; } .segmented .seg-new svg { width: 0.85rem; height: 0.85rem; } }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.link-btn.inline-link { border: 0; padding: 0; margin: 0; font: inherit; font-weight: 600; color: var(--brand); }
+.born { display: flex; gap: 0.7rem; align-items: flex-start; margin: 0 0 0.9rem; padding: 0.8rem 0.95rem; border-radius: var(--radius-md); background: var(--brand-tint); color: var(--ink-2); font-size: 0.88rem; line-height: 1.5; }
+.born svg { width: 1.15rem; height: 1.15rem; flex: none; margin-top: 0.1rem; color: var(--brand); }
+.born strong { color: var(--ink); }
 
 .panel { padding: 0.5rem 1.5rem 1.75rem; }
 .panel-lede { margin: 1.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
@@ -318,6 +332,18 @@ button, input, textarea { font: inherit; color: inherit; }
 .scan-view:not([data-state="live"]) .scan-frame { display: none; }
 .scan-view[data-state="problem"] .scan-overlay-actions { display: flex; }
 .intake[data-mode="paste"] .intake-choices, .intake[data-mode="loaded"] .intake-choices { display: none; }
+.purpose { margin: 0.9rem 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.purpose legend { grid-column: 1 / -1; padding: 0; margin-bottom: 0.1rem; font-size: 0.9rem; font-weight: 600; }
+.purpose { border: 0; padding: 0; min-width: 0; }
+.purpose-opt { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.75rem 0.85rem; border: 1px solid var(--hairline-strong); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; font-size: 0.86rem; color: var(--ink-2); transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+.purpose-opt strong { display: block; color: var(--ink); font-size: 0.92rem; }
+.purpose-opt input { margin-top: 0.2rem; accent-color: var(--brand); }
+.purpose-opt:has(input:checked) { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-tint); }
+@media (max-width: 560px) { .purpose { grid-template-columns: 1fr; } }
+.new-note { margin: 0.9rem 0 0; font-size: 0.9rem; color: var(--ink-2); }
+.new-row { margin: 0.75rem 0 0; font-size: 0.9rem; color: var(--muted); }
+.intake:not([data-mode="file"]) .new-row { display: none; }
+.new-row .link-btn { border-left: 0; padding: 0; margin-left: 0.25rem; font-size: inherit; }
 .loaded-chip { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.6rem 0.6rem 0.75rem; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--canvas); }
 .loaded-chip .drop-icon { width: 2.1rem; height: 2.1rem; border-radius: 8px; color: var(--vault); }
 .chip-name { flex: 1; min-width: 0; font-size: 0.92rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -340,6 +366,9 @@ kbd { display: inline-block; min-width: 1.35rem; padding: 0.05rem 0.35rem; borde
 
 /* ---------- Addresses: easy to compare, one click to copy ---------- */
 .addr-cell { display: flex; align-items: flex-start; gap: 0.5rem; }
+/* The same little picture for an address in every BRC Works tool, so a swapped address stands out. */
+.idc { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; width: 1.5rem; height: 1.5rem; padding: 3px; border-radius: 7px; background: var(--brand-tint, #eeeeff); margin-top: 0.05rem; }
+.idc i { border-radius: 1.5px; }
 .addr { flex: 1; min-width: 0; color: var(--muted); word-break: normal; }
 .addr .g { display: inline-block; margin-right: 0.55em; }
 .addr .g:last-child { margin-right: 0; }
@@ -370,7 +399,7 @@ kbd { display: inline-block; min-width: 1.35rem; padding: 0.05rem 0.35rem; borde
 body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-tint); }
 
 @media (max-width: 40rem) {
-  .intake-choices { grid-template-columns: 1fr; }
+  .intake-choices, #b-intake .intake-choices { grid-template-columns: 1fr; }
   .paste-panel .paste-hint { display: none; }
 }
 .site-foot .works { width: 100%; display: grid; gap: 3px; padding-top: 0.75rem; border-top: 1px solid var(--hairline); }
@@ -478,7 +507,7 @@ body.is-previewing { overflow: hidden; }
     <p class="frame-warning" id="frame-warning" role="status" hidden>You're viewing BRC Vault inside another app's preview, which can block printing and downloads. Save brc-vault.html and open it directly in Chrome, Safari, Edge, or Firefox.</p>
     <section class="hero">
       <h1>Your BrowserCoin, safely backed up.</h1>
-      <p>Lock your wallet with a password, print a paper copy, and restore it whenever you need to. <strong>Everything happens on this page. Nothing is uploaded.</strong></p>
+      <p>Lock your wallet with a password, print a paper copy, and restore it whenever you need to. Or start a new wallet that is backed up from the moment it exists. <strong>Everything happens on this page. Nothing is uploaded.</strong></p>
     </section>
 
     <section class="card" aria-label="BRC Vault">
@@ -487,12 +516,13 @@ body.is-previewing { overflow: hidden; }
           <span class="thumb" aria-hidden="true"></span>
           <button role="tab" id="tab-backup" data-tab="backup" aria-controls="panel-backup">Back up</button>
           <button role="tab" id="tab-restore" data-tab="restore" aria-controls="panel-restore">Restore</button>
+          <button role="tab" id="tab-new" data-tab="new" aria-controls="panel-new" class="seg-new"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>New wallet</button>
         </div>
       </div>
 
       <!-- ===================== Back up ===================== -->
       <div class="panel" role="tabpanel" id="panel-backup" aria-labelledby="tab-backup">
-        <p class="panel-lede">Start with your wallet file: at <strong>browsercoin.org/app</strong>, open <strong>Settings</strong> and choose <strong>Export key…</strong> You can also paste a private key, or the 24 recovery words from the BRC Wallet Android app.</p>
+        <p class="panel-lede">Start with your wallet file: at <strong>browsercoin.org/app</strong>, open <strong>Settings</strong> and choose <strong>Export key…</strong> You can also paste a private key, or the 24 recovery words from the BRC Wallet Android app. Starting from scratch? Use <button type="button" class="link-btn inline-link" data-goto="new">New wallet</button>.</p>
         <ol class="steps">
           <li class="step" id="b-step1" data-state="active">
             <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
@@ -528,8 +558,8 @@ body.is-previewing { overflow: hidden; }
                 </div>
                 <p class="msg" id="b-load-msg" role="status" hidden></p>
                 <dl class="kv" id="b-loaded" hidden>
-                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
-                  <div class="kv-row"><dt>Check</dt><dd class="ok-text">The key matches this address</dd></div>
+                  <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-address"></span><button type="button" class="copy" data-copy="b-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                  <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="b-check">The key matches this address</dd></div>
                 </dl>
                 <label class="check check-danger" id="b-key-confirm-wrap" hidden><input type="checkbox" id="b-key-confirm"><span id="b-key-confirm-text">I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.</span></label>
               </div>
@@ -565,10 +595,10 @@ body.is-previewing { overflow: hidden; }
 
                 <div class="success" id="b-done" hidden>
                   <div class="logo-moment" data-variant="lock"><div class="lm-mark"><span class="lm-ring" aria-hidden="true"></span><svg viewBox="307.6 90.0 1316.0 1316.0" aria-hidden="true"><rect class="lm-box" x="361.5" y="143.9" width="1208.2" height="1208.2" rx="198.7" fill="none" stroke="currentColor" stroke-width="107.8"/><path class="lm-v" fill="currentColor" d="M544.8 415.0L868.2 1150.0L1063.0 1150.0L1386.4 415.0L1121.0 415.0A185.7 185.7 0 0 1 1134.1 594.6L965.6 958.7L797.1 594.6A185.7 185.7 0 0 1 810.2 415.0Z"/><circle class="lm-dot" cx="965.6" cy="516.6" r="114.0" fill="var(--brand)"/></svg></div><span class="lm-word" aria-hidden="true"><span class="wm-light"><i style="--i:0">B</i><i style="--i:1">R</i><i style="--i:2">C</i></span><span class="wm-bold"><i style="--i:3">V</i><i style="--i:4">A</i><i style="--i:5">U</i><i style="--i:6">L</i><i style="--i:7">T</i></span></span></div>
-                  <h3>Wallet locked</h3>
+                  <h3 id="b-done-title">Wallet locked</h3>
                   <p>Your backup was test-opened with your password before saving. Keep it one or both ways.</p>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="b-done-address"></span><button type="button" class="copy" data-copy="b-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                     <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
                   </dl>
                   <div class="actions">
@@ -588,12 +618,85 @@ body.is-previewing { overflow: hidden; }
         </ol>
 
         <div class="divider"></div>
-        <details class="disclosure risky">
+        <details class="disclosure risky" id="b-plain-wrap">
           <summary>Print an unprotected paper wallet instead</summary>
           <p>This prints the private key itself, with no password. <strong>Anyone who sees or photographs the paper can take the coins.</strong> Only use it if the paper will be locked away, for example in a safe.</p>
           <label class="check check-danger"><input type="checkbox" id="b-plain-ok"><span>I understand. I'll print to a printer connected directly to this computer, not "Save as PDF" or a network or cloud printer, which can keep a copy of the key.</span></label>
           <div class="actions"><button type="button" class="btn btn-danger-quiet" id="b-print-plain" disabled>Print unprotected paper wallet</button></div>
         </details>
+      </div>
+
+      <!-- ===================== New wallet ===================== -->
+      <div class="panel" role="tabpanel" id="panel-new" aria-labelledby="tab-new" hidden>
+        <p class="panel-lede">A brand-new wallet, <strong>made and backed up in one step</strong>. Its key is created on this page when you press the button, locked with your password straight away, and never shown or saved unlocked. The backup <em>is</em> the wallet.</p>
+        <ol class="steps">
+          <li class="step" id="n-step1" data-state="active">
+            <div class="node" aria-hidden="true"><span>1</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>What's it for?</h2>
+              <p class="step-summary"><span id="n-sum-purpose"></span> <button type="button" class="link-btn" data-restart="n">Make another</button></p>
+              <div class="step-content">
+                <fieldset class="purpose" id="n-purpose">
+                  <legend class="visually-hidden">What's this wallet for?</legend>
+                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="coins" checked><span><strong>Holding coins</strong>A new BrowserCoin wallet: a second wallet, savings, a prize pool.</span></label>
+                  <label class="purpose-opt"><input type="radio" name="n-purpose" value="mailbox"><span><strong>Mailbox key for BRC Seal</strong>Opens sealed letters and signs. Not for coins.</span></label>
+                </fieldset>
+              </div>
+            </div>
+          </li>
+
+          <li class="step" id="n-step2" data-state="active">
+            <div class="node" aria-hidden="true"><span>2</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Choose a password</h2>
+              <p class="step-sub">It locks the backup, which is the only copy of the new key. It can't be reset or recovered.</p>
+              <p class="step-summary">Password set and tested</p>
+              <div class="step-content">
+                <label class="field"><span>Password</span>
+                  <span class="input-wrap"><input type="password" id="n-password" autocomplete="new-password" spellcheck="false"><button type="button" class="reveal" data-reveal="n-password n-confirm" aria-label="Show password">Show</button></span></label>
+                <div class="meter-row"><div class="meter" id="n-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span class="meter-label" id="n-meter-label" aria-live="polite"></span></div>
+                <label class="field"><span>Confirm password</span>
+                  <span class="input-wrap"><input type="password" id="n-confirm" autocomplete="new-password" spellcheck="false"></span></label>
+                <p class="msg" id="n-pw-hint" role="status" hidden></p>
+                <label class="check"><input type="checkbox" id="n-understand"><span id="n-understand-text">I understand that if I forget this password, the backup can't be opened and anything sent to this wallet is lost.</span></label>
+              </div>
+            </div>
+          </li>
+
+          <li class="step" id="n-step3" data-state="waiting">
+            <div class="node" aria-hidden="true"><span>3</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></div>
+            <div>
+              <h2>Make it and save it</h2>
+              <div class="step-content">
+                <p class="born" id="n-born"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="12" height="8.5" rx="2"/><path d="M6.75 9V6.5a3.25 3.25 0 0 1 6.5 0V9"/></svg><span>One press makes the key, locks it with your password and test-opens the backup. <strong>Then download or print it before you close this page</strong>: nothing else will ever hold this key.</span></p>
+                <div class="actions"><button type="button" class="btn btn-primary btn-block" id="n-make" disabled>Make my wallet</button></div>
+                <div class="progress" id="n-progress" hidden><i></i></div>
+                <p class="msg" id="n-make-msg" role="status" hidden></p>
+
+                <div class="success" id="n-done" hidden>
+                  <div class="logo-moment" data-variant="lock"><div class="lm-mark"><span class="lm-ring" aria-hidden="true"></span><svg viewBox="307.6 90.0 1316.0 1316.0" aria-hidden="true"><rect class="lm-box" x="361.5" y="143.9" width="1208.2" height="1208.2" rx="198.7" fill="none" stroke="currentColor" stroke-width="107.8"/><path class="lm-v" fill="currentColor" d="M544.8 415.0L868.2 1150.0L1063.0 1150.0L1386.4 415.0L1121.0 415.0A185.7 185.7 0 0 1 1134.1 594.6L965.6 958.7L797.1 594.6A185.7 185.7 0 0 1 810.2 415.0Z"/><circle class="lm-dot" cx="965.6" cy="516.6" r="114.0" fill="var(--brand)"/></svg></div><span class="lm-word" aria-hidden="true"><span class="wm-light"><i style="--i:0">B</i><i style="--i:1">R</i><i style="--i:2">C</i></span><span class="wm-bold"><i style="--i:3">V</i><i style="--i:4">A</i><i style="--i:5">U</i><i style="--i:6">L</i><i style="--i:7">T</i></span></span></div>
+                  <h3 id="n-done-title">Your new wallet is ready</h3>
+                  <p>Made and locked in one step. Its key exists only inside this backup, which was test-opened with your password. Save it now, one or both ways.</p>
+                  <dl class="kv">
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="n-done-address"></span><button type="button" class="copy" data-copy="n-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Protection</dt><dd>AES-256, with a 128 MB scrypt password check</dd></div>
+                  </dl>
+                  <div class="actions">
+                    <button type="button" class="btn btn-primary" id="n-download"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download backup file</button>
+                    <button type="button" class="btn btn-secondary" id="n-print"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 7.5V3h9v4.5M5.5 14.5h-2v-6a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v6h-2"/><path d="M5.5 11.5h9V17h-9z"/></svg>Print paper backup</button>
+                  </div>
+                  <p class="msg" id="n-saved-msg" role="status" hidden></p>
+                  <p class="new-note" id="n-note"></p>
+                  <ul class="tips">
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Keep at least two copies in different places.</li>
+                    <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>Store the password separately, for example in a password manager.</li>
+                    <li class="caution"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 17.5 16.5h-15z"/><path d="M10 8.5v3.5M10 14.25v.25"/></svg><span id="n-tip">Nothing else holds this wallet's key. Without the backup and its password, the wallet and anything sent to it are gone.</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ol>
       </div>
 
       <!-- ===================== Restore ===================== -->
@@ -682,7 +785,7 @@ body.is-previewing { overflow: hidden; }
                     <h3 id="r-done-title">Backup unlocked</h3>
                   </div>
                   <dl class="kv">
-                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
+                    <div class="kv-row"><dt>Address</dt><dd class="addr-cell"><span class="idc" aria-hidden="true" title="The same picture appears for this address in BRC Seal and BRC Pulse"></span><span class="mono addr" id="r-done-address"></span><button type="button" class="copy" data-copy="r-done-address" aria-label="Copy address" title="Copy address"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg></button></dd></div>
                     <div class="kv-row"><dt>Check</dt><dd class="ok-text" id="r-done-check">The key matches this address</dd></div>
                   </dl>
                   <p class="msg" id="r-done-msg" role="status" hidden></p>
@@ -763,10 +866,11 @@ body.is-previewing { overflow: hidden; }
     </details>
 
     <footer class="site-foot">
-      <span>BRC Vault, version 1, build 50577689</span>
+      <span>BRC Vault <span id="app-version">1.1.0</span>, build 67bfba45</span>
       <span>Free and open source under the MIT License</span>
       <div class="works">
-        <p><b>BRC Works:</b> <span aria-current="page">Vault</span> · <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer">Pulse</a></p>
+        <p><b>BRC Works:</b> <span aria-current="page">Vault keeps it</span> · <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer">Pulse checks it</a></p>
+        <p class="rule"><b>The BRC Works rule:</b> no BRC Works page ever asks for a key that holds coins, except this one, BRC Vault, to back it up, best with Wi-Fi off. If any other page asks, it isn't us.</p>
         <p>Independent tools by <a href="https://github.com/pb-hash" target="_blank" rel="noopener noreferrer">pb-hash</a>. Not part of the official BrowserCoin project. · <a href="https://github.com/pb-hash/brc-vault" target="_blank" rel="noopener noreferrer">Source</a></p>
       </div>
     </footer>
@@ -6922,6 +7026,9 @@ zoo`.split("\n");
   var BACKUP_TYPE = "brc-vault-backup";
   var BACKUP_VERSION = 1;
   var COMPACT_PREFIX = "BRCVAULT1";
+  var MAILBOX_TYPE = "brc-vault-mailbox-key";
+  var MAILBOX_COMPACT_PREFIX = "BRCMBOX1";
+  var isBackupType = (t) => t === BACKUP_TYPE || t === MAILBOX_TYPE;
   var KEY_PREFIX = "BRCKEY1";
   var BROWSERCOIN_WALLET_TYPE = "browsercoin-wallet";
   var BROWSERCOIN_WARNING = "Anyone with the private key controls the wallet. Keep this safe.";
@@ -6956,6 +7063,23 @@ zoo`.split("\n");
       throw new Error("A BrowserCoin private key is exactly 32 bytes (64 hex characters).");
     }
     return bytesToHex2(getPublicKey(privateKeyBytes));
+  }
+  function newWallet() {
+    const privateKey = randomBytes3(32);
+    return { privateKey, address: addressFromPrivateKey(privateKey) };
+  }
+  var PIC_COLORS = ["#5956fd", "#0d7a5f", "#e0552f", "#1f8fd6", "#c2417a", "#7c5cff", "#d99a0b", "#2f9e8f"];
+  function addressPicture(address) {
+    const b = sha256(hexToBytes2(String(address).toLowerCase(), 32));
+    const c1 = PIC_COLORS[b[0] % 8];
+    let c2 = PIC_COLORS[b[1] % 8];
+    if (c2 === c1) c2 = PIC_COLORS[(b[1] + 3) % 8];
+    const colors = [];
+    for (let row = 0; row < 3; row++) {
+      const left = b[2 + row] & 3, mid = b[5 + row] & 3;
+      for (const v of [left, mid, left]) colors.push(v === 0 ? "transparent" : v === 3 ? c2 : c1);
+    }
+    return { colors };
   }
   function shortAddress(address) {
     return `${address.slice(0, 10)}\u2026${address.slice(-4)}`;
@@ -7016,9 +7140,9 @@ zoo`.split("\n");
     raw.fill(0);
     return key;
   }
-  function associatedData(address, kdf, saltHex, ivHex) {
+  function associatedData(type, address, kdf, saltHex, ivHex) {
     return new TextEncoder().encode(
-      [BACKUP_TYPE, BACKUP_VERSION, address, kdf.name, kdf.logN, kdf.r, kdf.p, kdf.dkLen, saltHex, ivHex].join("|")
+      [type, BACKUP_VERSION, address, kdf.name, kdf.logN, kdf.r, kdf.p, kdf.dkLen, saltHex, ivHex].join("|")
     );
   }
   function passwordProblems(password, confirm) {
@@ -7040,14 +7164,14 @@ zoo`.split("\n");
   var checkIv = HEX_FIELD("iv", 12);
   var checkCiphertext = HEX_FIELD("locked key", 48);
   function validateBackup(b) {
-    if (!b || typeof b !== "object" || b.type !== BACKUP_TYPE) throw new Error("This is not a BRC Vault backup.");
+    if (!b || typeof b !== "object" || !isBackupType(b.type)) throw new Error("This is not a BRC Vault backup.");
     if (b.version !== BACKUP_VERSION) throw new Error(`This backup is version ${String(b.version).slice(0, 8)}; this copy of BRC Vault reads version ${BACKUP_VERSION}.`);
     const k = b.kdf || {};
     const kdf = { name: k.name, logN: k.logN, r: k.r, p: k.p, dkLen: k.dkLen };
     checkKdf(kdf);
     if (!b.cipher || b.cipher.name !== "aes-256-gcm") throw new Error("Unsupported encryption method in this backup.");
     return {
-      type: BACKUP_TYPE,
+      type: b.type,
       version: BACKUP_VERSION,
       address: checkAddress(b.address),
       kdf: { ...kdf, salt: checkSalt(k.salt) },
@@ -7055,7 +7179,8 @@ zoo`.split("\n");
       ciphertext: checkCiphertext(b.ciphertext)
     };
   }
-  async function encryptWallet(wallet, password, { kdf = DEFAULT_KDF, onProgress } = {}) {
+  async function encryptWallet(wallet, password, { kdf = DEFAULT_KDF, onProgress, purpose = "coins" } = {}) {
+    const type = purpose === "mailbox" ? MAILBOX_TYPE : BACKUP_TYPE;
     const problems = passwordProblems(password);
     if (problems.length) throw new Error(problems.join(" "));
     const salt = randomBytes3(16);
@@ -7064,19 +7189,19 @@ zoo`.split("\n");
     const ivHex = bytesToHex2(iv);
     const key = await deriveKey(password, salt, kdf, onProgress);
     const ct = new Uint8Array(await globalThis.crypto.subtle.encrypt(
-      { name: "AES-GCM", iv, additionalData: associatedData(wallet.address, kdf, saltHex, ivHex), tagLength: 128 },
+      { name: "AES-GCM", iv, additionalData: associatedData(type, wallet.address, kdf, saltHex, ivHex), tagLength: 128 },
       key,
       wallet.privateKey
     ));
     return {
-      type: BACKUP_TYPE,
+      type,
       version: BACKUP_VERSION,
       address: wallet.address,
       kdf: { ...kdf, salt: saltHex },
       cipher: { name: "aes-256-gcm", iv: ivHex },
       ciphertext: bytesToHex2(ct),
       created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
-      note: 'Locked BRC Vault backup. The private key is encrypted inside "ciphertext" and can only be unlocked with your password in BRC Vault. The address is public and safe to share.'
+      note: type === MAILBOX_TYPE ? 'Locked BRC mailbox key. It opens sealed letters and signs in BRC Seal; it is not for holding coins. The key is encrypted inside "ciphertext" and only your password unlocks it, in BRC Seal or BRC Vault. The address is public and safe to share.' : 'Locked BRC Vault backup. The private key is encrypted inside "ciphertext" and can only be unlocked with your password in BRC Vault. The address is public and safe to share.'
     };
   }
   async function decryptBackup(backup2, password, { onProgress } = {}) {
@@ -7089,15 +7214,18 @@ zoo`.split("\n");
     let pt;
     try {
       pt = new Uint8Array(await globalThis.crypto.subtle.decrypt(
-        { name: "AES-GCM", iv, additionalData: associatedData(b.address, kdf, saltHex, b.cipher.iv), tagLength: 128 },
+        { name: "AES-GCM", iv, additionalData: associatedData(b.type, b.address, kdf, saltHex, b.cipher.iv), tagLength: 128 },
         key,
         ct
       ));
     } catch {
       throw new Error("Wrong password, or the backup has been changed or damaged.");
     }
-    const wallet = { privateKey: pt, address: addressFromPrivateKey(pt) };
-    if (wallet.address !== b.address) throw new Error("The decrypted key does not match the address in the backup.");
+    const wallet = { privateKey: pt, address: addressFromPrivateKey(pt), purpose: b.type === MAILBOX_TYPE ? "mailbox" : "coins" };
+    if (wallet.address !== b.address) {
+      wipeWallet(wallet);
+      throw new Error("The decrypted key does not match the address in the backup.");
+    }
     return wallet;
   }
   var DESKTOP_FORMAT = "brc-wallet-desktop";
@@ -7240,19 +7368,20 @@ zoo`.split("\n");
     return wallet;
   }
   function backupToCompact(b) {
-    return [COMPACT_PREFIX, b.address, b.kdf.logN, b.kdf.r, b.kdf.p, b.kdf.salt, b.cipher.iv, b.ciphertext].join(":").toUpperCase();
+    return [b.type === MAILBOX_TYPE ? MAILBOX_COMPACT_PREFIX : COMPACT_PREFIX, b.address, b.kdf.logN, b.kdf.r, b.kdf.p, b.kdf.salt, b.cipher.iv, b.ciphertext].join(":").toUpperCase();
   }
   var SMALL_INT = /^(0|[1-9][0-9]{0,2})$/;
   function compactToBackup(text) {
     const parts = String(text).replace(/\s+/g, "").split(":");
-    if (parts[0].toUpperCase() !== COMPACT_PREFIX) throw new Error("This is not a BRC Vault backup code.");
+    const prefix = parts[0].toUpperCase();
+    if (prefix !== COMPACT_PREFIX && prefix !== MAILBOX_COMPACT_PREFIX) throw new Error("This is not a BRC Vault backup code.");
     if (parts.length !== 8) throw new Error("This backup code has the wrong number of parts. Check that every line, including the colons, was copied.");
     const [, address, logN, r, p, salt, iv, ciphertext] = parts;
     for (const [label, v] of [["strength settings", logN], ["strength settings", r], ["strength settings", p]]) {
       if (!SMALL_INT.test(v)) throw new Error(`The ${label} in this backup code are damaged.`);
     }
     return validateBackup({
-      type: BACKUP_TYPE,
+      type: prefix === MAILBOX_COMPACT_PREFIX ? MAILBOX_TYPE : BACKUP_TYPE,
       version: BACKUP_VERSION,
       address,
       kdf: { name: "scrypt", logN: Number(logN), r: Number(r), p: Number(p), dkLen: 32, salt },
@@ -7261,7 +7390,7 @@ zoo`.split("\n");
     });
   }
   function qrPayload(compactOrKey) {
-    return String(compactOrKey).replace(/^(BRCVAULT1|BRCKEY1) /, "$1:");
+    return String(compactOrKey).replace(/^(BRCVAULT1|BRCMBOX1|BRCKEY1) /, "$1:");
   }
   function lineCheck(content) {
     const norm = String(content).replace(/\s+/g, "").toUpperCase();
@@ -7324,10 +7453,10 @@ zoo`.split("\n");
   function identifyInput(text) {
     if (String(text).length > MAX_INPUT_LENGTH) throw new Error("This is far too long to be a wallet, a backup or a key.");
     const clean2 = String(text).replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, "").replace(/[\u00A0\u2007\u202F]/g, " ").replace(/[\u2028\u2029\r]/g, "\n");
-    const t = clean2.trim().replace(/^(BRCVAULT1|BRCKEY1)[ \t]+(?=[0-9A-Fa-f])/i, (m, p) => `${p.toUpperCase()}:`);
+    const t = clean2.trim().replace(/^(BRCVAULT1|BRCMBOX1|BRCKEY1)[ \t]+(?=[0-9A-Fa-f])/i, (m, p) => `${p.toUpperCase()}:`);
     if (!t) throw new Error("Nothing to read yet.");
     const squashed = t.toUpperCase().replace(/\s+/g, "");
-    if (squashed.startsWith(COMPACT_PREFIX + ":")) {
+    if (squashed.startsWith(COMPACT_PREFIX + ":") || squashed.startsWith(MAILBOX_COMPACT_PREFIX + ":")) {
       return { kind: "vault-backup", backup: compactToBackup(stripPaperChecks(t)) };
     }
     if (squashed.startsWith(KEY_PREFIX + ":")) {
@@ -7350,7 +7479,7 @@ zoo`.split("\n");
       return { kind: "private-key", wallet, ambiguous: false, checked: false };
     }
     let body = t;
-    if (!body.startsWith("{") && /browsercoin-wallet|brc-vault-backup|privateKeyHex/.test(body)) {
+    if (!body.startsWith("{") && /browsercoin-wallet|brc-vault-backup|brc-vault-mailbox-key|privateKeyHex/.test(body)) {
       body = `{${body.replace(/^[\s{]*/, "").replace(/[\s}]*$/, "")}}`;
     } else if (body.startsWith("{") && !body.endsWith("}") && /"(type|privateKeyHex)"\s*:/.test(body)) {
       body = `${body.replace(/[\s,]*$/, "")}}`;
@@ -7361,7 +7490,7 @@ zoo`.split("\n");
         parsed = { ...parsed, type: BROWSERCOIN_WALLET_TYPE };
       }
       if (parsed) {
-        if (parsed.type === BACKUP_TYPE) return { kind: "vault-backup", backup: validateBackup(parsed) };
+        if (isBackupType(parsed.type)) return { kind: "vault-backup", backup: validateBackup(parsed) };
         if (parsed.type === BROWSERCOIN_WALLET_TYPE && parsed.encrypted === true) return { kind: "desktop-backup", backup: validateDesktopBackup(parsed) };
         if (parsed.type === BROWSERCOIN_WALLET_TYPE) return { kind: "browsercoin-wallet", wallet: refuseWellKnownKey(parseBrowserCoinWallet(JSON.stringify(parsed))) };
         throw new Error("This file is neither a BrowserCoin wallet nor a BRC Vault backup.");
@@ -7467,7 +7596,8 @@ zoo`.split("\n");
       }
       return { kind: "browsercoin-wallet", wallet, rescued: true };
     }
-    if (/brc-vault-backup/.test(text)) {
+    const rescueType = /brc-vault-mailbox-key/.test(text) ? MAILBOX_TYPE : /brc-vault-backup/.test(text) ? BACKUP_TYPE : null;
+    if (rescueType) {
       const f = {
         address: field(text, "address", "[0-9a-fA-F]{64}"),
         logN: field(text, "logN", "[0-9]{1,3}"),
@@ -7479,7 +7609,7 @@ zoo`.split("\n");
       };
       try {
         const backup2 = validateBackup({
-          type: BACKUP_TYPE,
+          type: rescueType,
           version: BACKUP_VERSION,
           address: f.address,
           kdf: { name: "scrypt", logN: Number(f.logN), r: Number(f.r), p: Number(f.p), dkLen: 32, salt: f.salt },
@@ -7620,7 +7750,9 @@ zoo`.split("\n");
     intakes[prefix] = { setMode, handleFile, onText, isOpen, drop: $(`#${prefix}-drop`), mode: () => intake.dataset.mode };
   }
   function activeIntake() {
-    const tab = $("#segmented").dataset.active === "restore" ? "r" : "b";
+    const active = $("#segmented").dataset.active;
+    if (active === "new") return null;
+    const tab = active === "restore" ? "r" : "b";
     const it = intakes[tab];
     return it && it.isOpen() && $("#paper-preview").hidden ? it : null;
   }
@@ -7660,7 +7792,17 @@ zoo`.split("\n");
     const it = activeIntake();
     if (it) it.handleFile(e.dataTransfer?.files?.[0]);
   });
+  function paintIdenticon(node, address) {
+    node.replaceChildren();
+    for (const colour of addressPicture(address).colors) {
+      const cell = document.createElement("i");
+      cell.style.background = colour;
+      node.append(cell);
+    }
+  }
   function renderAddress(el, addr) {
+    const idc = el.parentElement && el.parentElement.querySelector(".idc");
+    if (idc) paintIdenticon(idc, addr);
     const groups = addr.match(/.{1,8}/g).map((g, i, all) => {
       const span = document.createElement("span");
       span.className = "g";
@@ -7869,7 +8011,7 @@ zoo`.split("\n");
     t.addEventListener("keydown", (e) => {
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
       const tabs = $$('[role="tab"]');
-      const next = tabs[(tabs.indexOf(t) + 1) % tabs.length];
+      const next = tabs[(tabs.indexOf(t) + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
       selectTab(next.dataset.tab);
       next.focus();
     });
@@ -7897,7 +8039,7 @@ zoo`.split("\n");
   var scanner = { stream: null, raf: 0, onCode: null, canvas: null, token: 0 };
   function scanProblem(text) {
     const t = String(text).trim();
-    if (/^(BRCVAULT1|BRCKEY1)[:\s]/i.test(t)) return null;
+    if (/^(BRCVAULT1|BRCMBOX1|BRCKEY1)[:\s]/i.test(t)) return null;
     if (/^(0x)?[0-9a-fA-F]{64}$/.test(t)) return "That's the wallet address QR code, which can't restore anything. Hold up the larger locked backup QR code instead.";
     return "That QR code isn't from a BRC Vault paper backup. Hold up the locked backup QR code.";
   }
@@ -8042,6 +8184,7 @@ zoo`.split("\n");
       if (id.kind === "vault-backup") throw new Error("That is already a BRC Vault backup. To open it, switch to Restore.");
       if (id.kind === "desktop-backup") throw new Error("That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.");
       backup.wallet = id.wallet;
+      $("#b-check").textContent = "The key matches this address";
       backup.kind = id.kind === "private-key" ? id.words ? "words" : id.ambiguous ? "ambiguous-key" : "key" : "file";
       backup.confirm = Boolean(id.ambiguous || id.checked === false);
       $("#b-key-confirm-text").innerHTML = backup.kind === "words" ? "The address above is the one my wallet app shows. <strong>A mistyped or out-of-order word</strong> can, rarely, make a different, empty wallet." : "I pasted my <strong>private key</strong>, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.";
@@ -8159,7 +8302,7 @@ zoo`.split("\n");
   });
   $("#b-download").addEventListener("click", () => {
     const r = backup.result;
-    download(`brc-vault-backup-${r.address.slice(0, 8)}.json`, JSON.stringify(r, null, 2));
+    download(`${r.type === MAILBOX_TYPE ? "brc-mailbox-key" : "brc-vault-backup"}-${r.address.slice(0, 8)}.json`, JSON.stringify(r, null, 2));
     setMessage($("#b-saved-msg"), "Backup file downloaded. Keep a second copy somewhere else.", "good");
   });
   $("#b-print").addEventListener("click", () => openPaperPreview(encryptedSheet(backup.result), "encrypted"));
@@ -8273,13 +8416,13 @@ zoo`.split("\n");
     show($("#r-reprint-row"), unlocked && !desktop);
     restore.unverified = Boolean(ambiguous);
     restore.toBackup = !unlocked || desktop;
-    $("#r-done-title").textContent = desktop ? "Wallet file unlocked" : unlocked ? "Backup unlocked" : "Wallet ready";
+    $("#r-done-title").textContent = desktop ? "Wallet file unlocked" : wallet.purpose === "mailbox" ? "Mailbox key unlocked" : unlocked ? "Backup unlocked" : "Wallet ready";
     $("#r-done-check").textContent = desktop ? "The key matches the address in the wallet file" : unlocked ? "The key matches the address in the backup" : from === "words" ? "Address worked out from these words" : "Address worked out from this key";
     $("#r-sum-unlock").textContent = unlocked ? "Unlocked with your password" : "No password needed";
     $("#r-step1").dataset.collapsed = "";
     $("#r-step2").dataset.collapsed = "";
     setMessage($("#r-load-msg"), "");
-    setMessage($("#r-done-msg"), ambiguous && from === "words" ? "Check this address against the one your wallet app shows. A mistyped or out-of-order word can, rarely, still pass the words' built-in check and open a different, empty wallet." : ambiguous ? "Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn't your address, use your locked backup code or the full BRCKEY1 code from your paper wallet." : "", "warn");
+    setMessage($("#r-done-msg"), ambiguous && from === "words" ? "Check this address against the one your wallet app shows. A mistyped or out-of-order word can, rarely, still pass the words' built-in check and open a different, empty wallet." : ambiguous ? "Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn't your address, use your locked backup code or the full BRCKEY1 code from your paper wallet." : wallet.purpose === "mailbox" ? "This is a mailbox key for BRC Seal. Open the locked file in BRC Seal itself to read letters. To keep it a mailbox key, BRC Vault doesn't turn it into a wallet file or recovery words; you can print a new paper copy of the locked backup." : "", "warn");
     renderAddress($("#r-done-address"), wallet.address);
     if (restore.pending) playLockMoment($("#r-success"), "unlock");
     else $("#r-success").classList.add("is-in");
@@ -8308,16 +8451,19 @@ zoo`.split("\n");
     $("#r-words").innerHTML = "";
   }
   function updateRestoreDownload() {
-    $("#r-download").disabled = !(restore.wallet && $("#r-ok-address").checked && $("#r-ok-replace").checked);
+    const mailbox = Boolean(restore.wallet && restore.wallet.purpose === "mailbox");
+    show($("#r-ok-replace").closest("label"), !mailbox);
+    show($("#r-download").parentElement, !mailbox);
+    $("#r-download").disabled = mailbox || !(restore.wallet && $("#r-ok-address").checked && $("#r-ok-replace").checked);
     const confirmed = Boolean(restore.wallet) && (!restore.unverified || $("#r-ok-address").checked);
     show($("#r-to-backup-row"), confirmed && Boolean(restore.toBackup));
-    show($("#r-words-wrap"), confirmed);
+    show($("#r-words-wrap"), confirmed && !mailbox);
     if (!confirmed) closeRestoreWords();
   }
   ["#r-ok-address", "#r-ok-replace"].forEach((s) => $(s).addEventListener("change", updateRestoreDownload));
   $("#r-download").addEventListener("click", () => {
     const w = restore.wallet;
-    if (!w || $("#r-download").disabled) return;
+    if (!w || $("#r-download").disabled || w.purpose === "mailbox") return;
     download(browserCoinWalletFilename(w), browserCoinWalletJson(w));
     toast("Wallet file saved to your Downloads");
     setStep("#r-step3", "done");
@@ -8335,7 +8481,7 @@ zoo`.split("\n");
     const code = backupToCompact(result);
     const lines = paperCodeLines(code).map((l) => `<span class="ps-codeline">${escapeHtml(l.text)} <span class="ps-check">[${escapeHtml(l.check)}]</span></span>`).join("<br>");
     return `
-    ${sheetHead("Paper backup", "Password-protected BrowserCoin wallet")}
+    ${sheetHead("Paper backup", result.type === MAILBOX_TYPE ? "Password-protected BRC mailbox key" : "Password-protected BrowserCoin wallet")}
     <section class="ps-panel">
       <div class="ps-qr">${qrSvg(result.address, { label: "Wallet address QR code" })}</div>
       <div>
@@ -8356,13 +8502,18 @@ zoo`.split("\n");
     </section>
     <section class="ps-steps">
       <div>
-        <h3>To get your coins back</h3>
+        ${result.type === MAILBOX_TYPE ? `<h3>To use this mailbox key again</h3>
+        <ol>
+          <li>Open BRC Seal and choose Your mailbox key.</li>
+          <li>Type the locked backup code exactly as printed, with the checks in brackets.</li>
+          <li>Enter your password. Your letters open on that page; nothing is sent anywhere.</li>
+        </ol>` : `<h3>To get your coins back</h3>
         <ol>
           <li>Open BRC Vault and choose Restore.</li>
           <li>Choose Scan paper backup and hold this sheet up to the camera, or type the code exactly as printed.</li>
           <li>Enter your password and download the wallet file.</li>
           <li>At browsercoin.org/app, open Settings and choose Import key\u2026</li>
-        </ol>
+        </ol>`}
       </div>
       <div>
         <h3>About the password</h3>
@@ -8429,6 +8580,7 @@ zoo`.split("\n");
   }
   function closePaperPreview() {
     clearTimeout(printWatch);
+    fresh.printing = false;
     show($("#paper-preview"), false);
     document.body.classList.remove("is-previewing");
     $("#print-sheet").innerHTML = "";
@@ -8512,9 +8664,190 @@ zoo`.split("\n");
   }
   $$("[data-restart]").forEach((btn) => btn.addEventListener("click", () => {
     if (btn.dataset.restart === "b") restartBackup();
+    else if (btn.dataset.restart === "n") restartNewWallet();
     else restartRestore();
   }));
+  var fresh = { result: null, busy: false, saved: false, gen: 0, discardAsked: null, printing: false };
+  function lockNewWalletForm(on) {
+    ["#n-password", "#n-confirm", "#n-understand"].forEach((sel) => {
+      $(sel).disabled = on;
+    });
+    $$('input[name="n-purpose"]').forEach((r) => {
+      r.disabled = on || Boolean(fresh.result);
+    });
+  }
+  function newPurpose() {
+    return $('input[name="n-purpose"]:checked')?.value === "mailbox" ? "mailbox" : "coins";
+  }
+  function updateNewWalletState() {
+    const mailbox = newPurpose() === "mailbox";
+    if (!fresh.busy) $("#n-make").textContent = mailbox ? "Make my mailbox key" : "Make my wallet";
+    $("#n-understand-text").textContent = mailbox ? "I understand that if I forget this password, the backup can't be opened and letters sealed to this mailbox can't be read." : "I understand that if I forget this password, the backup can't be opened and anything sent to this wallet is lost.";
+    const pw = $("#n-password").value;
+    const confirm = $("#n-confirm").value;
+    const problems = passwordProblems(pw, confirm);
+    const level = strength(pw);
+    $("#n-meter").dataset.level = String(level);
+    $("#n-meter-label").dataset.level = String(level);
+    $("#n-meter-label").textContent = ["", "Too weak", "Fair", "Good", "Strong"][level];
+    const hint = $("#n-pw-hint");
+    if (fresh.result) setMessage(hint, "");
+    else if (!pw && !confirm) setMessage(hint, `At least ${MIN_PASSWORD_LENGTH} characters. A short sentence you'll remember works well.`, "info");
+    else if (problems.length) setMessage(hint, problems[0], pw.length >= MIN_PASSWORD_LENGTH ? "warn" : "info");
+    else setMessage(hint, "Passwords match.", "good");
+    const ready = problems.length === 0 && $("#n-understand").checked;
+    if (!fresh.result) {
+      setStep("#n-step1", pw || confirm ? "done" : "active");
+      setStep("#n-step2", ready ? "done" : "active");
+      setStep("#n-step3", ready ? "active" : "waiting");
+    }
+    $("#n-make").disabled = !ready || fresh.busy || Boolean(fresh.result);
+  }
+  function resetNewWallet() {
+    fresh.gen++;
+    fresh.result = null;
+    fresh.saved = false;
+    fresh.discardAsked = null;
+    ["#n-password", "#n-confirm"].forEach((sel) => {
+      $(sel).value = "";
+    });
+    $("#n-understand").checked = false;
+    $$('input[name="n-purpose"]').forEach((r) => {
+      r.disabled = false;
+    });
+    ["#n-step1", "#n-step2"].forEach((sel) => {
+      delete $(sel).dataset.collapsed;
+    });
+    $("#n-step2 .step-sub").hidden = false;
+    const done = $("#n-done");
+    done.classList.remove("is-in");
+    show(done, false);
+    show($("#n-make").parentElement, true);
+    show($("#n-born"), true);
+    ["#n-make-msg", "#n-saved-msg"].forEach((sel) => setMessage($(sel), ""));
+    updateNewWalletState();
+  }
+  function restartNewWallet() {
+    if (fresh.result && !fresh.saved && fresh.discardAsked !== "restart") {
+      fresh.discardAsked = "restart";
+      setMessage($("#n-saved-msg"), "This backup hasn't been downloaded or printed yet, and it is the only copy of the key. Save it first, or press Make another again to discard it.", "warn");
+      return;
+    }
+    resetNewWallet();
+    $("#n-step1").scrollIntoView({ block: "nearest" });
+    $('input[name="n-purpose"]:checked').focus({ preventScroll: true });
+  }
+  $$('input[name="n-purpose"]').forEach((r) => r.addEventListener("change", updateNewWalletState));
+  ["#n-password", "#n-confirm"].forEach((sel) => $(sel).addEventListener("input", updateNewWalletState));
+  $("#n-understand").addEventListener("change", updateNewWalletState);
+  $("#n-confirm").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !$("#n-make").disabled) $("#n-make").click();
+  });
+  $("#n-make").addEventListener("click", async () => {
+    if (fresh.busy || fresh.result) return;
+    primeAudio();
+    const btn = $("#n-make");
+    const msg = $("#n-make-msg");
+    const myGen = fresh.gen;
+    const purpose = newPurpose();
+    fresh.busy = true;
+    btn.disabled = true;
+    setBusy(btn, "Making and locking\u2026");
+    setMessage(msg, "This takes a few seconds on purpose. It makes password guessing slow.", "info");
+    lockNewWalletForm(true);
+    await startBusy($("#n-progress"));
+    let wallet = null;
+    try {
+      if (myGen !== fresh.gen) return;
+      const password = $("#n-password").value;
+      wallet = newWallet();
+      const result = await encryptWallet(wallet, password, { purpose });
+      const check = await decryptBackup(result, password);
+      wipeWallet(check);
+      if (check.address !== wallet.address) throw new Error("Self-check failed. No wallet was made.");
+      if (myGen !== fresh.gen) {
+        setMessage(msg, "");
+        return;
+      }
+      fresh.result = result;
+      fresh.saved = false;
+      ["#n-password", "#n-confirm"].forEach((sel) => {
+        $(sel).value = "";
+      });
+      $("#n-meter").dataset.level = "0";
+      $("#n-meter-label").textContent = "";
+      setMessage($("#n-pw-hint"), "");
+      setMessage(msg, "");
+      show(btn.parentElement, false);
+      show($("#n-born"), false);
+      setStep("#n-step1", "done");
+      setStep("#n-step2", "done");
+      setStep("#n-step3", "done");
+      const mailbox = result.type === MAILBOX_TYPE;
+      $("#n-sum-purpose").textContent = mailbox ? "Mailbox key for BRC Seal" : "Holding coins";
+      $("#n-step1").dataset.collapsed = "";
+      $("#n-step2").dataset.collapsed = "";
+      $("#n-step2 .step-sub").hidden = true;
+      $$('input[name="n-purpose"]').forEach((r) => {
+        r.disabled = true;
+      });
+      renderAddress($("#n-done-address"), result.address);
+      $("#n-done-title").textContent = mailbox ? "Your new mailbox key is ready" : "Your new wallet is ready";
+      $("#n-note").innerHTML = mailbox ? "Open this file in <strong>BRC Seal</strong> with your password to read letters sealed to this address and to sign. <strong>Don't send coins to it:</strong> it's a mailbox, and BRC Seal will hold its key." : "To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in <strong>Restore</strong>: it gives you a wallet file for the app's <strong>Settings &gt; Import key\u2026</strong> Importing replaces the wallet the app has open, so back that one up first.";
+      $("#n-tip").textContent = mailbox ? "Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can't be opened." : "Nothing else holds this wallet's key. Without the backup and its password, the wallet and anything sent to it are gone.";
+      const done = $("#n-done");
+      show(done, true);
+      playLockMoment(done, "lock");
+      $("#n-download").focus({ preventScroll: true });
+      done.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+    } catch (e) {
+      setMessage(msg, myGen === fresh.gen ? e.message : "", "bad");
+    } finally {
+      wipeWallet(wallet);
+      fresh.busy = false;
+      lockNewWalletForm(false);
+      setBusy(btn, null);
+      show($("#n-progress"), false);
+      updateNewWalletState();
+    }
+  });
+  function newWalletSaved(how) {
+    fresh.saved = true;
+    fresh.discardAsked = null;
+    setMessage($("#n-saved-msg"), how, "good");
+  }
+  $("#n-download").addEventListener("click", () => {
+    const r = fresh.result;
+    if (!r) return;
+    download(`${r.type === MAILBOX_TYPE ? "brc-mailbox-key" : "brc-vault-backup"}-${r.address.slice(0, 8)}.json`, JSON.stringify(r, null, 2));
+    newWalletSaved("Backup file downloaded. Keep a second copy somewhere else.");
+  });
+  $("#n-print").addEventListener("click", () => {
+    if (!fresh.result) return;
+    openPaperPreview(encryptedSheet(fresh.result), "encrypted");
+    fresh.printing = true;
+  });
+  window.addEventListener("beforeprint", () => {
+    if (fresh.printing && fresh.result && !$("#paper-preview").hidden) newWalletSaved("Paper backup sent to print. Keep the file too, or a second paper copy somewhere else.");
+  });
+  window.addEventListener("beforeunload", (e) => {
+    if (fresh.result && !fresh.saved) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
+  $$("[data-goto]").forEach((b) => b.addEventListener("click", () => {
+    selectTab(b.dataset.goto);
+    $(`#tab-${b.dataset.goto}`).focus();
+  }));
   $("#clear-all").addEventListener("click", () => {
+    if (fresh.result && !fresh.saved && fresh.discardAsked !== "clear") {
+      fresh.discardAsked = "clear";
+      selectTab("new");
+      setMessage($("#n-saved-msg"), "Your new wallet's backup hasn't been downloaded or printed yet, and it is the only copy of the key. Save it first, or press Clear page again to discard it.", "warn");
+      $("#n-saved-msg").scrollIntoView({ block: "center" });
+      return;
+    }
     gen.backup++;
     stopScan();
     wipeWallet(backup.wallet);
@@ -8538,6 +8871,7 @@ zoo`.split("\n");
     $$(".msg").forEach((m) => setMessage(m, ""));
     show($("#b-loaded"), false);
     resetBackupOutput();
+    resetNewWallet();
     $("#b-print-plain").disabled = true;
     resetRestore();
     if (!$("#paper-preview").hidden) closePaperPreview();
@@ -8559,8 +8893,15 @@ zoo`.split("\n");
   renderSoundToggle();
   renderConnection();
   selectTab("backup");
+  updateNewWalletState();
   updatePasswordState();
   setMessage($("#b-pw-hint"), "");
+  if (location.hash === "#new" || location.hash === "#new-mailbox") {
+    if (location.hash === "#new-mailbox") $('input[name="n-purpose"][value="mailbox"]').checked = true;
+    updateNewWalletState();
+    selectTab("new");
+    $("#tab-new").scrollIntoView({ block: "start" });
+  }
 })();
 
 </script>

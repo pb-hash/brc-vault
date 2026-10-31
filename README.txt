@@ -25,6 +25,11 @@ Restore:  load the backup file or type the paper code, enter the password, and
           get a wallet file that BrowserCoin's Settings > Import key... accepts.
           It also opens 24 recovery words and password-protected files from the
           BRC Wallet desktop app.
+New wallet: choose what it's for (holding coins, or a mailbox key for BRC
+          Seal) and a password, and press Make my wallet. The key is made,
+          locked, test-opened and wiped from the page in one step: it is never
+          shown or saved unlocked, and the backup is the only copy. Open it in
+          Restore when you want a wallet file for BrowserCoin's Import key...
 
 Works with the other BrowserCoin wallets
 ----------------------------------------

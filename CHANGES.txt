@@ -4,7 +4,11 @@ Version numbers: last number for fixes and wording, middle number for new
 features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
-1.1.0 (in testing)
+1.1.0 (Oct 31, 2026)
+  - Release: fixes from a pre-launch review of New wallet: the password and
+    purpose are locked while the key is made; Clear page and Make another
+    each need a second press while an unsaved new wallet is on the page;
+    opening the print preview only counts as saved once printing starts.
   - test.2: New wallet is its own tab (Back up · Restore · + New wallet),
     no longer a choice inside Back up, which is now only for wallets you
     already have. Making a wallet and backing it up are one step: choose
