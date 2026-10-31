@@ -657,6 +657,13 @@ process.stdout.write(bc.importWalletJson(readFileSync({json.dumps(str(new_wallet
     mb.close()
     ok("Restore recognises a mailbox key and says what it is for")
 
+    hp = browser.new_page(); hp.goto(PAGE + "#new-mailbox")
+    expect(hp.locator("#b-new")).to_have_text("Make a mailbox key")
+    expect(hp.locator("#b-loaded")).to_be_hidden()  # nothing is made until the button is pressed
+    hp.click("#b-new")
+    expect(hp.locator('input[name="b-purpose"][value="mailbox"]')).to_be_checked()
+    hp.close()
+    ok("a link from BRC Seal (#new-mailbox) offers a mailbox key, and makes nothing until asked")
     vp = browser.new_page(); vp.goto(PAGE)
     expect(vp.locator("#app-version")).to_have_text(json.loads((ROOT / "package.json").read_text())["version"])
     vp.close()

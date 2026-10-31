@@ -613,6 +613,10 @@ function loadWalletForBackup(text, source) {
   if (backup.wallet && backupKeyConfirmed()) $('#b-password').focus();
 }
 
+// Arriving from BRC Seal's "Make one in BRC Vault" (#new-mailbox): a new wallet
+// starts as a mailbox key. Nothing happens until the person presses the button.
+let wantMailbox = false;
+
 // A fresh wallet, made here, that goes straight into a locked backup. Its key
 // is never shown or saved unlocked: the backup is the only copy.
 function makeNewWalletForBackup() {
@@ -624,7 +628,7 @@ function makeNewWalletForBackup() {
   backup.wallet = core.newWallet();
   backup.kind = 'new';
   backup.confirm = false;
-  $('input[name="b-purpose"][value="coins"]').checked = true;
+  $(`input[name="b-purpose"][value="${wantMailbox ? 'mailbox' : 'coins'}"]`).checked = true;
   show($('#b-purpose'), true);
   renderAddress($('#b-address'), backup.wallet.address);
   $('#b-check').textContent = 'Made just now on this page. It holds no coins yet.';
@@ -1173,3 +1177,10 @@ renderConnection();
 selectTab('backup');
 updatePasswordState();
 setMessage($('#b-pw-hint'), '');
+if (location.hash === '#new-mailbox') {
+  wantMailbox = true;
+  $('#b-new').textContent = 'Make a mailbox key';
+  $('#b-new-row').firstChild.textContent = 'Here from BRC Seal? ';
+  $('#b-new').focus({ preventScroll: true });
+  $('#b-new-row').scrollIntoView({ block: 'center' });
+}
