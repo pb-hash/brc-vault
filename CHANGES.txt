@@ -4,6 +4,11 @@ Version numbers: last number for fixes and wording, middle number for new
 features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
+1.1.2 (Oct 31, 2026)
+  - The whole BRC Works family: BRC Post in the top switcher (Vault · Post ·
+    Pulse) and the footer ("Vault keeps it · Post seals it · Pulse checks
+    it"). The rule line reads the same as Pulse and Post.
+
 1.1.1 (Oct 31, 2026)
   - Release: BRC Seal is BRC Post everywhere; a restored mailbox points to
     BRC Post; and the review fixes below (reviewed before release).

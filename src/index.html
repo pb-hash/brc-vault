@@ -423,7 +423,10 @@ body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-t
   .trust { grid-template-columns: 1fr; gap: 1.5rem; }
   .kv-row { grid-template-columns: 1fr; gap: 0.15rem; }
   .status-pill .label-long { display: none; }
+  .status-pill { white-space: nowrap; height: 1.8rem; padding: 0 0.6rem; font-size: 0.74rem; gap: 0.35rem; }
 }
+/* Three tools in the switcher: on the narrowest phones the pill keeps just its dot (its words are in its title). */
+@media (max-width: 400px) { .status-pill .connection-text { display: none; } .status-pill { padding: 0 0.55rem; } }
 @media (prefers-reduced-motion: reduce) {
   .lm-ring { display: none; }
   *, *::before, *::after { transition-duration: 0.01ms !important; transition-delay: 0s !important; animation: none !important; }
@@ -502,6 +505,7 @@ body.is-previewing { overflow: hidden; }
       <div class="topbar-right">
         <nav class="family" aria-label="BRC Works">
           <span class="cur" aria-current="page"><svg viewBox="/*__MARK_VIEW__*/" aria-hidden="true">/*__MARK__*/</svg><span class="wordmark"><span class="wm-light">BRC</span><span class="wm-bold">Vault</span></span></span>
+          <a href="https://brc-post.github.io/" target="_blank" rel="noopener noreferrer" aria-label="Open BRC Post, sealed letters, signatures and postmarks"><svg aria-hidden="true" viewBox="307.6 90 1316 1316"><rect x="361.5" y="143.9" width="1208.2" height="1208.2" rx="198.7" fill="none" stroke="currentColor" stroke-width="107.8"/><path d="M544.8 430.0L965.6 790.0L1386.4 430.0" fill="none" stroke="currentColor" stroke-width="107.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="965.6" cy="820.0" r="190.0" fill="#5956FD"/></svg><span class="wordmark"><span class="wm-light">BRC</span><span class="wm-bold">Post</span></span></a>
           <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer" aria-label="Open BRC Pulse, the live network dashboard"><svg aria-hidden="true" viewBox="307.6 90 1316 1316"><defs><mask id="pvd" maskUnits="userSpaceOnUse" x="0" y="0" width="2000" height="2000"><rect width="2000" height="2000" fill="#fff"/><circle cx="1272.4" cy="800" r="148" fill="#000"/></mask><mask id="pvf" maskUnits="userSpaceOnUse" x="0" y="0" width="2000" height="2000"><rect width="2000" height="2000" fill="#fff"/><path d="M830.0 470.0 L980.0 1135.0 L1100.0 800.0" fill="none" stroke="#000" stroke-width="192" stroke-miterlimit="6"/></mask></defs><g mask="url(#pvf)"><path d="M965.6 143.9H1371A198.7 198.7 0 0 1 1569.7 342.6V1153.4A198.7 198.7 0 0 1 1371 1352.1H560.2A198.7 198.7 0 0 1 361.5 1153.4V342.6A198.7 198.7 0 0 1 560.2 143.9Z" fill="none" stroke="#5956FD" stroke-width="107.8"/></g><g mask="url(#pvd)" fill="none" stroke-miterlimit="6"><path d="M544.8 800.0 L720.0 800.0 L830.0 470.0 L980.0 1135.0 L1100.0 800.0 L1215.0 800.0" stroke="#111114" stroke-width="124"/><path d="M544.8 769.0 L697.7 769.0 L835.8 354.7 L986.8 1024.2 L1078.2 769.0 L1215.0 769.0" stroke="#3a3a3a" stroke-width="62.0"/></g><circle cx="1272.4" cy="800" r="114" fill="#5956FD"/></svg><span class="wordmark"><span class="wm-light">BRC</span><span class="wm-bold">Pulse</span></span></a>
         </nav>
         <span class="status-pill" id="connection" role="status"><span class="dot" aria-hidden="true"></span><span class="connection-text"></span></span>
@@ -882,8 +886,8 @@ body.is-previewing { overflow: hidden; }
       <span>BRC Vault <span id="app-version">/*__VERSION__*/</span>, build /*__BUILD__*/</span>
       <span>Free and open source under the MIT License</span>
       <div class="works">
-        <p><b>BRC Works:</b> <span aria-current="page">Vault keeps it</span> · <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer">Pulse checks it</a></p>
-        <p class="rule"><b>The BRC Works rule:</b> no BRC Works page ever asks for a key that holds coins, except this one, BRC Vault, to back it up, best with Wi-Fi off. If any other page asks, it isn't us.</p>
+        <p><b>BRC Works:</b> <span aria-current="page">Vault keeps it</span> · <a href="https://brc-post.github.io/" target="_blank" rel="noopener noreferrer">Post seals it</a> · <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer">Pulse checks it</a></p>
+        <p class="rule"><b>The BRC Works rule:</b> only BRC Vault (this page) ever asks for a key that holds coins, and only to back it up on your device, best with Wi-Fi off. If anything else asks for your key, it isn't us.</p>
         <p>Independent tools by <a href="https://github.com/pb-hash" target="_blank" rel="noopener noreferrer">pb-hash</a>. Not part of the official BrowserCoin project. · <a href="https://github.com/pb-hash/brc-vault" target="_blank" rel="noopener noreferrer">Source</a></p>
       </div>
     </footer>

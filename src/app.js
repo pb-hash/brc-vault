@@ -376,7 +376,7 @@ function renderConnection() {
   // Plain words, never an alarm: the page sends nothing either way; offline is simply the safest.
   el.querySelector('.connection-text').textContent = online ? 'Sends nothing' : 'Offline: safest';
   el.title = online
-    ? 'BRC Vault never sends anything. For extra safety you can turn off Wi‑Fi before loading a key.'
+    ? 'Sends nothing: BRC Vault never sends anything. For extra safety you can turn off Wi‑Fi before loading a key.'
     : 'You are offline. Nothing can leave this page.';
 }
 window.addEventListener('online', renderConnection);
