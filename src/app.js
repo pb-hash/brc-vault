@@ -2,6 +2,8 @@
 import qrcode from 'qrcode-generator';
 import jsQR from 'jsqr';
 import * as core from './core.js';
+import { createI18n } from './i18n.js';
+import zh from './zh.json';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -1377,3 +1379,7 @@ if (location.hash === '#new' || location.hash === '#new-mailbox') {
   selectTab('new');
   $('#tab-new').scrollIntoView({ block: 'start' });
 }
+
+// English / 中文 switch (top bar). Changes only the words on the page, never keys, codes or files.
+const i18n = createI18n({ dict: zh });
+i18n.start();

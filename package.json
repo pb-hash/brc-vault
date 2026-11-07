@@ -1,10 +1,10 @@
 {
   "name": "brc-vault",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Offline password-protected backups and paper wallets for BrowserCoin",
   "scripts": {
     "build": "node build.mjs",
-    "test": "esbuild src/core.js --bundle --format=esm --platform=neutral --outfile=build/core.mjs && node test/core.test.mjs && node build.mjs && python3 test/page_test.py build/page-test"
+    "test": "esbuild src/core.js --bundle --format=esm --platform=neutral --outfile=build/core.mjs && node test/core.test.mjs && node build.mjs && python3 test/page_test.py build/page-test && python3 test/i18n_test.py build/i18n-test"
   },
   "license": "MIT",
   "dependencies": {

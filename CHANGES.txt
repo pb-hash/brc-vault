@@ -4,6 +4,20 @@ Version numbers: last number for fixes and wording, middle number for new
 features, first number for changes to file formats or the security model.
 Test builds carry "-test.N" and are never published.
 
+1.2.0 (Nov 7, 2026)
+  - 中文: an English / 中文 button in the top bar shows the whole page in
+    Simplified Chinese, including the paper backup's instructions. A browser
+    set to Chinese opens in Chinese; the choice is remembered on this device
+    (?lang=en or ?lang=zh in the link also works). Asked for by the Chinese
+    BrowserCoin community.
+  - It only changes words. Keys, addresses, backup codes, recovery words,
+    file names and anything you type are never touched, and the files Vault
+    makes are identical in either language (tested: a backup made and
+    restored in Chinese gives back the exact wallet file). The same small
+    switch (src/i18n.js) is in BRC Post and BRC Pulse. The BrowserCoin app's
+    own menu names (Settings → Export key…) stay in English, as the app shows
+    them.
+
 1.1.2 (Oct 31, 2026)
   - The whole BRC Works family: BRC Post in the top switcher (Vault · Post ·
     Pulse) and the footer ("Vault keeps it · Post seals it · Pulse checks

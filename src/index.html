@@ -70,6 +70,11 @@ button, input, textarea { font: inherit; color: inherit; }
 .family .cur { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(16, 19, 24, 0.08), 0 2px 8px rgba(16, 19, 24, 0.05); }
 .family a:hover { color: var(--ink); }
 @media (max-width: 36rem) { .family .wordmark { display: none; } .family a, .family .cur { padding: 0 8px; } }
+.lang-toggle { display: inline-flex; align-items: center; justify-content: center; height: 2rem; min-width: 2.75rem; padding: 0 0.7rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--hairline); font: 600 0.8rem/1 var(--sans); color: var(--ink-2); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.lang-toggle:hover { color: var(--ink); border-color: var(--hairline-strong); }
+.lang-toggle:focus-visible { outline: 2px solid var(--vault-bright); outline-offset: 2px; }
+html[lang="zh-CN"] { --sans: "Geist", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", "Source Han Sans SC", ui-sans-serif, system-ui, sans-serif; }
+html[lang="zh-CN"] h1, html[lang="zh-CN"] h2, html[lang="zh-CN"] h3 { letter-spacing: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .status-pill { display: inline-flex; align-items: center; gap: 0.45rem; height: 2rem; padding: 0 0.8rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--hairline); font-size: 0.82rem; font-weight: 500; color: var(--ink-2); }
 .status-pill .dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--muted); }
 .status-pill[data-state="offline"] .dot { background: var(--vault-bright); box-shadow: 0 0 0 3px var(--vault-tint); }
@@ -427,6 +432,8 @@ body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-t
 }
 /* Three tools in the switcher: on the narrowest phones the pill keeps just its dot (its words are in its title). */
 @media (max-width: 400px) { .status-pill .connection-text { display: none; } .status-pill { padding: 0 0.55rem; } }
+@media (max-width: 400px) { .topbar-right { gap: 0.4rem; } .lang-toggle { min-width: 0; padding: 0 0.55rem; } .brand { gap: 0.45rem; } }
+@media (max-width: 340px) { .brand .wordmark { display: none; } }
 @media (prefers-reduced-motion: reduce) {
   .lm-ring { display: none; }
   *, *::before, *::after { transition-duration: 0.01ms !important; transition-delay: 0s !important; animation: none !important; }
@@ -508,6 +515,7 @@ body.is-previewing { overflow: hidden; }
           <a href="https://brc-post.github.io/" target="_blank" rel="noopener noreferrer" aria-label="Open BRC Post, sealed letters, signatures and postmarks"><svg aria-hidden="true" viewBox="307.6 90 1316 1316"><rect x="361.5" y="143.9" width="1208.2" height="1208.2" rx="198.7" fill="none" stroke="currentColor" stroke-width="107.8"/><path d="M544.8 430.0L965.6 790.0L1386.4 430.0" fill="none" stroke="currentColor" stroke-width="107.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="965.6" cy="820.0" r="190.0" fill="#5956FD"/></svg><span class="wordmark"><span class="wm-light">BRC</span><span class="wm-bold">Post</span></span></a>
           <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer" aria-label="Open BRC Pulse, the live network dashboard"><svg aria-hidden="true" viewBox="307.6 90 1316 1316"><defs><mask id="pvd" maskUnits="userSpaceOnUse" x="0" y="0" width="2000" height="2000"><rect width="2000" height="2000" fill="#fff"/><circle cx="1272.4" cy="800" r="148" fill="#000"/></mask><mask id="pvf" maskUnits="userSpaceOnUse" x="0" y="0" width="2000" height="2000"><rect width="2000" height="2000" fill="#fff"/><path d="M830.0 470.0 L980.0 1135.0 L1100.0 800.0" fill="none" stroke="#000" stroke-width="192" stroke-miterlimit="6"/></mask></defs><g mask="url(#pvf)"><path d="M965.6 143.9H1371A198.7 198.7 0 0 1 1569.7 342.6V1153.4A198.7 198.7 0 0 1 1371 1352.1H560.2A198.7 198.7 0 0 1 361.5 1153.4V342.6A198.7 198.7 0 0 1 560.2 143.9Z" fill="none" stroke="#5956FD" stroke-width="107.8"/></g><g mask="url(#pvd)" fill="none" stroke-miterlimit="6"><path d="M544.8 800.0 L720.0 800.0 L830.0 470.0 L980.0 1135.0 L1100.0 800.0 L1215.0 800.0" stroke="#111114" stroke-width="124"/><path d="M544.8 769.0 L697.7 769.0 L835.8 354.7 L986.8 1024.2 L1078.2 769.0 L1215.0 769.0" stroke="#3a3a3a" stroke-width="62.0"/></g><circle cx="1272.4" cy="800" r="114" fill="#5956FD"/></svg><span class="wordmark"><span class="wm-light">BRC</span><span class="wm-bold">Pulse</span></span></a>
         </nav>
+        <button type="button" class="lang-toggle" data-lang-toggle lang="zh-CN" aria-label="切换到中文" title="中文（简体）">中文</button>
         <span class="status-pill" id="connection" role="status"><span class="dot" aria-hidden="true"></span><span class="connection-text"></span></span>
       </div>
     </div>

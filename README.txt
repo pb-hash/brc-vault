@@ -10,6 +10,8 @@ Use it online:  https://pb-hash.github.io/brc-vault/
 Or download it: https://github.com/pb-hash/brc-vault/releases (brc-vault.html),
                 save it, and open the saved file with Wi-Fi off.
 Tested in Chrome on desktop and Safari on iPhone.
+English / 中文: the button in the top bar switches the page to Simplified Chinese.
+It changes only the words shown, never keys, addresses, codes or what you type.
 
 BRC Works: Vault · Pulse (the live BrowserCoin network dashboard,
 https://pb-hash.github.io/brc-pulse/).
