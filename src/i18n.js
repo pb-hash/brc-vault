@@ -28,12 +28,13 @@ export function createI18n({ dict } = {}) {
   for (const [en, zh] of T) if (!R.has(zh)) R.set(zh, en);
   // Phrases with numbers or names in them: "Block #%1 found" -> "已找到区块 #%1".
   const P = (dict.p || []).map(([src, zh]) => {
-    // %1 stands for any text; %N1 for a number (12, 1,280, 0.5).
-    const parts = src.split(/(%N?\d)/);
+    // %1 stands for any text (itself translated if it is a known phrase); %N1 for a number
+    // (12, 1,280, 0.5); %R1 for text that is shown exactly as it is, such as a file name.
+    const parts = src.split(/(%[NR]?\d)/);
     let re = '^', lit = '';
     const order = [];
     for (const part of parts) {
-      const m = /^%(N?\d)$/.exec(part);
+      const m = /^%([NR]?\d)$/.exec(part);
       if (m) { re += m[1][0] === 'N' ? '(-?\\d[\\d,.]*)' : '([\\s\\S]*?)'; order.push(m[1]); } else { re += part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); if (part.length > lit.length) lit = part; }
     }
     return { re: new RegExp(re + '$'), zh, order, lit };
@@ -62,9 +63,9 @@ export function createI18n({ dict } = {}) {
       if (p.lit && !k.includes(p.lit)) continue;
       const m = p.re.exec(k);
       if (!m) continue;
-      return p.zh.replace(/%(N?\d)/g, (_, n) => {
+      return p.zh.replace(/%([NR]?\d)/g, (_, n) => {
         const v = m[p.order.indexOf(n) + 1] ?? '';
-        return lookup(v, depth + 1) ?? v;
+        return n[0] === 'R' ? v : (lookup(v, depth + 1) ?? v);
       });
     }
     return null;
@@ -141,13 +142,21 @@ export function createI18n({ dict } = {}) {
     if (zh == null) return false;
     const before = [...el.childNodes];
     const out = [];
+    // Empty elements (an icon, a value not filled in yet) keep their place next to the part
+    // they followed, so a value and its Copy button never swap places.
+    const after = new Map(), lead = [];
+    let prev = null;
+    for (const n of before) {
+      if (s.kids.includes(n)) prev = n;
+      else if (n.nodeType === 1) (prev ? (after.get(prev) || after.set(prev, []).get(prev)) : lead).push(n);
+    }
+    out.push(...lead);
     for (const part of zh.split(/(\{\d+\})/)) {
       const m = /^\{(\d+)\}$/.exec(part);
-      if (m && s.kids[+m[1]]) out.push(s.kids[+m[1]]);
+      if (m && s.kids[+m[1]]) { out.push(s.kids[+m[1]]); out.push(...(after.get(s.kids[+m[1]]) || [])); }
       else if (part) out.push(document.createTextNode(part));
     }
-    for (const k of s.kids) if (!out.includes(k)) out.push(k); // never lose a part of the page
-    for (const n of before) if (n.nodeType === 1 && !s.kids.includes(n)) out.push(n);
+    for (const k of s.kids) if (!out.includes(k)) { out.push(k); out.push(...(after.get(k) || [])); } // never lose a part of the page
     el.replaceChildren(...out);
     tplKids.set(el, before);
     tplMade.set(el, out);

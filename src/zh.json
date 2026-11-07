@@ -87,8 +87,6 @@
 "Your address": "你的地址",
 "Your mailbox": "你的信箱",
 "check code": "校验码",
-"lease-v3.txt: reading…": "lease-v3.txt：读取中…",
-"lease-v4.txt: reading…": "lease-v4.txt：读取中…",
 "locked key": "已加密的私钥",
 "strength settings": "强度设置",
 "{0} only BRC Vault ever asks for a key that holds coins, and only to back it up on your device. If anything else asks for your key, it isn't us.": "{0}只有 BRC Vault 会向你索要存有币的私钥，而且只是为了在你的设备上备份它。如果有其他任何东西向你索要私钥，那就不是我们。",

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- No network access at all: this page cannot load or send anything. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-S06lKdgSJjNTl5/TAMjH7afLnuZAGfnXQo7Ynh7DNWo='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-oSVpRFo5BDdmTUPkeD5cHP9cWtnkEITW6Qy8i8vq/ng='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="x-dns-prefetch-control" content="off">
 <meta name="color-scheme" content="light">
@@ -72,6 +72,11 @@ button, input, textarea { font: inherit; color: inherit; }
 .family .cur { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(16, 19, 24, 0.08), 0 2px 8px rgba(16, 19, 24, 0.05); }
 .family a:hover { color: var(--ink); }
 @media (max-width: 36rem) { .family .wordmark { display: none; } .family a, .family .cur { padding: 0 8px; } }
+.lang-toggle { display: inline-flex; align-items: center; justify-content: center; height: 2rem; min-width: 2.75rem; padding: 0 0.7rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--hairline); font: 600 0.8rem/1 var(--sans); color: var(--ink-2); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.lang-toggle:hover { color: var(--ink); border-color: var(--hairline-strong); }
+.lang-toggle:focus-visible { outline: 2px solid var(--vault-bright); outline-offset: 2px; }
+html[lang="zh-CN"] { --sans: "Geist", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", "Source Han Sans SC", ui-sans-serif, system-ui, sans-serif; }
+html[lang="zh-CN"] h1, html[lang="zh-CN"] h2, html[lang="zh-CN"] h3 { letter-spacing: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .status-pill { display: inline-flex; align-items: center; gap: 0.45rem; height: 2rem; padding: 0 0.8rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--hairline); font-size: 0.82rem; font-weight: 500; color: var(--ink-2); }
 .status-pill .dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--muted); }
 .status-pill[data-state="offline"] .dot { background: var(--vault-bright); box-shadow: 0 0 0 3px var(--vault-tint); }
@@ -429,6 +434,8 @@ body.is-dragging .card { box-shadow: var(--shadow-card), 0 0 0 3px var(--brand-t
 }
 /* Three tools in the switcher: on the narrowest phones the pill keeps just its dot (its words are in its title). */
 @media (max-width: 400px) { .status-pill .connection-text { display: none; } .status-pill { padding: 0 0.55rem; } }
+@media (max-width: 400px) { .topbar-right { gap: 0.4rem; } .lang-toggle { min-width: 0; padding: 0 0.55rem; } .brand { gap: 0.45rem; } }
+@media (max-width: 340px) { .brand .wordmark { display: none; } }
 @media (prefers-reduced-motion: reduce) {
   .lm-ring { display: none; }
   *, *::before, *::after { transition-duration: 0.01ms !important; transition-delay: 0s !important; animation: none !important; }
@@ -510,6 +517,7 @@ body.is-previewing { overflow: hidden; }
           <a href="https://brc-post.github.io/" target="_blank" rel="noopener noreferrer" aria-label="Open BRC Post, sealed letters, signatures and postmarks"><svg aria-hidden="true" viewBox="307.6 90 1316 1316"><rect x="361.5" y="143.9" width="1208.2" height="1208.2" rx="198.7" fill="none" stroke="currentColor" stroke-width="107.8"/><path d="M544.8 430.0L965.6 790.0L1386.4 430.0" fill="none" stroke="currentColor" stroke-width="107.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="965.6" cy="820.0" r="190.0" fill="#5956FD"/></svg><span class="wordmark"><span class="wm-light">BRC</span><span class="wm-bold">Post</span></span></a>
           <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer" aria-label="Open BRC Pulse, the live network dashboard"><svg aria-hidden="true" viewBox="307.6 90 1316 1316"><defs><mask id="pvd" maskUnits="userSpaceOnUse" x="0" y="0" width="2000" height="2000"><rect width="2000" height="2000" fill="#fff"/><circle cx="1272.4" cy="800" r="148" fill="#000"/></mask><mask id="pvf" maskUnits="userSpaceOnUse" x="0" y="0" width="2000" height="2000"><rect width="2000" height="2000" fill="#fff"/><path d="M830.0 470.0 L980.0 1135.0 L1100.0 800.0" fill="none" stroke="#000" stroke-width="192" stroke-miterlimit="6"/></mask></defs><g mask="url(#pvf)"><path d="M965.6 143.9H1371A198.7 198.7 0 0 1 1569.7 342.6V1153.4A198.7 198.7 0 0 1 1371 1352.1H560.2A198.7 198.7 0 0 1 361.5 1153.4V342.6A198.7 198.7 0 0 1 560.2 143.9Z" fill="none" stroke="#5956FD" stroke-width="107.8"/></g><g mask="url(#pvd)" fill="none" stroke-miterlimit="6"><path d="M544.8 800.0 L720.0 800.0 L830.0 470.0 L980.0 1135.0 L1100.0 800.0 L1215.0 800.0" stroke="#111114" stroke-width="124"/><path d="M544.8 769.0 L697.7 769.0 L835.8 354.7 L986.8 1024.2 L1078.2 769.0 L1215.0 769.0" stroke="#3a3a3a" stroke-width="62.0"/></g><circle cx="1272.4" cy="800" r="114" fill="#5956FD"/></svg><span class="wordmark"><span class="wm-light">BRC</span><span class="wm-bold">Pulse</span></span></a>
         </nav>
+        <button type="button" class="lang-toggle" data-lang-toggle lang="zh-CN" aria-label="切换到中文" title="中文（简体）">中文</button>
         <span class="status-pill" id="connection" role="status"><span class="dot" aria-hidden="true"></span><span class="connection-text"></span></span>
       </div>
     </div>
@@ -885,7 +893,7 @@ body.is-previewing { overflow: hidden; }
     </details>
 
     <footer class="site-foot">
-      <span>BRC Vault <span id="app-version">1.1.2</span>, build 4b4ea529</span>
+      <span>BRC Vault <span id="app-version">1.2.0</span>, build a1256944</span>
       <span>Free and open source under the MIT License</span>
       <div class="works">
         <p><b>BRC Works:</b> <span aria-current="page">Vault keeps it</span> · <a href="https://brc-post.github.io/" target="_blank" rel="noopener noreferrer">Post seals it</a> · <a href="https://pb-hash.github.io/brc-pulse/" target="_blank" rel="noopener noreferrer">Pulse checks it</a></p>
@@ -4956,11 +4964,11 @@ body.is-previewing { overflow: hidden; }
     return str.normalize("NFKD");
   }
   function normalize(str) {
-    const norm = nfkd(str);
-    const words = norm.split(" ");
+    const norm2 = nfkd(str);
+    const words = norm2.split(" ");
     if (![12, 15, 18, 21, 24].includes(words.length))
       throw new Error("Invalid mnemonic");
-    return { nfkd: norm, words };
+    return { nfkd: norm2, words };
   }
   function aentropy(ent) {
     abytes2(ent, 16, 20, 24, 28, 32);
@@ -7412,8 +7420,8 @@ zoo`.split("\n");
     return String(compactOrKey).replace(/^(BRCVAULT1|BRCMBOX1|BRCKEY1) /, "$1:");
   }
   function lineCheck(content) {
-    const norm = String(content).replace(/\s+/g, "").toUpperCase();
-    return bytesToHex2(sha256(new TextEncoder().encode(norm))).slice(0, 4).toUpperCase();
+    const norm2 = String(content).replace(/\s+/g, "").toUpperCase();
+    return bytesToHex2(sha256(new TextEncoder().encode(norm2))).slice(0, 4).toUpperCase();
   }
   function paperCodeLines(code) {
     const [prefix, address, logN, r, p, salt, iv, ct] = code.split(":");
@@ -7646,6 +7654,839 @@ zoo`.split("\n");
     if (wallet && wallet.privateKey instanceof Uint8Array) wallet.privateKey.fill(0);
   }
 
+  // src/i18n.js
+  var SKIP_TAGS = /* @__PURE__ */ new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "SELECT", "CODE", "PRE", "KBD", "SAMP", "NOSCRIPT", "TEMPLATE"]);
+  var INLINE = /* @__PURE__ */ new Set(["BUTTON", "A", "B", "STRONG", "EM", "I", "SPAN", "CODE", "KBD", "BR", "SMALL", "ABBR", "MARK", "U", "S", "SUB", "SUP", "TIME", "Q", "CITE", "DFN", "VAR", "SAMP", "WBR", "BDI", "BDO"]);
+  var ATTRS = ["placeholder", "title", "aria-label", "alt", "data-tip"];
+  var SKIP_CLASS = /(^|\s)(mono|ps-mono|addr|no-i18n|message-box|signed-box|unsigned-box|signed-msg|words|ps-wordgrid|ps-codeline|ps-check|wordmark)(\s|$)/;
+  var LETTER = /[A-Za-z]/;
+  var KEY = "brcworks:lang";
+  var norm = (s) => s.replace(/\s+/g, " ").trim();
+  function createI18n({ dict } = {}) {
+    const C2 = typeof window !== "undefined" && typeof window.__brcI18nCollect === "function" ? window.__brcI18nCollect : null;
+    const T = new Map(Object.entries(dict.t || {}));
+    const R = /* @__PURE__ */ new Map();
+    for (const [en, zh] of T) if (!R.has(zh)) R.set(zh, en);
+    const P2 = (dict.p || []).map(([src, zh]) => {
+      const parts = src.split(/(%[NR]?\d)/);
+      let re = "^", lit = "";
+      const order = [];
+      for (const part of parts) {
+        const m = /^%([NR]?\d)$/.exec(part);
+        if (m) {
+          re += m[1][0] === "N" ? "(-?\\d[\\d,.]*)" : "([\\s\\S]*?)";
+          order.push(m[1]);
+        } else {
+          re += part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          if (part.length > lit.length) lit = part;
+        }
+      }
+      return { re: new RegExp(re + "$"), zh, order, lit };
+    });
+    let lang = "en";
+    const orig = /* @__PURE__ */ new WeakMap();
+    const mine = /* @__PURE__ */ new WeakMap();
+    const tplKids = /* @__PURE__ */ new WeakMap();
+    const tplMade = /* @__PURE__ */ new WeakMap();
+    const attrOrig = /* @__PURE__ */ new WeakMap();
+    let observer = null, busy = false;
+    function lookup(s, depth = 0) {
+      const k = norm(s);
+      if (!k || !LETTER.test(k)) return null;
+      const hit = T.get(k);
+      if (hit !== void 0) return hit;
+      const r = match(k, depth);
+      if (r == null && C2 && depth === 0) C2(k);
+      return r;
+    }
+    function match(k, depth) {
+      if (depth > 2) return null;
+      for (const p of P2) {
+        if (p.lit && !k.includes(p.lit)) continue;
+        const m = p.re.exec(k);
+        if (!m) continue;
+        return p.zh.replace(/%([NR]?\d)/g, (_, n) => {
+          const v = m[p.order.indexOf(n) + 1] ?? "";
+          return n[0] === "R" ? v : lookup(v, depth + 1) ?? v;
+        });
+      }
+      return null;
+    }
+    const back = (s) => R.get(norm(s)) ?? null;
+    function skipped(el) {
+      for (let e = el; e && e.nodeType === 1; e = e.parentElement) {
+        if (SKIP_TAGS.has(e.tagName)) return true;
+        if (e.getAttribute("translate") === "no" || e.isContentEditable) return true;
+        const c = e.getAttribute("class");
+        if (c && SKIP_CLASS.test(c)) return true;
+      }
+      return false;
+    }
+    function setText(node, value) {
+      const lead = /^\s*/.exec(node.data)[0], trail = /\s*$/.exec(node.data)[0];
+      node.data = lead + value + trail;
+    }
+    function doText(node) {
+      const cur = node.data;
+      if (lang === "zh") {
+        if (mine.get(node) === cur) return;
+        const zh = lookup(cur);
+        if (zh == null) return;
+        orig.set(node, cur);
+        setText(node, zh);
+        mine.set(node, node.data);
+      } else {
+        if (C2) lookup(cur);
+        if (mine.get(node) === cur && orig.has(node)) {
+          node.data = orig.get(node);
+          mine.delete(node);
+          return;
+        }
+        const en = back(cur);
+        if (en != null) setText(node, en);
+      }
+    }
+    function sentence(el) {
+      let text = false;
+      const kids = [];
+      for (const n of el.childNodes) {
+        if (n.nodeType === 3) {
+          if (LETTER.test(n.data)) text = true;
+        } else if (n.nodeType === 1) {
+          if (!INLINE.has(n.tagName)) return null;
+          if (n.tagName !== "BR" && !norm(n.textContent)) continue;
+          kids.push(n);
+        }
+      }
+      if (!text || !kids.length) return null;
+      let key = "";
+      for (const n of el.childNodes) {
+        if (n.nodeType === 3) key += n.data;
+        else if (n.nodeType === 1 && kids.includes(n)) key += `{${kids.indexOf(n)}}`;
+      }
+      return { key: norm(key), kids };
+    }
+    function doSentence(el) {
+      const made = tplMade.get(el);
+      if (made) {
+        const same = made.length === el.childNodes.length && made.every((n, i) => n === el.childNodes[i]);
+        if (!same) {
+          tplMade.delete(el);
+          tplKids.delete(el);
+        } else if (lang === "zh") return true;
+        else {
+          el.replaceChildren(...tplKids.get(el));
+          tplMade.delete(el);
+          tplKids.delete(el);
+          return false;
+        }
+      }
+      if (lang !== "zh") {
+        if (C2) {
+          const c = sentence(el);
+          if (c) {
+            lookup(c.key);
+            return true;
+          }
+        }
+        return false;
+      }
+      const s = sentence(el);
+      if (!s) return false;
+      const zh = lookup(s.key);
+      if (zh == null) return false;
+      const before = [...el.childNodes];
+      const out = [];
+      const after = /* @__PURE__ */ new Map(), lead = [];
+      let prev = null;
+      for (const n of before) {
+        if (s.kids.includes(n)) prev = n;
+        else if (n.nodeType === 1) (prev ? after.get(prev) || after.set(prev, []).get(prev) : lead).push(n);
+      }
+      out.push(...lead);
+      for (const part of zh.split(/(\{\d+\})/)) {
+        const m = /^\{(\d+)\}$/.exec(part);
+        if (m && s.kids[+m[1]]) {
+          out.push(s.kids[+m[1]]);
+          out.push(...after.get(s.kids[+m[1]]) || []);
+        } else if (part) out.push(document.createTextNode(part));
+      }
+      for (const k of s.kids) if (!out.includes(k)) {
+        out.push(k);
+        out.push(...after.get(k) || []);
+      }
+      el.replaceChildren(...out);
+      tplKids.set(el, before);
+      tplMade.set(el, out);
+      return true;
+    }
+    function doAttrs(el) {
+      for (const a of ATTRS) {
+        if (!el.hasAttribute(a)) continue;
+        const v = el.getAttribute(a);
+        let store = attrOrig.get(el);
+        if (lang === "zh") {
+          if (store && store[a] && store[a].zh === v) continue;
+          const zh = lookup(v);
+          if (zh == null) continue;
+          if (!store) attrOrig.set(el, store = {});
+          store[a] = { en: v, zh };
+          el.setAttribute(a, zh);
+        } else if (C2 && !(store && store[a])) {
+          lookup(v);
+        } else if (store && store[a]) {
+          if (store[a].zh === v) el.setAttribute(a, store[a].en);
+          delete store[a];
+        } else {
+          const en = back(v);
+          if (en != null) el.setAttribute(a, en);
+        }
+      }
+      if (el.tagName === "INPUT" && (el.type === "button" || el.type === "submit") && el.value) {
+        const zh = lang === "zh" ? lookup(el.value) : back(el.value);
+        if (zh != null) el.value = zh;
+      }
+    }
+    function walk(root) {
+      if (root.nodeType === 3) {
+        if (root.parentElement && !skipped(root.parentElement)) doText(root);
+        return;
+      }
+      if (root.nodeType === 1 && fieldHint(root)) {
+        if (!skipped(root.parentElement)) doAttrs(root);
+        return;
+      }
+      if (root.nodeType !== 1 || skipped(root)) return;
+      const stack = [root];
+      while (stack.length) {
+        const el = stack.pop();
+        doAttrs(el);
+        if (doSentence(el)) {
+          for (const n of el.childNodes) if (n.nodeType === 1 && !skipped(n)) stack.push(n);
+          continue;
+        }
+        for (const n of el.childNodes) {
+          if (n.nodeType === 3) doText(n);
+          else if (n.nodeType === 1 && fieldHint(n)) doAttrs(n);
+          else if (n.nodeType === 1 && !SKIP_TAGS.has(n.tagName) && n.getAttribute("translate") !== "no" && !SKIP_CLASS.test(n.getAttribute("class") || "")) stack.push(n);
+        }
+      }
+    }
+    function fieldHint(el) {
+      return (el.tagName === "INPUT" || el.tagName === "TEXTAREA") && el.getAttribute("translate") !== "no" && !el.isContentEditable;
+    }
+    function run(fn) {
+      busy = true;
+      try {
+        fn();
+      } finally {
+        if (observer) observer.takeRecords();
+        busy = false;
+      }
+    }
+    function onMutations(list) {
+      if (busy || lang === "en" && !hasZh && !C2) return;
+      run(() => {
+        const seen = /* @__PURE__ */ new Set();
+        for (const m of list) {
+          if (m.type === "characterData") {
+            if (!seen.has(m.target)) {
+              seen.add(m.target);
+              walk(m.target);
+            }
+            continue;
+          }
+          const t = m.target;
+          if (m.type === "attributes") {
+            if (t.nodeType === 1 && (fieldHint(t) ? !skipped(t.parentElement) : !skipped(t))) doAttrs(t);
+            continue;
+          }
+          if (t.nodeType === 1 && !seen.has(t) && !skipped(t)) {
+            seen.add(t);
+            doSentence(t) || null;
+          }
+          for (const n of m.addedNodes) if (!seen.has(n)) {
+            seen.add(n);
+            walk(n);
+          }
+        }
+        if (document.title !== lastTitle) title();
+      });
+    }
+    let titleEn = document.title, lastTitle = document.title, hasZh = false;
+    function title() {
+      if (document.title !== lastTitle) titleEn = document.title;
+      const t = lang === "zh" ? lookup(titleEn) ?? titleEn : titleEn;
+      if (document.title !== t) document.title = t;
+      lastTitle = document.title;
+    }
+    function paintToggle() {
+      for (const b of document.querySelectorAll("[data-lang-toggle]")) {
+        b.textContent = lang === "zh" ? "EN" : "\u4E2D\u6587";
+        b.setAttribute("lang", lang === "zh" ? "en" : "zh-CN");
+        b.setAttribute("aria-label", lang === "zh" ? "Switch to English" : "\u5207\u6362\u5230\u4E2D\u6587");
+        b.title = lang === "zh" ? "English" : "\u4E2D\u6587\uFF08\u7B80\u4F53\uFF09";
+      }
+    }
+    function set(next, { save = true } = {}) {
+      lang = next === "zh" ? "zh" : "en";
+      if (lang === "zh") hasZh = true;
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+      document.documentElement.dataset.lang = lang;
+      if (save) {
+        try {
+          localStorage.setItem(KEY, lang);
+        } catch {
+        }
+      }
+      run(() => {
+        walk(document.body);
+        title();
+        paintToggle();
+      });
+      for (const fn of listeners) {
+        try {
+          fn(lang);
+        } catch {
+        }
+      }
+    }
+    function initial() {
+      try {
+        const q = new URLSearchParams(location.search).get("lang");
+        if (q === "zh" || q === "en") return q;
+      } catch {
+      }
+      try {
+        const s = localStorage.getItem(KEY);
+        if (s === "zh" || s === "en") return s;
+      } catch {
+      }
+      const langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+      return /^zh\b/i.test(langs[0] || "") ? "zh" : "en";
+    }
+    const listeners = [];
+    function start() {
+      observer = new MutationObserver(onMutations);
+      observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+      document.addEventListener("click", (e) => {
+        const b = e.target.closest && e.target.closest("[data-lang-toggle]");
+        if (b) {
+          e.preventDefault();
+          set(lang === "zh" ? "en" : "zh");
+        }
+      });
+      const first = initial();
+      if (first === "zh") set("zh", { save: false });
+      else {
+        paintToggle();
+        if (C2) run(() => walk(document.body));
+      }
+    }
+    return {
+      start,
+      set,
+      get lang() {
+        return lang;
+      },
+      /** Translate a phrase for code that shows text outside the page (alerts, share sheets). */
+      t: (s) => lang === "zh" ? lookup(s) ?? s : s,
+      onChange: (fn) => listeners.push(fn)
+    };
+  }
+
+  // src/zh.json
+  var zh_default = {
+    t: {
+      "A BrowserCoin private key is exactly 32 bytes (64 hex characters).": "BrowserCoin \u79C1\u94A5\u6B63\u597D\u662F 32 \u5B57\u8282\uFF0864 \u4E2A\u5341\u516D\u8FDB\u5236\u5B57\u7B26\uFF09\u3002",
+      Address: "\u5730\u5740",
+      "Anyone with the private key controls the wallet. Keep this safe.": "\u4EFB\u4F55\u62FF\u5230\u79C1\u94A5\u7684\u4EBA\u90FD\u80FD\u63A7\u5236\u8FD9\u4E2A\u94B1\u5305\u3002\u8BF7\u59A5\u5584\u4FDD\u7BA1\u3002",
+      Block: "\u533A\u5757",
+      Cancel: "\u53D6\u6D88",
+      Careful: "\u6CE8\u610F",
+      Check: "\u68C0\u67E5",
+      "Choose a password": "\u8BBE\u7F6E\u5BC6\u7801",
+      Close: "\u5173\u95ED",
+      Copied: "\u5DF2\u590D\u5236",
+      Copy: "\u590D\u5236",
+      "Copy address": "\u590D\u5236\u5730\u5740",
+      "Copy both": "\u5168\u90E8\u590D\u5236",
+      "Could not recognise this. Use a BrowserCoin wallet file, a BRC Vault backup, a private key, or 24 recovery words.": "\u65E0\u6CD5\u8BC6\u522B\u3002\u8BF7\u4F7F\u7528 BrowserCoin \u94B1\u5305\u6587\u4EF6\u3001BRC Vault \u5907\u4EFD\u3001\u79C1\u94A5\u6216 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002",
+      Enter: "\u53C2\u4E0E",
+      File: "\u6587\u4EF6",
+      Fingerprint: "\u6307\u7EB9",
+      "I already have a mailbox": "\u6211\u5DF2\u7ECF\u6709\u4FE1\u7BB1\u4E86",
+      "Independent tools by {0}. Not part of the official BrowserCoin project. \xB7 {1}": "{0} \u5236\u4F5C\u7684\u72EC\u7ACB\u5DE5\u5177\u3002\u4E0D\u5C5E\u4E8E BrowserCoin \u5B98\u65B9\u9879\u76EE\u3002 \xB7 {1}",
+      "Lock ID": "\u9501\u5B9A ID",
+      'Locked BRC Vault backup. The private key is encrypted inside "ciphertext" and can only be unlocked with your password in BRC Vault. The address is public and safe to share.': '\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684 BRC Vault \u5907\u4EFD\u3002\u79C1\u94A5\u52A0\u5BC6\u4FDD\u5B58\u5728 "ciphertext" \u4E2D\uFF0C\u53EA\u80FD\u5728 BRC Vault \u91CC\u7528\u4F60\u7684\u5BC6\u7801\u89E3\u9501\u3002\u5730\u5740\u662F\u516C\u5F00\u7684\uFF0C\u53EF\u4EE5\u653E\u5FC3\u5206\u4EAB\u3002',
+      'Locked BRC mailbox key. It opens sealed letters and signs in BRC Post; it is not for holding coins. The key is encrypted inside "ciphertext" and only your password unlocks it, in BRC Post or BRC Vault. The address is public and safe to share.': '\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684 BRC \u4FE1\u7BB1\u5BC6\u94A5\u3002\u5B83\u7528\u4E8E\u5728 BRC Post \u4E2D\u6253\u5F00\u5BC6\u5C01\u4FE1\u548C\u7B7E\u540D\uFF0C\u4E0D\u7528\u4E8E\u5B58\u653E\u5E01\u3002\u5BC6\u94A5\u52A0\u5BC6\u4FDD\u5B58\u5728 "ciphertext" \u4E2D\uFF0C\u53EA\u6709\u4F60\u7684\u5BC6\u7801\u80FD\u5728 BRC Post \u6216 BRC Vault \u4E2D\u89E3\u9501\u5B83\u3002\u5730\u5740\u662F\u516C\u5F00\u7684\uFF0C\u53EF\u4EE5\u653E\u5FC3\u5206\u4EAB\u3002',
+      Message: "\u6D88\u606F",
+      "Not valid hex.": "\u4E0D\u662F\u6709\u6548\u7684\u5341\u516D\u8FDB\u5236\u3002",
+      "Nothing to read yet.": "\u8FD8\u6CA1\u6709\u53EF\u8BFB\u53D6\u7684\u5185\u5BB9\u3002",
+      "Open BRC Post": "\u6253\u5F00 BRC Post",
+      "Open BRC Pulse, the live network dashboard": "\u6253\u5F00 BRC Pulse \u5B9E\u65F6\u7F51\u7EDC\u9762\u677F",
+      Owner: "\u6240\u6709\u8005",
+      "Part of the code is missing its check in brackets. Copy every line, including the [XXXX] at the end.": "\u4EE3\u7801\u6709\u4E00\u90E8\u5206\u7F3A\u5C11\u65B9\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u3002\u8BF7\u590D\u5236\u6BCF\u4E00\u884C\uFF0C\u5305\u62EC\u672B\u5C3E\u7684 [XXXX]\u3002",
+      Password: "\u5BC6\u7801",
+      "Passwords match.": "\u4E24\u6B21\u5BC6\u7801\u4E00\u81F4\u3002",
+      "Post seals it": "Post \u8D1F\u8D23\u5BC6\u5C01",
+      "Private:": "\u9690\u79C1\uFF1A",
+      "Pulse checks it": "Pulse \u8D1F\u8D23\u9A8C\u8BC1",
+      Scripts: "\u811A\u672C",
+      "Sealed letter": "\u5BC6\u5C01\u4FE1",
+      Signature: "\u7B7E\u540D",
+      "Signed by": "\u7B7E\u540D\u8005",
+      "Signed message": "\u7B7E\u540D\u6D88\u606F",
+      "Signed on the chain": "\u5DF2\u5728\u94FE\u4E0A\u7B7E\u540D",
+      "Some words are numbered and some aren't, or a number is missing or used twice. Number every word 1 to 24, or leave all the numbers out and type the words in order.": "\u6709\u4E9B\u8BCD\u5E26\u7F16\u53F7\u3001\u6709\u4E9B\u6CA1\u6709\uFF0C\u6216\u8005\u67D0\u4E2A\u7F16\u53F7\u7F3A\u5931\u6216\u91CD\u590D\u3002\u8BF7\u7ED9\u6BCF\u4E2A\u8BCD\u6807\u4E0A 1 \u5230 24 \u7684\u7F16\u53F7\uFF0C\u6216\u8005\u5168\u90E8\u4E0D\u5199\u7F16\u53F7\u3001\u6309\u987A\u5E8F\u8F93\u5165\u3002",
+      Source: "\u6765\u6E90",
+      "That is 12 words. BrowserCoin wallets use 24 recovery words.": "\u8FD9\u662F 12 \u4E2A\u8BCD\u3002BrowserCoin \u94B1\u5305\u4F7F\u7528 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002",
+      "That password is too repetitive. Use a mix of words or characters.": "\u8FD9\u4E2A\u5BC6\u7801\u91CD\u590D\u592A\u591A\u3002\u8BF7\u6DF7\u5408\u4F7F\u7528\u4E0D\u540C\u7684\u8BCD\u6216\u5B57\u7B26\u3002",
+      "The BRC Works rule:": "BRC Works \u7684\u89C4\u5219\uFF1A",
+      "The address written in this file does not match its private key. The file may be damaged.": "\u6B64\u6587\u4EF6\u4E2D\u5199\u7684\u5730\u5740\u4E0E\u5B83\u7684\u79C1\u94A5\u4E0D\u5339\u914D\u3002\u6587\u4EF6\u53EF\u80FD\u5DF2\u635F\u574F\u3002",
+      "The decrypted key does not match the address in the backup.": "\u89E3\u5BC6\u51FA\u7684\u79C1\u94A5\u4E0E\u5907\u4EFD\u4E2D\u7684\u5730\u5740\u4E0D\u5339\u914D\u3002",
+      "The last line of the code, the address check after the final colon, is missing.": "\u4EE3\u7801\u7684\u6700\u540E\u4E00\u884C\uFF08\u6700\u540E\u4E00\u4E2A\u5192\u53F7\u4E4B\u540E\u7684\u5730\u5740\u6821\u9A8C\uFF09\u7F3A\u5931\u4E86\u3002",
+      "The last line, -----END BRC STAMP RECEIPT-----, is missing. Copy the whole receipt.": "\u7F3A\u5C11\u6700\u540E\u4E00\u884C -----END BRC STAMP RECEIPT-----\u3002\u8BF7\u590D\u5236\u5B8C\u6574\u7684\u56DE\u6267\u3002",
+      "The mailbox's own signature doesn't match, so the mailbox never agreed to this link.": "\u4FE1\u7BB1\u81EA\u5DF1\u7684\u7B7E\u540D\u4E0D\u5339\u914D\uFF0C\u8BF4\u660E\u8FD9\u4E2A\u4FE1\u7BB1\u4ECE\u672A\u8BA4\u53EF\u8FC7\u8FD9\u4E2A\u94FE\u63A5\u3002",
+      'The receipt\'s "After:" line should be a block number and a block ID.': '\u56DE\u6267\u4E2D\u7684 "After:" \u884C\u5E94\u4E3A\u4E00\u4E2A\u533A\u5757\u7F16\u53F7\u548C\u4E00\u4E2A\u533A\u5757 ID\u3002',
+      'The receipt\'s "Block:" line should be a block number.': '\u56DE\u6267\u4E2D\u7684 "Block:" \u884C\u5E94\u4E3A\u4E00\u4E2A\u533A\u5757\u7F16\u53F7\u3002',
+      'The receipt\'s "Drand:" line should be a round number and a 96-character signature.': '\u56DE\u6267\u4E2D\u7684 "Drand:" \u884C\u5E94\u4E3A\u4E00\u4E2A\u8F6E\u6B21\u7F16\u53F7\u548C\u4E00\u4E2A 96 \u4E2A\u5B57\u7B26\u7684\u7B7E\u540D\u3002',
+      "The signature does not match. Either the message was changed after it was signed, or this address did not sign it.": "\u7B7E\u540D\u4E0D\u5339\u914D\u3002\u8981\u4E48\u6D88\u606F\u5728\u7B7E\u540D\u540E\u88AB\u6539\u52A8\u8FC7\uFF0C\u8981\u4E48\u8FD9\u4E2A\u5730\u5740\u5E76\u6CA1\u6709\u7B7E\u8FC7\u5B83\u3002",
+      "The two passwords do not match.": "\u4E24\u6B21\u8F93\u5165\u7684\u5BC6\u7801\u4E0D\u4E00\u81F4\u3002",
+      "The unlocked key does not match the address in the wallet file.": "\u89E3\u9501\u51FA\u7684\u79C1\u94A5\u4E0E\u94B1\u5305\u6587\u4EF6\u4E2D\u7684\u5730\u5740\u4E0D\u5339\u914D\u3002",
+      "The wallet file has no private key in it.": "\u8FD9\u4E2A\u94B1\u5305\u6587\u4EF6\u91CC\u6CA1\u6709\u79C1\u94A5\u3002",
+      "These words don't pass their built-in check, so one of them is wrong or two are swapped. Compare them with the paper, word by word.": "\u8FD9\u4E9B\u8BCD\u6CA1\u6709\u901A\u8FC7\u5185\u7F6E\u6821\u9A8C\uFF0C\u8BF4\u660E\u5176\u4E2D\u6709\u4E00\u4E2A\u8BCD\u5199\u9519\u4E86\uFF0C\u6216\u6709\u4E24\u4E2A\u8BCD\u987A\u5E8F\u98A0\u5012\u3002\u8BF7\u9010\u8BCD\u548C\u7EB8\u4E0A\u7684\u5185\u5BB9\u5BF9\u7167\u3002",
+      "This backup code has the wrong number of parts. Check that every line, including the colons, was copied.": "\u8FD9\u4E2A\u5907\u4EFD\u7801\u7684\u6BB5\u6570\u4E0D\u5BF9\u3002\u8BF7\u786E\u8BA4\u6BCF\u4E00\u884C\uFF08\u5305\u62EC\u5192\u53F7\uFF09\u90FD\u5DF2\u590D\u5236\u3002",
+      "This backup has invalid or unsafe key-stretching settings.": "\u8FD9\u4E2A\u5907\u4EFD\u7684\u5BC6\u94A5\u62C9\u4F38\u8BBE\u7F6E\u65E0\u6548\u6216\u4E0D\u5B89\u5168\u3002",
+      "This block contains a transaction type this page does not know.": "\u8FD9\u4E2A\u533A\u5757\u5305\u542B\u672C\u9875\u9762\u65E0\u6CD5\u8BC6\u522B\u7684\u4EA4\u6613\u7C7B\u578B\u3002",
+      "This contains more than one different wallet or backup. Use just one.": "\u8FD9\u91CC\u5305\u542B\u4E0D\u6B62\u4E00\u4E2A\u4E0D\u540C\u7684\u94B1\u5305\u6216\u5907\u4EFD\u3002\u8BF7\u53EA\u4F7F\u7528\u4E00\u4E2A\u3002",
+      "This file is incomplete or was changed by another app, so it can't be read. Use the original file BrowserCoin downloaded (named browsercoin-wallet-\u2026json), not a copy opened and saved in a text editor.": "\u8FD9\u4E2A\u6587\u4EF6\u4E0D\u5B8C\u6574\u6216\u5DF2\u88AB\u5176\u4ED6\u5E94\u7528\u6539\u52A8\uFF0C\u65E0\u6CD5\u8BFB\u53D6\u3002\u8BF7\u4F7F\u7528 BrowserCoin \u4E0B\u8F7D\u7684\u539F\u59CB\u6587\u4EF6\uFF08\u6587\u4EF6\u540D\u4E3A browsercoin-wallet-\u2026json\uFF09\uFF0C\u800C\u4E0D\u662F\u5728\u6587\u672C\u7F16\u8F91\u5668\u91CC\u6253\u5F00\u5E76\u4FDD\u5B58\u8FC7\u7684\u526F\u672C\u3002",
+      "This file is neither a BrowserCoin wallet nor a BRC Vault backup.": "\u8FD9\u4E2A\u6587\u4EF6\u65E2\u4E0D\u662F BrowserCoin \u94B1\u5305\uFF0C\u4E5F\u4E0D\u662F BRC Vault \u5907\u4EFD\u3002",
+      "This file is not valid JSON.": "\u8FD9\u4E2A\u6587\u4EF6\u4E0D\u662F\u6709\u6548\u7684 JSON\u3002",
+      "This file was re-saved by a word processor such as TextEdit, which changed its format, and the key could not be recovered from it. Use the original file BrowserCoin downloaded.": "\u8FD9\u4E2A\u6587\u4EF6\u88AB TextEdit \u4E4B\u7C7B\u7684\u6587\u5B57\u5904\u7406\u8F6F\u4EF6\u91CD\u65B0\u4FDD\u5B58\u8FC7\uFF0C\u683C\u5F0F\u5DF2\u88AB\u6539\u53D8\uFF0C\u65E0\u6CD5\u4ECE\u4E2D\u6062\u590D\u79C1\u94A5\u3002\u8BF7\u4F7F\u7528 BrowserCoin \u4E0B\u8F7D\u7684\u539F\u59CB\u6587\u4EF6\u3002",
+      "This is a well-known example key that is published online, so anyone can take coins sent to it. Use your own wallet's key or words.": "\u8FD9\u662F\u4E00\u4E2A\u5728\u7F51\u4E0A\u516C\u5F00\u7684\u77E5\u540D\u793A\u4F8B\u79C1\u94A5\uFF0C\u4EFB\u4F55\u4EBA\u90FD\u80FD\u62FF\u8D70\u53D1\u5230\u5B83\u4E0A\u9762\u7684\u5E01\u3002\u8BF7\u4F7F\u7528\u4F60\u81EA\u5DF1\u94B1\u5305\u7684\u79C1\u94A5\u6216\u52A9\u8BB0\u8BCD\u3002",
+      "This is far too long to be a wallet, a backup or a key.": "\u8FD9\u6BB5\u5185\u5BB9\u592A\u957F\u4E86\uFF0C\u4E0D\u53EF\u80FD\u662F\u94B1\u5305\u3001\u5907\u4EFD\u6216\u79C1\u94A5\u3002",
+      "This is not a BRC Vault backup code.": "\u8FD9\u4E0D\u662F BRC Vault \u5907\u4EFD\u7801\u3002",
+      "This is not a BRC Vault backup.": "\u8FD9\u4E0D\u662F BRC Vault \u5907\u4EFD\u3002",
+      "This is not a BrowserCoin wallet file (it should come from BrowserCoin Settings \u2192 Export key).": "\u8FD9\u4E0D\u662F BrowserCoin \u94B1\u5305\u6587\u4EF6\uFF08\u5B83\u5E94\u8BE5\u6765\u81EA BrowserCoin \u7684 Settings \u2192 Export key\uFF09\u3002",
+      "This is not a password-protected BRC Wallet file.": "\u8FD9\u4E0D\u662F\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684 BRC Wallet \u6587\u4EF6\u3002",
+      "This password-protected BRC Wallet file was changed by another app, such as a text editor, and can't be read. Use the original file the BRC Wallet desktop app saved.": "\u8FD9\u4E2A\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684 BRC Wallet \u6587\u4EF6\u88AB\u5176\u4ED6\u5E94\u7528\uFF08\u4F8B\u5982\u6587\u672C\u7F16\u8F91\u5668\uFF09\u6539\u52A8\u8FC7\uFF0C\u65E0\u6CD5\u8BFB\u53D6\u3002\u8BF7\u4F7F\u7528 BRC Wallet \u684C\u9762\u5E94\u7528\u4FDD\u5B58\u7684\u539F\u59CB\u6587\u4EF6\u3002",
+      "This private key code is damaged. It should have 64 characters after BRCKEY1:.": "\u8FD9\u4E2A\u79C1\u94A5\u4EE3\u7801\u5DF2\u635F\u574F\u3002BRCKEY1: \u540E\u9762\u5E94\u6709 64 \u4E2A\u5B57\u7B26\u3002",
+      "This private key has a typo: it doesn't match the address check at the end of the code. Compare it with the paper, watching for 0/D and 8/B.": "\u8FD9\u4E2A\u79C1\u94A5\u6709\u8F93\u5165\u9519\u8BEF\uFF1A\u4E0E\u4EE3\u7801\u672B\u5C3E\u7684\u5730\u5740\u6821\u9A8C\u4E0D\u7B26\u3002\u8BF7\u548C\u7EB8\u4E0A\u7684\u5185\u5BB9\u5BF9\u7167\uFF0C\u7559\u610F 0/D \u548C 8/B\u3002",
+      "This wallet file is password-protected by the BRC Wallet desktop app. Open it in Restore.": "\u8FD9\u4E2A\u94B1\u5305\u6587\u4EF6\u5DF2\u7531 BRC Wallet \u684C\u9762\u5E94\u7528\u7528\u5BC6\u7801\u52A0\u5BC6\u3002\u8BF7\u5728\u300C\u6062\u590D\u300D\u4E2D\u6253\u5F00\u5B83\u3002",
+      "This wallet file uses an encryption method BRC Vault does not know.": "\u8FD9\u4E2A\u94B1\u5305\u6587\u4EF6\u4F7F\u7528\u4E86 BRC Vault \u65E0\u6CD5\u8BC6\u522B\u7684\u52A0\u5BC6\u65B9\u5F0F\u3002",
+      "Unsupported encryption method in this backup.": "\u8FD9\u4E2A\u5907\u4EFD\u4F7F\u7528\u4E86\u4E0D\u652F\u6301\u7684\u52A0\u5BC6\u65B9\u5F0F\u3002",
+      "Unsupported key-stretching method in this backup.": "\u8FD9\u4E2A\u5907\u4EFD\u4F7F\u7528\u4E86\u4E0D\u652F\u6301\u7684\u5BC6\u94A5\u62C9\u4F38\u65B9\u5F0F\u3002",
+      "Vault keeps it": "Vault \u8D1F\u8D23\u4FDD\u7BA1",
+      "What do you want to do?": "\u4F60\u60F3\u505A\u4EC0\u4E48\uFF1F",
+      "Works offline": "\u53EF\u79BB\u7EBF\u4F7F\u7528",
+      "Wrong password, or the backup has been changed or damaged.": "\u5BC6\u7801\u9519\u8BEF\uFF0C\u6216\u8005\u5907\u4EFD\u5DF2\u88AB\u6539\u52A8\u6216\u635F\u574F\u3002",
+      "Wrong password, or the wallet file has been changed or damaged.": "\u5BC6\u7801\u9519\u8BEF\uFF0C\u6216\u8005\u94B1\u5305\u6587\u4EF6\u5DF2\u88AB\u6539\u52A8\u6216\u635F\u574F\u3002",
+      "Your address": "\u4F60\u7684\u5730\u5740",
+      "Your mailbox": "\u4F60\u7684\u4FE1\u7BB1",
+      "check code": "\u6821\u9A8C\u7801",
+      "locked key": "\u5DF2\u52A0\u5BC6\u7684\u79C1\u94A5",
+      "strength settings": "\u5F3A\u5EA6\u8BBE\u7F6E",
+      "{0} only BRC Vault ever asks for a key that holds coins, and only to back it up on your device. If anything else asks for your key, it isn't us.": "{0}\u53EA\u6709 BRC Vault \u4F1A\u5411\u4F60\u7D22\u8981\u5B58\u6709\u5E01\u7684\u79C1\u94A5\uFF0C\u800C\u4E14\u53EA\u662F\u4E3A\u4E86\u5728\u4F60\u7684\u8BBE\u5907\u4E0A\u5907\u4EFD\u5B83\u3002\u5982\u679C\u6709\u5176\u4ED6\u4EFB\u4F55\u4E1C\u897F\u5411\u4F60\u7D22\u8981\u79C1\u94A5\uFF0C\u90A3\u5C31\u4E0D\u662F\u6211\u4EEC\u3002",
+      "24 recovery words": "24 \u4E2A\u52A9\u8BB0\u8BCD",
+      "A brand-new wallet, {0}. Its key is created on this page when you press the button, locked with your password straight away, and never shown or saved unlocked. This file is the only copy of the new wallet.": "\u4E00\u4E2A\u5168\u65B0\u7684\u94B1\u5305\uFF0C{0}\u3002\u5B83\u7684\u79C1\u94A5\u4F1A\u5728\u4F60\u6309\u4E0B\u6309\u94AE\u65F6\u5728\u672C\u9875\u751F\u6210\uFF0C\u7ACB\u5373\u7528\u4F60\u7684\u5BC6\u7801\u52A0\u5BC6\uFF0C\u5E76\u4E14\u6C38\u8FDC\u4E0D\u4F1A\u4EE5\u672A\u52A0\u5BC6\u7684\u5F62\u5F0F\u663E\u793A\u6216\u4FDD\u5B58\u3002\u8FD9\u4E2A\u6587\u4EF6\u662F\u65B0\u94B1\u5305\u7684\u552F\u4E00\u526F\u672C\u3002",
+      "A mistyped or out-of-order word": "\u8F93\u9519\u6216\u987A\u5E8F\u9519\u4E71\u7684\u5355\u8BCD",
+      "About the password": "\u5173\u4E8E\u5BC6\u7801",
+      "Address copied": "\u5730\u5740\u5DF2\u590D\u5236",
+      "Address worked out from these words": "\u6839\u636E\u8FD9\u4E9B\u52A9\u8BB0\u8BCD\u7B97\u51FA\u7684\u5730\u5740",
+      "Address worked out from this key": "\u6839\u636E\u8FD9\u4E2A\u79C1\u94A5\u7B97\u51FA\u7684\u5730\u5740",
+      Alphanumeric: "\u5B57\u6BCD\u6570\u5B57",
+      "Anyone who sees or photographs the paper can take the coins.": "\u4EFB\u4F55\u770B\u5230\u6216\u62CD\u4E0B\u8FD9\u5F20\u7EB8\u7684\u4EBA\u90FD\u80FD\u62FF\u8D70\u8FD9\u4E9B\u5E01\u3002",
+      "Anyone who sees or photographs this page can take every coin in this wallet.": "\u4EFB\u4F55\u770B\u5230\u6216\u62CD\u4E0B\u8FD9\u4E00\u9875\u7684\u4EBA\u90FD\u80FD\u62FF\u8D70\u8FD9\u4E2A\u94B1\u5305\u91CC\u7684\u6240\u6709\u5E01\u3002",
+      "Anyone who sees them can take the coins.": "\u4EFB\u4F55\u770B\u5230\u5B83\u4EEC\u7684\u4EBA\u90FD\u80FD\u62FF\u8D70\u8FD9\u4E9B\u5E01\u3002",
+      "At browsercoin.org/app, open Settings and choose Import key\u2026": "\u5728 browsercoin.org/app \u6253\u5F00 Settings\uFF08\u8BBE\u7F6E\uFF09\uFF0C\u7136\u540E\u9009\u62E9\u300CImport key\u2026\u300D",
+      "BRC Vault {0}, build bcb87bcc": "BRC Vault {0}\uFF0C\u6784\u5EFA bcb87bcc",
+      "Back up": "\u5907\u4EFD",
+      "Back up a different wallet": "\u5907\u4EFD\u53E6\u4E00\u4E2A\u94B1\u5305",
+      "Backup file downloaded. Keep a second copy somewhere else.": "\u5907\u4EFD\u6587\u4EF6\u5DF2\u4E0B\u8F7D\u3002\u8BF7\u5728\u522B\u5904\u518D\u4FDD\u5B58\u4E00\u4EFD\u3002",
+      "Backup file, version 1": "\u5907\u4EFD\u6587\u4EF6\uFF0C\u7248\u672C 1",
+      "Backup read": "\u5DF2\u8BFB\u53D6\u5907\u4EFD",
+      "Backup unlocked": "\u5907\u4EFD\u5DF2\u89E3\u9501",
+      "Built with @noble/ed25519, @noble/hashes and @scure/bip39 by Paul Miller and contributors (MIT), qrcode-generator by Kazuhiko Arase (MIT), jsQR by Cosmo Wolfe (Apache 2.0), and the Geist typefaces by Vercel (SIL Open Font License). BRC Vault is a community project and isn't made by the BrowserCoin developers.": "\u57FA\u4E8E Paul Miller \u53CA\u8D21\u732E\u8005\u5F00\u53D1\u7684 @noble/ed25519\u3001@noble/hashes \u548C @scure/bip39\uFF08MIT\uFF09\u3001Kazuhiko Arase \u5F00\u53D1\u7684 qrcode-generator\uFF08MIT\uFF09\u3001Cosmo Wolfe \u5F00\u53D1\u7684 jsQR\uFF08Apache 2.0\uFF09\uFF0C\u4EE5\u53CA Vercel \u7684 Geist \u5B57\u4F53\uFF08SIL Open Font License\uFF09\u6784\u5EFA\u3002BRC Vault \u662F\u793E\u533A\u9879\u76EE\uFF0C\u5E76\u975E\u7531 BrowserCoin \u5F00\u53D1\u8005\u5236\u4F5C\u3002",
+      Byte: "\u5B57\u8282",
+      "Camera access is blocked for this page. Allow the camera in your browser settings, then try again, or type the code instead.": "\u6B64\u9875\u9762\u7684\u6444\u50CF\u5934\u6743\u9650\u5DF2\u88AB\u963B\u6B62\u3002\u8BF7\u5728\u6D4F\u89C8\u5668\u8BBE\u7F6E\u4E2D\u5141\u8BB8\u4F7F\u7528\u6444\u50CF\u5934\u540E\u91CD\u8BD5\uFF0C\u6216\u8005\u6539\u4E3A\u624B\u52A8\u8F93\u5165\u4EE3\u7801\u3002",
+      "Camera view": "\u6444\u50CF\u5934\u753B\u9762",
+      Change: "\u66F4\u6539",
+      "Check it looks right, then print.": "\u786E\u8BA4\u65E0\u8BEF\u540E\u518D\u6253\u5370\u3002",
+      "Check the address below against the one your wallet shows before going on.": "\u7EE7\u7EED\u4E4B\u524D\uFF0C\u8BF7\u5C06\u4E0B\u9762\u7684\u5730\u5740\u4E0E\u4F60\u94B1\u5305\u4E2D\u663E\u793A\u7684\u5730\u5740\u6838\u5BF9\u4E00\u4E0B\u3002",
+      "Check this address against the one your wallet app shows. A mistyped or out-of-order word can, rarely, still pass the words' built-in check and open a different, empty wallet.": "\u8BF7\u5C06\u8FD9\u4E2A\u5730\u5740\u4E0E\u4F60\u7684\u94B1\u5305\u5E94\u7528\u4E2D\u663E\u793A\u7684\u5730\u5740\u6838\u5BF9\u3002\u8F93\u9519\u6216\u987A\u5E8F\u9519\u4E71\u7684\u5355\u8BCD\u5728\u6781\u5C11\u6570\u60C5\u51B5\u4E0B\u4ECD\u53EF\u80FD\u901A\u8FC7\u52A9\u8BB0\u8BCD\u81EA\u5E26\u7684\u6821\u9A8C\uFF0C\u4ECE\u800C\u6253\u5F00\u53E6\u4E00\u4E2A\u7A7A\u94B1\u5305\u3002",
+      "Check this address carefully. A typo in a key, or a wallet address entered instead of a key, opens a different, empty wallet with no error. If this isn't your address, use your locked backup code or the full BRCKEY1 code from your paper wallet.": "\u8BF7\u4ED4\u7EC6\u6838\u5BF9\u8FD9\u4E2A\u5730\u5740\u3002\u79C1\u94A5\u4E2D\u6709\u8F93\u5165\u9519\u8BEF\uFF0C\u6216\u8005\u628A\u94B1\u5305\u5730\u5740\u5F53\u6210\u79C1\u94A5\u8F93\u5165\uFF0C\u90FD\u4F1A\u6253\u5F00\u53E6\u4E00\u4E2A\u7A7A\u94B1\u5305\uFF0C\u800C\u4E14\u4E0D\u4F1A\u62A5\u9519\u3002\u5982\u679C\u8FD9\u4E0D\u662F\u4F60\u7684\u5730\u5740\uFF0C\u8BF7\u4F7F\u7528\u4F60\u7684\u5DF2\u52A0\u5BC6\u5907\u4EFD\u4EE3\u7801\uFF0C\u6216\u7EB8\u94B1\u5305\u4E0A\u5B8C\u6574\u7684 BRCKEY1 \u4EE3\u7801\u3002",
+      "Choose Scan paper backup and hold this sheet up to the camera, or type the code exactly as printed.": "\u9009\u62E9\u300C\u626B\u63CF\u7EB8\u8D28\u5907\u4EFD\u300D\uFF0C\u7136\u540E\u628A\u8FD9\u5F20\u7EB8\u5BF9\u51C6\u6444\u50CF\u5934\uFF0C\u6216\u8005\u5B8C\u5168\u6309\u7167\u5370\u5237\u5185\u5BB9\u8F93\u5165\u4EE3\u7801\u3002",
+      "Choose Scan paper backup and hold this sheet up to the camera. Or type every line of the private key code, with BRCKEY1: and the checks in brackets, or the 24 recovery words.": "\u9009\u62E9\u300C\u626B\u63CF\u7EB8\u8D28\u5907\u4EFD\u300D\uFF0C\u7136\u540E\u628A\u8FD9\u5F20\u7EB8\u5BF9\u51C6\u6444\u50CF\u5934\u3002\u6216\u8005\u8F93\u5165\u79C1\u94A5\u4EE3\u7801\u7684\u6BCF\u4E00\u884C\uFF08\u5305\u62EC BRCKEY1: \u548C\u65B9\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\uFF09\uFF0C\u6216\u8005\u8F93\u5165 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002",
+      "Choose backup file": "\u9009\u62E9\u5907\u4EFD\u6587\u4EF6",
+      "Choose wallet file": "\u9009\u62E9\u94B1\u5305\u6587\u4EF6",
+      "Clear page": "\u6E05\u7A7A\u9875\u9762",
+      "Confirm password": "\u786E\u8BA4\u5BC6\u7801",
+      "Confirmed after you unlock": "\u89E3\u9501\u540E\u786E\u8BA4",
+      Continue: "\u7EE7\u7EED",
+      "Couldn't copy. Select the address and copy it instead.": "\u65E0\u6CD5\u590D\u5236\u3002\u8BF7\u9009\u4E2D\u5730\u5740\u540E\u624B\u52A8\u590D\u5236\u3002",
+      Credits: "\u81F4\u8C22",
+      "Does the BrowserCoin app show": "BrowserCoin \u5E94\u7528\u662F\u5426\u663E\u793A",
+      "Don't send coins to it.": "\u4E0D\u8981\u5411\u5B83\u53D1\u9001\u5E01\u3002",
+      "Download backup file": "\u4E0B\u8F7D\u5907\u4EFD\u6587\u4EF6",
+      "Download the wallet file. At browsercoin.org/app, open Settings and choose Import key\u2026": "\u4E0B\u8F7D\u94B1\u5305\u6587\u4EF6\u3002\u5728 browsercoin.org/app \u6253\u5F00 Settings\uFF08\u8BBE\u7F6E\uFF09\uFF0C\u7136\u540E\u9009\u62E9\u300CImport key\u2026\u300D",
+      "Download wallet file": "\u4E0B\u8F7D\u94B1\u5305\u6587\u4EF6",
+      "Downloading only saves a file. Nothing changes in BrowserCoin until you open Settings at browsercoin.org/app, choose Import key\u2026, and pick that file.": "\u4E0B\u8F7D\u53EA\u662F\u4FDD\u5B58\u4E00\u4E2A\u6587\u4EF6\u3002\u5728\u4F60\u4E8E browsercoin.org/app \u6253\u5F00 Settings\uFF08\u8BBE\u7F6E\uFF09\u3001\u9009\u62E9\u300CImport key\u2026\u300D\u5E76\u9009\u4E2D\u8BE5\u6587\u4EF6\u4E4B\u524D\uFF0CBrowserCoin \u4E2D\u4E0D\u4F1A\u6709\u4EFB\u4F55\u53D8\u5316\u3002",
+      "Enter your password and download the wallet file.": "\u8F93\u5165\u4F60\u7684\u5BC6\u7801\uFF0C\u7136\u540E\u4E0B\u8F7D\u94B1\u5305\u6587\u4EF6\u3002",
+      "Enter your password. Your letters open on that page; nothing is sent anywhere.": "\u8F93\u5165\u4F60\u7684\u5BC6\u7801\u3002\u4F60\u7684\u4FE1\u4EF6\u53EA\u5728\u90A3\u4E2A\u9875\u9762\u4E0A\u6253\u5F00\uFF0C\u4E0D\u4F1A\u53D1\u9001\u4EFB\u4F55\u5185\u5BB9\u3002",
+      "Every line is readable, MIT licensed, and built on audited cryptography libraries.": "\u6BCF\u4E00\u884C\u4EE3\u7801\u90FD\u53EF\u9605\u8BFB\uFF0C\u91C7\u7528 MIT \u8BB8\u53EF\u8BC1\uFF0C\u5E76\u57FA\u4E8E\u7ECF\u8FC7\u5BA1\u8BA1\u7684\u5BC6\u7801\u5B66\u5E93\u6784\u5EFA\u3002",
+      "Everything happens on this page. Nothing is uploaded.": "\u4E00\u5207\u90FD\u5728\u672C\u9875\u9762\u5B8C\u6210\u3002\u4E0D\u4F1A\u4E0A\u4F20\u4EFB\u4F55\u5185\u5BB9\u3002",
+      Fair: "\u4E00\u822C",
+      Files: "\u6587\u4EF6",
+      "Free and open source under the MIT License": "\u514D\u8D39\u5F00\u6E90\uFF0C\u91C7\u7528 MIT \u8BB8\u53EF\u8BC1",
+      Good: "\u826F\u597D",
+      "Good: this key opens the wallet whose address is below.": "\u6CA1\u95EE\u9898\uFF1A\u8FD9\u4E2A\u79C1\u94A5\u80FD\u6253\u5F00\u4E0B\u9762\u8FD9\u4E2A\u5730\u5740\u7684\u94B1\u5305\u3002",
+      Hide: "\u9690\u85CF",
+      "Hide password": "\u9690\u85CF\u5BC6\u7801",
+      "Hold the locked backup QR code up to the camera.": "\u5C06\u5DF2\u52A0\u5BC6\u5907\u4EFD\u7684 QR \u7801\u5BF9\u51C6\u6444\u50CF\u5934\u3002",
+      "Holding coins": "\u5B58\u653E\u5E01",
+      "I pasted my {0}, not my wallet address, and the address above is the one BrowserCoin shows for my wallet.": "\u6211\u7C98\u8D34\u7684\u662F\u6211\u7684{0}\uFF0C\u4E0D\u662F\u94B1\u5305\u5730\u5740\uFF0C\u800C\u4E14\u4E0A\u9762\u7684\u5730\u5740\u5C31\u662F BrowserCoin \u4E3A\u6211\u7684\u94B1\u5305\u663E\u793A\u7684\u5730\u5740\u3002",
+      "I understand that if I forget this password, the backup can't be opened and anything sent to this wallet is lost.": "\u6211\u660E\u767D\uFF1A\u5982\u679C\u5FD8\u8BB0\u8FD9\u4E2A\u5BC6\u7801\uFF0C\u5907\u4EFD\u5C06\u65E0\u6CD5\u6253\u5F00\uFF0C\u53D1\u9001\u5230\u8FD9\u4E2A\u94B1\u5305\u7684\u4EFB\u4F55\u4E1C\u897F\u90FD\u4F1A\u4E22\u5931\u3002",
+      "I understand that if I forget this password, the backup can't be opened and letters sealed to this mailbox can't be read.": "\u6211\u660E\u767D\uFF1A\u5982\u679C\u5FD8\u8BB0\u8FD9\u4E2A\u5BC6\u7801\uFF0C\u5907\u4EFD\u5C06\u65E0\u6CD5\u6253\u5F00\uFF0C\u5BC6\u5C01\u7ED9\u8FD9\u4E2A\u4FE1\u7BB1\u7684\u4FE1\u4EF6\u4E5F\u5C06\u65E0\u6CD5\u9605\u8BFB\u3002",
+      "I understand that if I forget this password, the backup can't be opened and the coins are lost.": "\u6211\u660E\u767D\uFF1A\u5982\u679C\u5FD8\u8BB0\u8FD9\u4E2A\u5BC6\u7801\uFF0C\u5907\u4EFD\u5C06\u65E0\u6CD5\u6253\u5F00\uFF0C\u8FD9\u4E9B\u5E01\u4E5F\u4F1A\u4E22\u5931\u3002",
+      "I understand that {0} this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.": "\u6211\u660E\u767D\uFF1A\u628A\u8FD9\u4E2A\u6587\u4EF6{0}\u5230 BrowserCoin \u4F1A\u66FF\u6362\u90A3\u4E2A\u6D4F\u89C8\u5668\u91CC\u7684\u94B1\u5305\u3002\u90A3\u4E2A\u94B1\u5305\u662F\u7A7A\u7684\uFF0C\u6216\u8005\u6211\u5DF2\u7ECF\u5BFC\u51FA\u8FC7\u5B83\u3002",
+      'I understand. I\'ll print to a printer connected directly to this computer, not "Save as PDF" or a network or cloud printer, which can keep a copy of the key.': "\u6211\u660E\u767D\u3002\u6211\u4F1A\u7528\u76F4\u63A5\u8FDE\u63A5\u5230\u8FD9\u53F0\u7535\u8111\u7684\u6253\u5370\u673A\u6253\u5370\uFF0C\u800C\u4E0D\u662F\u300CSave as PDF\u300D\uFF08\u53E6\u5B58\u4E3A PDF\uFF09\u6216\u7F51\u7EDC\u6253\u5370\u673A\u3001\u4E91\u6253\u5370\u673A\uFF0C\u56E0\u4E3A\u5B83\u4EEC\u53EF\u80FD\u4F1A\u4FDD\u7559\u79C1\u94A5\u7684\u526F\u672C\u3002",
+      "If you typed or pasted your recovery words anywhere else, delete them there once your backup is safe.": "\u5982\u679C\u4F60\u5728\u5176\u4ED6\u5730\u65B9\u8F93\u5165\u6216\u7C98\u8D34\u8FC7\u52A9\u8BB0\u8BCD\uFF0C\u7B49\u5907\u4EFD\u59A5\u5584\u4FDD\u5B58\u540E\uFF0C\u8BF7\u628A\u90A3\u91CC\u7684\u52A9\u8BB0\u8BCD\u5220\u9664\u3002",
+      "Import into BrowserCoin": "\u5BFC\u5165 BrowserCoin",
+      "Importing replaces the wallet the app has open, so back that one up first.": "\u5BFC\u5165\u4F1A\u66FF\u6362\u5E94\u7528\u5F53\u524D\u6253\u5F00\u7684\u94B1\u5305\uFF0C\u6240\u4EE5\u8BF7\u5148\u5907\u4EFD\u90A3\u4E2A\u94B1\u5305\u3002",
+      "In backup": "\u5728\u5907\u4EFD\u4E2D",
+      "In the BRC Wallet Android app, import the 24 recovery words instead.": "\u5728 BRC Wallet Android \u5E94\u7528\u4E2D\uFF0C\u8BF7\u6539\u4E3A\u5BFC\u5165 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002",
+      "In wallet file": "\u5728\u94B1\u5305\u6587\u4EF6\u4E2D",
+      "Is this your secret key, or your address?": "\u8FD9\u662F\u4F60\u7684\u79C1\u94A5\uFF0C\u8FD8\u662F\u4F60\u7684\u5730\u5740\uFF1F",
+      "It is not on this page and cannot be recovered. If it is forgotten, these coins are gone. Store it separately from this sheet.": "\u5B83\u4E0D\u5728\u8FD9\u4E00\u9875\u4E0A\uFF0C\u4E5F\u65E0\u6CD5\u627E\u56DE\u3002\u4E00\u65E6\u5FD8\u8BB0\uFF0C\u8FD9\u4E9B\u5E01\u5C31\u6CA1\u4E86\u3002\u8BF7\u5C06\u5B83\u4E0E\u8FD9\u5F20\u7EB8\u5206\u5F00\u4FDD\u5B58\u3002",
+      "It locks the backup, which is the only copy of the new key. It can't be reset or recovered.": "\u5B83\u7528\u6765\u52A0\u5BC6\u5907\u4EFD\uFF0C\u800C\u5907\u4EFD\u662F\u65B0\u79C1\u94A5\u7684\u552F\u4E00\u526F\u672C\u3002\u5B83\u65E0\u6CD5\u91CD\u7F6E\uFF0C\u4E5F\u65E0\u6CD5\u627E\u56DE\u3002",
+      "Keep at least two copies in different places.": "\u81F3\u5C11\u5728\u4E0D\u540C\u7684\u5730\u65B9\u4FDD\u5B58\u4E24\u4EFD\u3002",
+      "Keep private": "\u8BF7\u4FDD\u5BC6",
+      "Key = scrypt(password normalized to NFKC, salt, N = 2^logN, r, p, 32). Ciphertext = AES-256-GCM(key, iv, private key) with associated data {0}, so changing any field makes decryption fail.": "\u5BC6\u94A5 = scrypt(\u7ECF NFKC \u89C4\u8303\u5316\u7684\u5BC6\u7801, salt, N = 2^logN, r, p, 32)\u3002\u5BC6\u6587 = AES-256-GCM(\u5BC6\u94A5, iv, \u79C1\u94A5)\uFF0C\u5173\u8054\u6570\u636E\u4E3A {0}\uFF0C\u56E0\u6B64\u6539\u52A8\u4EFB\u4F55\u5B57\u6BB5\u90FD\u4F1A\u5BFC\u81F4\u89E3\u5BC6\u5931\u8D25\u3002",
+      "Load a different backup": "\u52A0\u8F7D\u53E6\u4E00\u4E2A\u5907\u4EFD",
+      "Load and confirm a wallet in step 1 first.": "\u8BF7\u5148\u5728\u7B2C 1 \u6B65\u4E2D\u52A0\u8F7D\u5E76\u786E\u8BA4\u94B1\u5305\u3002",
+      "Load your backup": "\u52A0\u8F7D\u4F60\u7684\u5907\u4EFD",
+      "Load your wallet": "\u52A0\u8F7D\u4F60\u7684\u94B1\u5305",
+      "Lock and save": "\u52A0\u5BC6\u5E76\u4FDD\u5B58",
+      "Lock wallet": "\u52A0\u5BC6\u94B1\u5305",
+      "Lock your wallet with a password, print a paper copy, and restore it whenever you need to. Or start a new wallet that is backed up from the moment it exists. {0}": "\u7528\u5BC6\u7801\u52A0\u5BC6\u4F60\u7684\u94B1\u5305\uFF0C\u6253\u5370\u4E00\u4EFD\u7EB8\u8D28\u526F\u672C\uFF0C\u9700\u8981\u65F6\u968F\u65F6\u6062\u590D\u3002\u6216\u8005\u521B\u5EFA\u4E00\u4E2A\u4ECE\u8BDE\u751F\u8D77\u5C31\u5DF2\u5907\u4EFD\u7684\u65B0\u94B1\u5305\u3002{0}",
+      "Locked backup QR code": "\u5DF2\u52A0\u5BC6\u5907\u4EFD\u7684 QR \u7801",
+      "Locked backup code": "\u5DF2\u52A0\u5BC6\u5907\u4EFD\u4EE3\u7801",
+      "Locked with your password {0}": "\u5DF2\u7528\u4F60\u7684\u5BC6\u7801\u52A0\u5BC6 {0}",
+      "Locking\u2026": "\u6B63\u5728\u52A0\u5BC6\u2026",
+      "Made 2026-11-07": "\u521B\u5EFA\u4E8E 2026-11-07",
+      "Made and locked in one step. Its key exists only inside this backup, which was test-opened with your password. Save it now, one or both ways.": "\u4E00\u6B65\u5B8C\u6210\u521B\u5EFA\u548C\u52A0\u5BC6\u3002\u5B83\u7684\u79C1\u94A5\u53EA\u5B58\u5728\u4E8E\u8FD9\u4E2A\u5907\u4EFD\u4E2D\uFF0C\u5907\u4EFD\u5DF2\u7528\u4F60\u7684\u5BC6\u7801\u8BD5\u5F00\u8FC7\u3002\u73B0\u5728\u5C31\u4FDD\u5B58\u5B83\uFF0C\u7528\u5176\u4E2D\u4E00\u79CD\u6216\u4E24\u79CD\u65B9\u5F0F\u90FD\u884C\u3002",
+      "Mailbox for BRC Post": "BRC Post \u4FE1\u7BB1",
+      "Mailbox key unlocked": "\u4FE1\u7BB1\u5BC6\u94A5\u5DF2\u89E3\u9501",
+      "Make a password-protected backup of this wallet": "\u4E3A\u8FD9\u4E2A\u94B1\u5305\u5236\u4F5C\u4E00\u4E2A\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u5907\u4EFD",
+      "Make another": "\u518D\u521B\u5EFA\u4E00\u4E2A",
+      "Make it and save it": "\u521B\u5EFA\u5E76\u4FDD\u5B58",
+      "Make my mailbox key": "\u521B\u5EFA\u6211\u7684\u4FE1\u7BB1\u5BC6\u94A5",
+      "Make my wallet": "\u521B\u5EFA\u6211\u7684\u94B1\u5305",
+      "Making and locking\u2026": "\u6B63\u5728\u521B\u5EFA\u5E76\u52A0\u5BC6\u2026",
+      "Never sends your key": "\u7EDD\u4E0D\u53D1\u9001\u4F60\u7684\u79C1\u94A5",
+      "Never share": "\u5207\u52FF\u5206\u4EAB",
+      "New wallet": "\u65B0\u94B1\u5305",
+      "No camera was found on this device. Type the code instead.": "\u8FD9\u53F0\u8BBE\u5907\u4E0A\u6CA1\u6709\u627E\u5230\u6444\u50CF\u5934\u3002\u8BF7\u6539\u4E3A\u8F93\u5165\u4EE3\u7801\u3002",
+      "No password needed": "\u65E0\u9700\u5BC6\u7801",
+      "No, I pasted my address": "\u4E0D\uFF0C\u6211\u7C98\u8D34\u7684\u662F\u5730\u5740",
+      "Not password-protected": "\u672A\u7528\u5BC6\u7801\u52A0\u5BC6",
+      "Nothing else holds this key. Without the backup and its password, letters sealed to this mailbox can't be opened.": "\u5176\u4ED6\u4EFB\u4F55\u5730\u65B9\u90FD\u6CA1\u6709\u8FD9\u4E2A\u5BC6\u94A5\u3002\u6CA1\u6709\u5907\u4EFD\u548C\u5B83\u7684\u5BC6\u7801\uFF0C\u5BC6\u5C01\u7ED9\u8FD9\u4E2A\u4FE1\u7BB1\u7684\u4FE1\u4EF6\u5C06\u65E0\u6CD5\u6253\u5F00\u3002",
+      "Nothing else holds this wallet's key. Without the backup and its password, the wallet and anything sent to it are gone.": "\u5176\u4ED6\u4EFB\u4F55\u5730\u65B9\u90FD\u6CA1\u6709\u8FD9\u4E2A\u94B1\u5305\u7684\u79C1\u94A5\u3002\u6CA1\u6709\u5907\u4EFD\u548C\u5B83\u7684\u5BC6\u7801\uFF0C\u8FD9\u4E2A\u94B1\u5305\u4EE5\u53CA\u53D1\u9001\u5230\u5B83\u7684\u4EFB\u4F55\u4E1C\u897F\u90FD\u4F1A\u6C38\u4E45\u4E22\u5931\u3002",
+      "Offline: safest": "\u79BB\u7EBF\uFF1A\u6700\u5B89\u5168",
+      "Once your backup is safe, delete any other copies of the words, key or wallet file you restored from.": "\u5907\u4EFD\u59A5\u5584\u4FDD\u5B58\u540E\uFF0C\u8BF7\u5220\u9664\u4F60\u7528\u6765\u6062\u590D\u7684\u52A9\u8BB0\u8BCD\u3001\u79C1\u94A5\u6216\u94B1\u5305\u6587\u4EF6\u7684\u6240\u6709\u5176\u4ED6\u526F\u672C\u3002",
+      "One press makes the key, locks it with your password and test-opens the backup. {0}: nothing else will ever hold this key.": "\u6309\u4E00\u4E0B\u5373\u53EF\u751F\u6210\u79C1\u94A5\u3001\u7528\u4F60\u7684\u5BC6\u7801\u52A0\u5BC6\uFF0C\u5E76\u8BD5\u5F00\u5907\u4EFD\u3002{0}\uFF1A\u5176\u4ED6\u4EFB\u4F55\u5730\u65B9\u90FD\u6C38\u8FDC\u4E0D\u4F1A\u6709\u8FD9\u4E2A\u79C1\u94A5\u3002",
+      "Open BRC Post and choose Your mailbox key.": "\u6253\u5F00 BRC Post\uFF0C\u9009\u62E9\u300C\u4F60\u7684\u4FE1\u7BB1\u5BC6\u94A5\u300D\u3002",
+      "Open BRC Post, sealed letters, signatures and postmarks": "\u6253\u5F00 BRC Post\uFF1A\u5BC6\u5C01\u4FE1\u3001\u7B7E\u540D\u548C\u90AE\u6233",
+      "Open BRC Vault and choose Restore.": "\u6253\u5F00 BRC Vault\uFF0C\u9009\u62E9\u300C\u6062\u590D\u300D\u3002",
+      "Open source": "\u5F00\u6E90",
+      "Other wallets' files": "\u5176\u4ED6\u94B1\u5305\u7684\u6587\u4EF6",
+      "Page cleared. Close this tab when you're done.": "\u9875\u9762\u5DF2\u6E05\u7A7A\u3002\u5B8C\u6210\u540E\u8BF7\u5173\u95ED\u6B64\u6807\u7B7E\u9875\u3002",
+      "Paper backup": "\u7EB8\u8D28\u5907\u4EFD",
+      "Paper backup preview": "\u7EB8\u8D28\u5907\u4EFD\u9884\u89C8",
+      "Paper backup sent to print. Keep the file too, or a second paper copy somewhere else.": "\u7EB8\u8D28\u5907\u4EFD\u5DF2\u53D1\u9001\u53BB\u6253\u5370\u3002\u4E5F\u8BF7\u4FDD\u7559\u6587\u4EF6\uFF0C\u6216\u5728\u522B\u5904\u518D\u5B58\u4E00\u4EFD\u7EB8\u8D28\u526F\u672C\u3002",
+      "Paper wallet": "\u7EB8\u94B1\u5305",
+      "Password kept by": "\u5BC6\u7801\u4FDD\u7BA1\u4EBA",
+      "Password set and tested": "\u5BC6\u7801\u5DF2\u8BBE\u7F6E\u5E76\u6D4B\u8BD5",
+      "Password-protected BRC mailbox key": "\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684 BRC \u4FE1\u7BB1\u5BC6\u94A5",
+      "Password-protected BrowserCoin wallet": "\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684 BrowserCoin \u94B1\u5305",
+      "Password-protected files from the BRC Wallet desktop app ({0}) open in Restore. They use scrypt with the password exactly as typed and AES-256-GCM with a separate {1}; the same setting limits apply.": "BRC Wallet \u684C\u9762\u5E94\u7528\uFF08{0}\uFF09\u4E2D\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u6587\u4EF6\u53EF\u4EE5\u5728\u300C\u6062\u590D\u300D\u4E2D\u6253\u5F00\u3002\u5B83\u4EEC\u4F7F\u7528 scrypt\uFF08\u76F4\u63A5\u4F7F\u7528\u539F\u6837\u8F93\u5165\u7684\u5BC6\u7801\uFF09\u548C AES-256-GCM\uFF08\u4F7F\u7528\u5355\u72EC\u7684 {1}\uFF09\uFF1B\u53C2\u6570\u9650\u5236\u76F8\u540C\u3002",
+      "Paste instead": "\u6539\u4E3A\u7C98\u8D34",
+      "Pasted backup code": "\u7C98\u8D34\u7684\u5907\u4EFD\u4EE3\u7801",
+      "Pasted key": "\u7C98\u8D34\u7684\u79C1\u94A5",
+      "Pasted private key": "\u7C98\u8D34\u7684\u79C1\u94A5",
+      "Pasted wallet file": "\u7C98\u8D34\u7684\u94B1\u5305\u6587\u4EF6",
+      Print: "\u6253\u5370",
+      "Print a new paper copy of this backup": "\u4E3A\u8FD9\u4E2A\u5907\u4EFD\u91CD\u65B0\u6253\u5370\u4E00\u4EFD\u7EB8\u8D28\u526F\u672C",
+      "Print an unprotected paper wallet instead": "\u6539\u4E3A\u6253\u5370\u672A\u52A0\u5BC6\u7684\u7EB8\u94B1\u5305",
+      "Print paper backup": "\u6253\u5370\u7EB8\u8D28\u5907\u4EFD",
+      "Print unprotected paper wallet": "\u6253\u5370\u672A\u52A0\u5BC6\u7684\u7EB8\u94B1\u5305",
+      "Printed? Close this preview when you're done.": "\u6253\u5370\u597D\u4E86\u5417\uFF1F\u5B8C\u6210\u540E\u5173\u95ED\u8FD9\u4E2A\u9884\u89C8\u3002",
+      "Private key": "\u79C1\u94A5",
+      "Private key QR code": "\u79C1\u94A5 QR \u7801",
+      Protection: "\u4FDD\u62A4\u65B9\u5F0F",
+      "Recovery words": "\u52A9\u8BB0\u8BCD",
+      "Remove the private key from wherever you copied it once your backup is safe.": "\u5907\u4EFD\u59A5\u5584\u4FDD\u5B58\u540E\uFF0C\u8BF7\u628A\u79C1\u94A5\u4ECE\u4F60\u590D\u5236\u5B83\u7684\u5730\u65B9\u5220\u9664\u3002",
+      Restore: "\u6062\u590D",
+      "Safe to share": "\u53EF\u4EE5\u653E\u5FC3\u5206\u4EAB",
+      "Save the locked mailbox file": "\u4FDD\u5B58\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u4FE1\u7BB1\u6587\u4EF6",
+      "Save this page and open it with Wi\u2011Fi off. It runs the same either way.": "\u4FDD\u5B58\u8FD9\u4E2A\u9875\u9762\uFF0C\u7136\u540E\u5173\u6389 Wi\u2011Fi \u518D\u6253\u5F00\u3002\u65E0\u8BBA\u8054\u7F51\u4E0E\u5426\uFF0C\u5B83\u7684\u8FD0\u884C\u65B9\u5F0F\u90FD\u4E00\u6837\u3002",
+      "Scan paper backup": "\u626B\u63CF\u7EB8\u8D28\u5907\u4EFD",
+      "Scanned paper backup": "\u5DF2\u626B\u63CF\u7684\u7EB8\u8D28\u5907\u4EFD",
+      "Scanned paper wallet": "\u5DF2\u626B\u63CF\u7684\u7EB8\u94B1\u5305",
+      "See it on BRC Pulse": "\u5728 BRC Pulse \u4E0A\u67E5\u770B",
+      "Self-check failed. No backup was made.": "\u81EA\u68C0\u5931\u8D25\u3002\u6CA1\u6709\u751F\u6210\u5907\u4EFD\u3002",
+      "Self-check failed. No wallet was made.": "\u81EA\u68C0\u5931\u8D25\u3002\u6CA1\u6709\u521B\u5EFA\u94B1\u5305\u3002",
+      "Sends nothing": "\u4E0D\u53D1\u9001\u4EFB\u4F55\u5185\u5BB9",
+      "Sends nothing: BRC Vault never sends anything. For extra safety you can turn off Wi\u2011Fi before loading a key.": "\u4E0D\u53D1\u9001\u4EFB\u4F55\u5185\u5BB9\uFF1ABRC Vault \u4ECE\u4E0D\u53D1\u9001\u4EFB\u4F55\u4E1C\u897F\u3002\u4E3A\u4E86\u66F4\u52A0\u5B89\u5168\uFF0C\u4F60\u53EF\u4EE5\u5728\u8F7D\u5165\u79C1\u94A5\u524D\u5173\u6389 Wi\u2011Fi\u3002",
+      Show: "\u663E\u793A",
+      "Show password": "\u663E\u793A\u5BC6\u7801",
+      "Show the 24 recovery words, for the BRC Wallet Android app": "\u663E\u793A 24 \u4E2A\u52A9\u8BB0\u8BCD\uFF0C\u7528\u4E8E BRC Wallet Android \u5E94\u7528",
+      "Sound off": "\u58F0\u97F3\u5DF2\u5173",
+      "Sound on": "\u58F0\u97F3\u5DF2\u5F00",
+      "Starting the camera\u2026": "\u6B63\u5728\u542F\u52A8\u6444\u50CF\u5934\u2026",
+      "Store the password separately, for example in a password manager.": "\u628A\u5BC6\u7801\u5355\u72EC\u4FDD\u5B58\uFF0C\u6BD4\u5982\u5B58\u5728\u5BC6\u7801\u7BA1\u7406\u5668\u91CC\u3002",
+      "Stored at": "\u4FDD\u5B58\u5728",
+      Strong: "\u5F3A",
+      "Technical details": "\u6280\u672F\u7EC6\u8282",
+      "That QR code isn't from a BRC Vault paper backup. Hold up the locked backup QR code.": "\u8FD9\u4E2A QR \u7801\u4E0D\u662F\u6765\u81EA BRC Vault \u7EB8\u8D28\u5907\u4EFD\u3002\u8BF7\u5BF9\u51C6\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u5907\u4EFD QR \u7801\u3002",
+      "That file is password-protected by the BRC Wallet desktop app. Open it in Restore first; once it is unlocked you can back it up here.": "\u8FD9\u4E2A\u6587\u4EF6\u5DF2\u7531 BRC Wallet \u684C\u9762\u5E94\u7528\u7528\u5BC6\u7801\u52A0\u5BC6\u3002\u8BF7\u5148\u5728\u300C\u6062\u590D\u300D\u4E2D\u6253\u5F00\u5B83\uFF1B\u89E3\u9501\u540E\u5C31\u53EF\u4EE5\u5728\u8FD9\u91CC\u5907\u4EFD\u3002",
+      "That file is too large to be a wallet or backup.": "\u8FD9\u4E2A\u6587\u4EF6\u592A\u5927\uFF0C\u4E0D\u53EF\u80FD\u662F\u94B1\u5305\u6216\u5907\u4EFD\u3002",
+      "That is already a BRC Vault backup. To open it, switch to Restore.": "\u8FD9\u5DF2\u7ECF\u662F\u4E00\u4E2A BRC Vault \u5907\u4EFD\u4E86\u3002\u8981\u6253\u5F00\u5B83\uFF0C\u8BF7\u5207\u6362\u5230\u300C\u6062\u590D\u300D\u3002",
+      "That's the wallet address QR code, which can't restore anything. Hold up the larger locked backup QR code instead.": "\u8FD9\u662F\u94B1\u5305\u5730\u5740\u7684 QR \u7801\uFF0C\u65E0\u6CD5\u6062\u590D\u4EFB\u4F55\u4E1C\u897F\u3002\u8BF7\u6539\u4E3A\u5BF9\u51C6\u90A3\u4E2A\u66F4\u5927\u7684\u3001\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u5907\u4EFD QR \u7801\u3002",
+      "The 24 recovery words are standard BIP39 English, with the 32-byte private key used directly as the entropy (no passphrase, no derivation path). That is exactly what the BRC Wallet Android app shows and accepts, so the same words work in both. When you type them here, commas and capital letters don't matter and the first four letters of each word are enough; if you number the words, the numbers set the order. The Android app needs the full words in lower case, in order.": "\u8FD9 24 \u4E2A\u52A9\u8BB0\u8BCD\u662F\u6807\u51C6\u7684 BIP39 \u82F1\u6587\u5355\u8BCD\uFF0C\u76F4\u63A5\u4EE5 32 \u5B57\u8282\u79C1\u94A5\u4F5C\u4E3A\u71B5\uFF08\u6CA1\u6709\u989D\u5916\u53E3\u4EE4\uFF0C\u4E5F\u6CA1\u6709\u6D3E\u751F\u8DEF\u5F84\uFF09\u3002\u8FD9\u4E0E BRC Wallet Android \u5E94\u7528\u663E\u793A\u548C\u63A5\u53D7\u7684\u5B8C\u5168\u4E00\u81F4\uFF0C\u6240\u4EE5\u540C\u4E00\u7EC4\u52A9\u8BB0\u8BCD\u5728\u4E24\u8FB9\u90FD\u80FD\u7528\u3002\u5728\u8FD9\u91CC\u8F93\u5165\u65F6\uFF0C\u9017\u53F7\u548C\u5927\u5C0F\u5199\u90FD\u4E0D\u5F71\u54CD\uFF0C\u6BCF\u4E2A\u5355\u8BCD\u8F93\u5165\u524D\u56DB\u4E2A\u5B57\u6BCD\u5C31\u591F\u4E86\uFF1B\u5982\u679C\u4F60\u7ED9\u5355\u8BCD\u7F16\u4E86\u53F7\uFF0C\u5C31\u6309\u7F16\u53F7\u6392\u5E8F\u3002Android \u5E94\u7528\u9700\u8981\u6309\u987A\u5E8F\u8F93\u5165\u5B8C\u6574\u7684\u5C0F\u5199\u5355\u8BCD\u3002",
+      "The address above is the one my wallet app shows.": "\u4E0A\u9762\u7684\u5730\u5740\u5C31\u662F\u6211\u7684\u94B1\u5305\u5E94\u7528\u663E\u793A\u7684\u5730\u5740\u3002",
+      "The address above is the one my wallet app shows. {0} can, rarely, make a different, empty wallet.": "\u4E0A\u9762\u7684\u5730\u5740\u5C31\u662F\u6211\u7684\u94B1\u5305\u5E94\u7528\u663E\u793A\u7684\u5730\u5740\u3002{0}\u5728\u6781\u5C11\u6570\u60C5\u51B5\u4E0B\u53EF\u80FD\u4F1A\u751F\u6210\u4E00\u4E2A\u4E0D\u540C\u7684\u7A7A\u94B1\u5305\u3002",
+      "The camera can't be used inside this preview. Save brc-vault.html and open it directly in Chrome or Safari, then allow camera access.": "\u5728\u8FD9\u4E2A\u9884\u89C8\u4E2D\u65E0\u6CD5\u4F7F\u7528\u6444\u50CF\u5934\u3002\u8BF7\u4FDD\u5B58 brc-vault.html\uFF0C\u76F4\u63A5\u7528 Chrome \u6216 Safari \u6253\u5F00\uFF0C\u7136\u540E\u5141\u8BB8\u8BBF\u95EE\u6444\u50CF\u5934\u3002",
+      "The camera can't be used inside this preview. Save brc-vault.html and open it directly in Chrome or Safari.": "\u5728\u8FD9\u4E2A\u9884\u89C8\u4E2D\u65E0\u6CD5\u4F7F\u7528\u6444\u50CF\u5934\u3002\u8BF7\u4FDD\u5B58 brc-vault.html\uFF0C\u76F4\u63A5\u7528 Chrome \u6216 Safari \u6253\u5F00\u3002",
+      "The downloaded file isn't password-protected. Delete it after importing.": "\u4E0B\u8F7D\u7684\u6587\u4EF6\u6CA1\u6709\u5BC6\u7801\u4FDD\u62A4\u3002\u5BFC\u5165\u540E\u8BF7\u5220\u9664\u5B83\u3002",
+      "The key matches the address in the backup": "\u79C1\u94A5\u4E0E\u5907\u4EFD\u4E2D\u7684\u5730\u5740\u76F8\u7B26",
+      "The key matches the address in the wallet file": "\u79C1\u94A5\u4E0E\u94B1\u5305\u6587\u4EF6\u4E2D\u7684\u5730\u5740\u76F8\u7B26",
+      "The key matches this address": "\u79C1\u94A5\u4E0E\u8FD9\u4E2A\u5730\u5740\u76F8\u7B26",
+      "The page's security policy allows only its own script, identified by its SHA-256 hash, and blocks network requests. Peer-to-peer connections are disabled at startup.": "\u8FD9\u4E2A\u9875\u9762\u7684\u5B89\u5168\u7B56\u7565\u53EA\u5141\u8BB8\u8FD0\u884C\u5B83\u81EA\u5DF1\u7684\u811A\u672C\uFF08\u4EE5\u5176 SHA-256 \u54C8\u5E0C\u8BC6\u522B\uFF09\uFF0C\u5E76\u963B\u6B62\u7F51\u7EDC\u8BF7\u6C42\u3002\u70B9\u5BF9\u70B9\u8FDE\u63A5\u5728\u542F\u52A8\u65F6\u5C31\u88AB\u7981\u7528\u3002",
+      "The paper code is the same backup on one line, in upper case: {0}, and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the {1} prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as {2}, where CHECK is the first 8 characters of the address, so it can't be mistaken for an address and a typo in the key is caught.": "\u7EB8\u8D28\u4EE3\u7801\u5C31\u662F\u540C\u4E00\u4EFD\u5907\u4EFD\uFF0C\u5199\u6210\u4E00\u884C\u5927\u5199\u5B57\u6BCD\uFF1A{0}\uFF0C\u8FD9\u4E5F\u6B63\u662F QR \u7801\u91CC\u7684\u5185\u5BB9\u3002\u624B\u673A\u76F8\u673A\u5E94\u7528\u7279\u610F\u65E0\u6CD5\u5904\u7406\u5B83\uFF1A\u5B83\u4EEC\u4E0D\u8BA4\u8BC6 {1} \u524D\u7F00\uFF0C\u6240\u4EE5\u6C38\u8FDC\u4E0D\u4F1A\u63D0\u793A\u4F60\u4E0A\u7F51\u641C\u7D22\u5B83\u3002\u8BF7\u6539\u7528 BRC Vault \u81EA\u5E26\u7684\u626B\u63CF\u5668\u626B\u63CF\uFF0C\u5B83\u5728\u9875\u9762\u5185\u8BFB\u53D6\u6444\u50CF\u5934\uFF0C\u4E0D\u4F1A\u5411\u4EFB\u4F55\u5730\u65B9\u53D1\u9001\u4EFB\u4F55\u5185\u5BB9\u3002\u5728\u7EB8\u4E0A\uFF0C\u5B83\u6BCF\u884C\u6253\u5370\u4E00\u6BB5\uFF0C\u6BCF\u6BB5\u540E\u9762\u8DDF\u4E00\u4E2A\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\uFF1A\u5373\u53BB\u6389\u7A7A\u683C\u540E\u8BE5\u884C SHA-256 \u7684\u524D 4 \u4E2A\u5341\u516D\u8FDB\u5236\u5B57\u7B26\u3002\u8F93\u9519\u7684\u8BDD\uFF0C\u4F1A\u5728\u7F13\u6162\u7684\u5BC6\u7801\u6B65\u9AA4\u4E4B\u524D\u88AB\u53D1\u73B0\uFF0C\u5E76\u6307\u51FA\u662F\u54EA\u4E00\u884C\u3002\u672A\u52A0\u5BC6\u7684\u79C1\u94A5\u4F1A\u6253\u5370\u6210 {2}\uFF0C\u5176\u4E2D CHECK \u662F\u5730\u5740\u7684\u524D 8 \u4E2A\u5B57\u7B26\uFF0C\u8FD9\u6837\u5B83\u5C31\u4E0D\u4F1A\u88AB\u8BEF\u8BA4\u4E3A\u662F\u5730\u5740\uFF0C\u79C1\u94A5\u91CC\u7684\u8F93\u5165\u9519\u8BEF\u4E5F\u80FD\u88AB\u53D1\u73B0\u3002",
+      "The print window didn't open. Press Ctrl+P to print this sheet. If that doesn't work either, open brc-vault.html directly in your browser, not in an app's preview.": "\u6253\u5370\u7A97\u53E3\u6CA1\u6709\u6253\u5F00\u3002\u6309 Ctrl+P \u6253\u5370\u8FD9\u4E00\u9875\u3002\u5982\u679C\u8FD8\u662F\u4E0D\u884C\uFF0C\u8BF7\u76F4\u63A5\u5728\u6D4F\u89C8\u5668\u4E2D\u6253\u5F00 brc-vault.html\uFF0C\u800C\u4E0D\u662F\u5728\u67D0\u4E2A\u5E94\u7528\u7684\u9884\u89C8\u91CC\u6253\u5F00\u3002",
+      "The same picture appears for this address in BRC Post and BRC Pulse": "\u5728 BRC Post \u548C BRC Pulse \u4E2D\uFF0C\u8FD9\u4E2A\u5730\u5740\u4F1A\u663E\u793A\u540C\u6837\u7684\u56FE\u6848",
+      "The same wallet as standard recovery words. They restore in BRC Vault and in the BRC Wallet Android app.": "\u540C\u4E00\u4E2A\u94B1\u5305\u7684\u6807\u51C6\u52A9\u8BB0\u8BCD\u5F62\u5F0F\u3002\u53EF\u4EE5\u5728 BRC Vault \u548C BRC Wallet Android \u5E94\u7528\u4E2D\u6062\u590D\u3002",
+      "Then download or print it before you close this page": "\u7136\u540E\u5728\u5173\u95ED\u8FD9\u4E2A\u9875\u9762\u4E4B\u524D\u4E0B\u8F7D\u6216\u6253\u5370\u5B83",
+      "There's no server, and the page is locked down to block network requests. For the strongest guarantee, use it offline.": "\u6CA1\u6709\u670D\u52A1\u5668\uFF0C\u9875\u9762\u4E5F\u5DF2\u9501\u5B9A\uFF0C\u4F1A\u963B\u6B62\u7F51\u7EDC\u8BF7\u6C42\u3002\u60F3\u8981\u6700\u5F3A\u7684\u4FDD\u969C\uFF0C\u8BF7\u79BB\u7EBF\u4F7F\u7528\u3002",
+      "These words are the wallet itself, with no password. {0} Only open this somewhere private, and don't take a screenshot.": "\u8FD9\u4E9B\u52A9\u8BB0\u8BCD\u5C31\u662F\u94B1\u5305\u672C\u8EAB\uFF0C\u6CA1\u6709\u5BC6\u7801\u4FDD\u62A4\u3002{0}\u53EA\u5728\u79C1\u5BC6\u7684\u5730\u65B9\u6253\u5F00\uFF0C\u5E76\u4E14\u4E0D\u8981\u622A\u56FE\u3002",
+      "This backup hasn't been downloaded or printed yet, and it is the only copy of the key. Save it first, or press Make another again to discard it.": "\u8FD9\u4E2A\u5907\u4EFD\u8FD8\u6CA1\u6709\u4E0B\u8F7D\u6216\u6253\u5370\uFF0C\u800C\u4E14\u5B83\u662F\u8FD9\u4E2A\u79C1\u94A5\u7684\u552F\u4E00\u526F\u672C\u3002\u8BF7\u5148\u4FDD\u5B58\u5B83\uFF0C\u6216\u8005\u518D\u6309\u4E00\u6B21\u300C\u518D\u521B\u5EFA\u4E00\u4E2A\u300D\u6765\u4E22\u5F03\u5B83\u3002",
+      "This browser can't use a camera here. Type the code instead.": "\u8FD9\u4E2A\u6D4F\u89C8\u5668\u65E0\u6CD5\u5728\u8FD9\u91CC\u4F7F\u7528\u6444\u50CF\u5934\u3002\u8BF7\u6539\u4E3A\u8F93\u5165\u4EE3\u7801\u3002",
+      "This file had been changed by another app, such as a text editor. BRC Vault recovered the backup from it; unlocking will confirm it.": "\u8FD9\u4E2A\u6587\u4EF6\u66FE\u88AB\u5176\u4ED6\u5E94\u7528\uFF08\u6BD4\u5982\u6587\u672C\u7F16\u8F91\u5668\uFF09\u6539\u52A8\u8FC7\u3002BRC Vault \u5DF2\u4ECE\u4E2D\u627E\u56DE\u5907\u4EFD\uFF1B\u89E3\u9501\u540E\u5373\u53EF\u786E\u8BA4\u3002",
+      "This file had been changed by another app, such as a text editor. BRC Vault recovered the key and confirmed it matches the address.": "\u8FD9\u4E2A\u6587\u4EF6\u66FE\u88AB\u5176\u4ED6\u5E94\u7528\uFF08\u6BD4\u5982\u6587\u672C\u7F16\u8F91\u5668\uFF09\u6539\u52A8\u8FC7\u3002BRC Vault \u5DF2\u627E\u56DE\u79C1\u94A5\uFF0C\u5E76\u786E\u8BA4\u5B83\u4E0E\u5730\u5740\u76F8\u7B26\u3002",
+      "This file is your mailbox. To read letters, open": "\u8FD9\u4E2A\u6587\u4EF6\u5C31\u662F\u4F60\u7684\u4FE1\u7BB1\u3002\u8981\u9605\u8BFB\u4FE1\u4EF6\uFF0C\u8BF7\u6253\u5F00",
+      "This file is your mailbox. To read letters, open {0}, tap {1}, choose {2} and pick this file; BRC Post can remember it, so next time you only type the password. The address above is public: share it so people can write to you. {3}": "\u8FD9\u4E2A\u6587\u4EF6\u5C31\u662F\u4F60\u7684\u4FE1\u7BB1\u3002\u8981\u9605\u8BFB\u4FE1\u4EF6\uFF0C\u8BF7\u6253\u5F00{0}\uFF0C\u70B9\u6309{1}\uFF0C\u9009\u62E9{2}\uFF0C\u7136\u540E\u9009\u4E2D\u8FD9\u4E2A\u6587\u4EF6\uFF1BBRC Post \u53EF\u4EE5\u8BB0\u4F4F\u5B83\uFF0C\u4E0B\u6B21\u4F60\u53EA\u9700\u8F93\u5165\u5BC6\u7801\u3002\u4E0A\u9762\u7684\u5730\u5740\u662F\u516C\u5F00\u7684\uFF1A\u628A\u5B83\u5206\u4EAB\u51FA\u53BB\uFF0C\u522B\u4EBA\u5C31\u80FD\u7ED9\u4F60\u5199\u4FE1\u3002{3}",
+      "This is a mailbox, and your backup and password work. To read your letters, open BRC Post, tap Your mailbox, choose I already have a mailbox, and pick this same backup file. The 64-character code above is the mailbox address: it is public, for people to write to you, and it can't open anything.": "\u8FD9\u662F\u4E00\u4E2A\u4FE1\u7BB1\uFF0C\u4F60\u7684\u5907\u4EFD\u548C\u5BC6\u7801\u90FD\u6CA1\u95EE\u9898\u3002\u8981\u9605\u8BFB\u4FE1\u4EF6\uFF0C\u8BF7\u6253\u5F00 BRC Post\uFF0C\u70B9\u6309\u300C\u4F60\u7684\u4FE1\u7BB1\u300D\uFF0C\u9009\u62E9\u300C\u6211\u5DF2\u7ECF\u6709\u4FE1\u7BB1\u300D\uFF0C\u7136\u540E\u9009\u4E2D\u8FD9\u4E2A\u5907\u4EFD\u6587\u4EF6\u3002\u4E0A\u9762\u90A3\u4E32 64 \u4E2A\u5B57\u7B26\u7684\u4EE3\u7801\u662F\u4FE1\u7BB1\u5730\u5740\uFF1A\u5B83\u662F\u516C\u5F00\u7684\uFF0C\u7528\u4E8E\u522B\u4EBA\u7ED9\u4F60\u5199\u4FE1\uFF0C\u65E0\u6CD5\u6253\u5F00\u4EFB\u4F55\u4E1C\u897F\u3002",
+      "This is a password-protected file from the BRC Wallet desktop app. Unlock it with the password you set in that app.": "\u8FD9\u662F BRC Wallet \u684C\u9762\u5E94\u7528\u751F\u6210\u7684\u3001\u6709\u5BC6\u7801\u4FDD\u62A4\u7684\u6587\u4EF6\u3002\u8BF7\u7528\u4F60\u5728\u90A3\u4E2A\u5E94\u7528\u4E2D\u8BBE\u7F6E\u7684\u5BC6\u7801\u89E3\u9501\u3002",
+      "This is the wallet address I expected.": "\u8FD9\u6B63\u662F\u6211\u9884\u671F\u7684\u94B1\u5305\u5730\u5740\u3002",
+      "This is the wallet itself. Type every line with its check in brackets; the last line checks the key against the address.": "\u8FD9\u5C31\u662F\u94B1\u5305\u672C\u8EAB\u3002\u8F93\u5165\u6BCF\u4E00\u884C\u65F6\u8981\u8FDE\u540C\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\u4E00\u8D77\u8F93\u5165\uFF1B\u6700\u540E\u4E00\u884C\u4F1A\u6838\u5BF9\u79C1\u94A5\u4E0E\u5730\u5740\u662F\u5426\u76F8\u7B26\u3002",
+      "This prints the private key itself, with no password. {0} Only use it if the paper will be locked away, for example in a safe.": "\u8FD9\u4F1A\u76F4\u63A5\u6253\u5370\u79C1\u94A5\u672C\u8EAB\uFF0C\u6CA1\u6709\u5BC6\u7801\u4FDD\u62A4\u3002{0}\u53EA\u6709\u5728\u8FD9\u5F20\u7EB8\u4F1A\u88AB\u9501\u8D77\u6765\uFF08\u6BD4\u5982\u653E\u8FDB\u4FDD\u9669\u7BB1\uFF09\u65F6\u624D\u4F7F\u7528\u3002",
+      "This takes a few seconds on purpose. It makes password guessing slow.": "\u8FD9\u91CC\u7279\u610F\u8981\u82B1\u51E0\u79D2\u949F\uFF0C\u8BA9\u522B\u4EBA\u731C\u5BC6\u7801\u53D8\u5F97\u5F88\u6162\u3002",
+      "To get your coins back": "\u8981\u627E\u56DE\u4F60\u7684\u5E01",
+      "To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in": "\u6536\u5E01\u53EA\u9700\u8981\u4E0A\u9762\u7684\u5730\u5740\u3002\u4EE5\u540E\u8981\u5728 BrowserCoin \u5E94\u7528\u4E2D\u82B1\u8FD9\u4E9B\u5E01\uFF0C\u8BF7\u7528\u8FD9\u4E2A\u5DE5\u5177\u6253\u5F00\u6B64\u5907\u4EFD\uFF1A",
+      "To receive coins, all anyone needs is the address above. To spend from it in the BrowserCoin app later, open this backup in {0}: it gives you a wallet file for the app's {1} Importing replaces the wallet the app has open, so back that one up first.": "\u6536\u5E01\u53EA\u9700\u8981\u4E0A\u9762\u7684\u5730\u5740\u3002\u4EE5\u540E\u8981\u5728 BrowserCoin \u5E94\u7528\u4E2D\u82B1\u8FD9\u4E9B\u5E01\uFF0C\u8BF7\u5728{0}\u4E2D\u6253\u5F00\u8FD9\u4E2A\u5907\u4EFD\uFF1A\u5B83\u4F1A\u7ED9\u4F60\u4E00\u4E2A\u94B1\u5305\u6587\u4EF6\uFF0C\u7528\u4E8E\u8BE5\u5E94\u7528\u7684{1}\u5BFC\u5165\u4F1A\u66FF\u6362\u5E94\u7528\u5F53\u524D\u6253\u5F00\u7684\u94B1\u5305\uFF0C\u6240\u4EE5\u8BF7\u5148\u5907\u4EFD\u90A3\u4E2A\u94B1\u5305\u3002",
+      "To use this mailbox key again": "\u8981\u518D\u6B21\u4F7F\u7528\u8FD9\u4E2A\u4FE1\u7BB1\u5BC6\u94A5",
+      "Too weak": "\u592A\u5F31",
+      "Turn a BRC Vault backup, 24 recovery words, or a password-protected file from the BRC Wallet desktop app back into a wallet file BrowserCoin can import.": "\u628A BRC Vault \u5907\u4EFD\u300124 \u4E2A\u52A9\u8BB0\u8BCD\uFF0C\u6216 BRC Wallet \u684C\u9762\u5E94\u7528\u4E2D\u6709\u5BC6\u7801\u4FDD\u62A4\u7684\u6587\u4EF6\uFF0C\u8FD8\u539F\u6210 BrowserCoin \u53EF\u4EE5\u5BFC\u5165\u7684\u94B1\u5305\u6587\u4EF6\u3002",
+      "Type a paper code": "\u8F93\u5165\u7EB8\u8D28\u4EE3\u7801",
+      "Type every line of the locked backup code, including the check in brackets, or your 24 recovery words. The wallet address on the paper is not a key.": "\u8F93\u5165\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u5907\u4EFD\u4EE3\u7801\u7684\u6BCF\u4E00\u884C\uFF08\u5305\u62EC\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\uFF09\uFF0C\u6216\u8005\u8F93\u5165\u4F60\u7684 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002\u7EB8\u4E0A\u7684\u94B1\u5305\u5730\u5740\u4E0D\u662F\u79C1\u94A5\u3002",
+      "Type the code instead": "\u6539\u4E3A\u8F93\u5165\u4EE3\u7801",
+      "Type the locked backup code exactly as printed, with the checks in brackets.": "\u8BF7\u5B8C\u5168\u6309\u7167\u6253\u5370\u5185\u5BB9\u8F93\u5165\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u5907\u4EFD\u4EE3\u7801\uFF0C\u5305\u62EC\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\u3002",
+      "Unlock backup": "\u89E3\u9501\u5907\u4EFD",
+      "Unlock with your password": "\u7528\u4F60\u7684\u5BC6\u7801\u89E3\u9501",
+      Unlocked: "\u5DF2\u89E3\u9501",
+      "Unlocked with your password": "\u5DF2\u7528\u4F60\u7684\u5BC6\u7801\u89E3\u9501",
+      "Unlocking\u2026": "\u6B63\u5728\u89E3\u9501\u2026",
+      "Unprotected paper wallet preview": "\u672A\u52A0\u5BC6\u7EB8\u94B1\u5305\u9884\u89C8",
+      "Use a file": "\u4F7F\u7528\u6587\u4EF6",
+      "Use it in BRC Post": "\u5728 BRC Post \u4E2D\u4F7F\u7528",
+      "Use it to receive coins or look up the balance. This is not a key and can't restore the wallet.": "\u7528\u5B83\u6765\u6536\u5E01\u6216\u67E5\u8BE2\u4F59\u989D\u3002\u8FD9\u4E0D\u662F\u79C1\u94A5\uFF0C\u65E0\u6CD5\u6062\u590D\u94B1\u5305\u3002",
+      "Use it to receive coins. This is not a key and can't restore the wallet.": "\u7528\u5B83\u6765\u6536\u5E01\u3002\u8FD9\u4E0D\u662F\u79C1\u94A5\uFF0C\u65E0\u6CD5\u6062\u590D\u94B1\u5305\u3002",
+      "Useless without your password. Scan it with BRC Vault, or type each line with its check in brackets. Phone camera apps can't read it, on purpose.": "\u6CA1\u6709\u4F60\u7684\u5BC6\u7801\u5C31\u6BEB\u65E0\u7528\u5904\u3002\u7528 BRC Vault \u626B\u63CF\u5B83\uFF0C\u6216\u8005\u9010\u884C\u8F93\u5165\uFF0C\u8FDE\u540C\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\u3002\u624B\u673A\u76F8\u673A\u5E94\u7528\u7279\u610F\u65E0\u6CD5\u8BFB\u53D6\u5B83\u3002",
+      "Waiting for camera access. Look for a prompt near the address bar and choose Allow.": "\u6B63\u5728\u7B49\u5F85\u6444\u50CF\u5934\u6743\u9650\u3002\u8BF7\u5728\u5730\u5740\u680F\u9644\u8FD1\u627E\u5230\u63D0\u793A\uFF0C\u5E76\u9009\u62E9\u201C\u5141\u8BB8\u201D\u3002",
+      Wallet: "\u94B1\u5305",
+      "Wallet address": "\u94B1\u5305\u5730\u5740",
+      "Wallet address QR code": "\u94B1\u5305\u5730\u5740\u4E8C\u7EF4\u7801",
+      "Wallet file": "\u94B1\u5305\u6587\u4EF6",
+      "Wallet file saved to your Downloads": "\u94B1\u5305\u6587\u4EF6\u5DF2\u4FDD\u5B58\u5230\u201C\u4E0B\u8F7D\u201D\u6587\u4EF6\u5939",
+      "Wallet file unlocked": "\u94B1\u5305\u6587\u4EF6\u5DF2\u89E3\u9501",
+      "Wallet from Restore": "\u6765\u81EA\u201C\u6062\u590D\u201D\u7684\u94B1\u5305",
+      "Wallet locked": "\u94B1\u5305\u5DF2\u9501\u5B9A",
+      "Wallet ready": "\u94B1\u5305\u5DF2\u5C31\u7EEA",
+      "What's it for?": "\u7528\u6765\u505A\u4EC0\u4E48\uFF1F",
+      "What's this wallet for?": "\u8FD9\u4E2A\u94B1\u5305\u7528\u6765\u505A\u4EC0\u4E48\uFF1F",
+      "Why it's safe": "\u4E3A\u4EC0\u4E48\u5B89\u5168",
+      "Yes, that's my wallet": "\u662F\u7684\uFF0C\u8FD9\u662F\u6211\u7684\u94B1\u5305",
+      "You are offline. Nothing can leave this page.": "\u4F60\u5DF2\u79BB\u7EBF\u3002\u4EFB\u4F55\u5185\u5BB9\u90FD\u65E0\u6CD5\u79BB\u5F00\u6B64\u9875\u9762\u3002",
+      "You can also paste a private key, or the 24 recovery words from the BRC Wallet Android app. Starting from scratch? Use": "\u4F60\u4E5F\u53EF\u4EE5\u7C98\u8D34\u79C1\u94A5\uFF0C\u6216 BRC Wallet Android \u5E94\u7528\u91CC\u7684 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002\u4ECE\u96F6\u5F00\u59CB\uFF1F\u8BF7\u4F7F\u7528",
+      "You'll need it to restore this backup. It can't be reset or recovered.": "\u6062\u590D\u8FD9\u4EFD\u5907\u4EFD\u65F6\u9700\u8981\u5B83\u3002\u5B83\u65E0\u6CD5\u91CD\u7F6E\uFF0C\u4E5F\u65E0\u6CD5\u627E\u56DE\u3002",
+      "You're viewing BRC Vault inside another app's preview, which can block printing and downloads. Save brc-vault.html and open it directly in Chrome, Safari, Edge, or Firefox.": "\u4F60\u6B63\u5728\u5176\u4ED6\u5E94\u7528\u7684\u9884\u89C8\u4E2D\u67E5\u770B BRC Vault\uFF0C\u8FD9\u53EF\u80FD\u4F1A\u963B\u6B62\u6253\u5370\u548C\u4E0B\u8F7D\u3002\u8BF7\u4FDD\u5B58 brc-vault.html\uFF0C\u7136\u540E\u76F4\u63A5\u5728 Chrome\u3001Safari\u3001Edge \u6216 Firefox \u4E2D\u6253\u5F00\u3002",
+      "Your BrowserCoin, safely backed up.": "\u4F60\u7684 BrowserCoin\uFF0C\u5B89\u5168\u5907\u4EFD\u3002",
+      "Your address is public, so there's nothing to back up. What you need is the wallet file: in browsercoin.org/app open Settings \u2192 Export key\u2026, then drop the file here.": "\u4F60\u7684\u5730\u5740\u662F\u516C\u5F00\u7684\uFF0C\u6240\u4EE5\u4E0D\u9700\u8981\u5907\u4EFD\u3002\u4F60\u9700\u8981\u7684\u662F\u94B1\u5305\u6587\u4EF6\uFF1A\u5728 browsercoin.org/app \u4E2D\u6253\u5F00\u8BBE\u7F6E\uFF08Settings\uFF09\u2192\u300CExport key\u2026\u300D\uFF0C\u7136\u540E\u628A\u6587\u4EF6\u62D6\u5230\u8FD9\u91CC\u3002",
+      "Your backup was test-opened with your password before saving. Keep it one or both ways.": "\u4FDD\u5B58\u524D\u5DF2\u7528\u4F60\u7684\u5BC6\u7801\u8BD5\u5F00\u8FC7\u8FD9\u4EFD\u5907\u4EFD\u3002\u7528\u4E00\u79CD\u6216\u4E24\u79CD\u65B9\u5F0F\u4FDD\u5B58\u90FD\u53EF\u4EE5\u3002",
+      "Your key never leaves this tab.": "\u4F60\u7684\u79C1\u94A5\u6C38\u8FDC\u4E0D\u4F1A\u79BB\u5F00\u8FD9\u4E2A\u6807\u7B7E\u9875\u3002",
+      "Your new mailbox key is ready": "\u4F60\u7684\u65B0\u4FE1\u7BB1\u5BC6\u94A5\u5DF2\u5C31\u7EEA",
+      "Your new wallet is ready": "\u4F60\u7684\u65B0\u94B1\u5305\u5DF2\u5C31\u7EEA",
+      "Your new wallet's backup hasn't been downloaded or printed yet, and it is the only copy of the key. Save it first, or press Clear page again to discard it.": "\u4F60\u7684\u65B0\u94B1\u5305\u5907\u4EFD\u8FD8\u6CA1\u6709\u4E0B\u8F7D\u6216\u6253\u5370\uFF0C\u800C\u5B83\u662F\u8FD9\u4E2A\u79C1\u94A5\u552F\u4E00\u7684\u526F\u672C\u3002\u8BF7\u5148\u4FDD\u5B58\uFF0C\u6216\u518D\u6309\u4E00\u6B21\u201C\u6E05\u7A7A\u9875\u9762\u201D\u5C06\u5176\u4E22\u5F03\u3002",
+      "Your password is stretched with scrypt (N = 2{0}, r = 8, p = 1, which needs 128 MB of memory per guess), then the 32-byte private key is encrypted with AES-256-GCM. Every backup is decrypted once as a self-check before you can save it, and every restored key is checked against its address. Backups are fully validated when loaded, and only settings from N = 2{1} to 2{2} with r = 8, p = 1 are accepted, so a crafted backup can't freeze the page.": "\u4F60\u7684\u5BC6\u7801\u4F1A\u5148\u7528 scrypt \u8FDB\u884C\u62C9\u4F38\uFF08N = 2{0}\uFF0Cr = 8\uFF0Cp = 1\uFF0C\u6BCF\u6B21\u731C\u6D4B\u9700\u8981 128 MB \u5185\u5B58\uFF09\uFF0C\u7136\u540E\u7528 AES-256-GCM \u52A0\u5BC6 32 \u5B57\u8282\u7684\u79C1\u94A5\u3002\u6BCF\u4EFD\u5907\u4EFD\u5728\u4F60\u4FDD\u5B58\u4E4B\u524D\u90FD\u4F1A\u5148\u89E3\u5BC6\u4E00\u6B21\u4F5C\u4E3A\u81EA\u68C0\uFF0C\u6BCF\u4E2A\u6062\u590D\u51FA\u7684\u79C1\u94A5\u90FD\u4F1A\u4E0E\u5176\u5730\u5740\u6838\u5BF9\u3002\u5907\u4EFD\u5728\u8F7D\u5165\u65F6\u4F1A\u7ECF\u8FC7\u5B8C\u6574\u6821\u9A8C\uFF0C\u53EA\u63A5\u53D7 N = 2{1} \u5230 2{2}\u3001r = 8\u3001p = 1 \u7684\u53C2\u6570\uFF0C\u56E0\u6B64\u7CBE\u5FC3\u6784\u9020\u7684\u5907\u4EFD\u65E0\u6CD5\u8BA9\u9875\u9762\u5361\u6B7B\u3002",
+      "Your unlocked wallet file is still in your Downloads folder. Delete it once your backup is safe.": "\u4F60\u672A\u52A0\u5BC6\u7684\u94B1\u5305\u6587\u4EF6\u8FD8\u5728\u201C\u4E0B\u8F7D\u201D\u6587\u4EF6\u5939\u91CC\u3002\u5907\u4EFD\u59A5\u5F53\u540E\u8BF7\u628A\u5B83\u5220\u9664\u3002",
+      "and pick this file; BRC Post can remember it, so next time you only type the password. The address above is public: share it so people can write to you.": "\u7136\u540E\u9009\u62E9\u8FD9\u4E2A\u6587\u4EF6\uFF1BBRC Post \u53EF\u4EE5\u8BB0\u4F4F\u5B83\uFF0C\u4E0B\u6B21\u4F60\u53EA\u9700\u8F93\u5165\u5BC6\u7801\u3002\u4E0A\u9762\u7684\u5730\u5740\u662F\u516C\u5F00\u7684\uFF1A\u5206\u4EAB\u51FA\u53BB\uFF0C\u522B\u4EBA\u5C31\u80FD\u7ED9\u4F60\u5199\u4FE1\u3002",
+      "can, rarely, make a different, empty wallet.": "\u5728\u6781\u5C11\u6570\u60C5\u51B5\u4E0B\u53EF\u80FD\u4F1A\u751F\u6210\u53E6\u4E00\u4E2A\u7A7A\u94B1\u5305\u3002",
+      importing: "\u6B63\u5728\u5BFC\u5165",
+      "made and backed up in one step": "\u4E00\u6B65\u5B8C\u6210\u521B\u5EFA\u548C\u5907\u4EFD",
+      "private key": "\u79C1\u94A5",
+      "{0} They look exactly the same. If it's your key, it opens wallet .": "{0} \u5B83\u4EEC\u770B\u8D77\u6765\u4E00\u6A21\u4E00\u6837\u3002\u5982\u679C\u662F\u4F60\u7684\u79C1\u94A5\uFF0C\u5B83\u4F1A\u6253\u5F00\u94B1\u5305 \u3002",
+      "{0} only BRC Vault (this page) ever asks for a key that holds coins, and only to back it up on your device, best with Wi-Fi off. If anything else asks for your key, it isn't us.": "{0} \u53EA\u6709 BRC Vault\uFF08\u672C\u9875\u9762\uFF09\u4F1A\u5411\u4F60\u7D22\u8981\u5B58\u6709\u5E01\u7684\u79C1\u94A5\uFF0C\u800C\u4E14\u53EA\u662F\u4E3A\u4E86\u5728\u4F60\u7684\u8BBE\u5907\u4E0A\u5907\u4EFD\u5B83\uFF0C\u6700\u597D\u5148\u5173\u95ED Wi-Fi\u3002\u5982\u679C\u6709\u4EFB\u4F55\u5176\u4ED6\u5730\u65B9\u5411\u4F60\u7D22\u8981\u79C1\u94A5\uFF0C\u90A3\u90FD\u4E0D\u662F\u6211\u4EEC\u3002",
+      "{0} {1} to paste. It's read right away.": "\u6309 {0} {1} \u7C98\u8D34\uFF0C\u4F1A\u7ACB\u5373\u8BFB\u53D6\u3002",
+      "{0}A new BrowserCoin wallet: savings, a second wallet, a prize pool. To spend from it later, you swap it into the BrowserCoin app, which holds one wallet at a time.": "{0}\u4E00\u4E2A\u65B0\u7684 BrowserCoin \u94B1\u5305\uFF1A\u53EF\u7528\u4E8E\u50A8\u84C4\u3001\u4F5C\u4E3A\u7B2C\u4E8C\u4E2A\u94B1\u5305\u6216\u5956\u6C60\u3002\u4EE5\u540E\u8981\u4ECE\u4E2D\u82B1\u5E01\uFF0C\u9700\u8981\u628A\u5B83\u6362\u8FDB BrowserCoin \u5E94\u7528\uFF0C\u8BE5\u5E94\u7528\u4E00\u6B21\u53EA\u80FD\u653E\u4E00\u4E2A\u94B1\u5305\u3002",
+      "{0}Not password-protected": "{0}\u672A\u7528\u5BC6\u7801\u4FDD\u62A4",
+      "{0}Opens sealed letters and signs. Not for coins. (BRC Post can also make one for you.)": "{0}\u7528\u4E8E\u6253\u5F00\u5BC6\u5C01\u4FE1\u548C\u7B7E\u540D\uFF0C\u4E0D\u7528\u4E8E\u5B58\u5E01\u3002\uFF08BRC Post \u4E5F\u53EF\u4EE5\u5E2E\u4F60\u521B\u5EFA\u4E00\u4E2A\u3002\uFF09",
+      "{0}Password-protected BRC mailbox key": "{0}\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684 BRC \u4FE1\u7BB1\u5BC6\u94A5",
+      "{0}Password-protected BrowserCoin wallet": "{0}\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684 BrowserCoin \u94B1\u5305",
+      "{0}file text or a key": "{0}\u6587\u4EF6\u5185\u5BB9\u6216\u5BC6\u94A5",
+      "{0}or drag it here": "{0}\u6216\u62D6\u5230\u8FD9\u91CC",
+      "{0}or paste one": "{0}\u6216\u7C98\u8D34\u4E00\u4E2A",
+      "{0}with your camera": "{0}\u7528\u6444\u50CF\u5934",
+      "Open BRC Post and choose Your mailbox key. Type the locked backup code exactly as printed, with the checks in brackets. Enter your password. Your letters open on that page; nothing is sent anywhere.": "\u6253\u5F00 BRC Post\uFF0C\u9009\u62E9\u300C\u4F60\u7684\u4FE1\u7BB1\u5BC6\u94A5\u300D\u3002\u6309\u5370\u5237\u5185\u5BB9\u539F\u6837\u8F93\u5165\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u5907\u4EFD\u4EE3\u7801\uFF0C\u5305\u62EC\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\u3002\u8F93\u5165\u4F60\u7684\u5BC6\u7801\u3002\u4F60\u7684\u4FE1\u4EF6\u4F1A\u5728\u90A3\u4E2A\u9875\u9762\u6253\u5F00\uFF0C\u4E0D\u4F1A\u53D1\u9001\u4EFB\u4F55\u5185\u5BB9\u3002",
+      "Open BRC Vault and choose Restore. Choose Scan paper backup and hold this sheet up to the camera, or type the code exactly as printed. Enter your password and download the wallet file. At browsercoin.org/app, open Settings and choose Import key\u2026": "\u6253\u5F00 BRC Vault\uFF0C\u9009\u62E9\u300C\u6062\u590D\u300D\u3002\u9009\u62E9\u300C\u626B\u63CF\u7EB8\u8D28\u5907\u4EFD\u300D\uFF0C\u628A\u8FD9\u5F20\u7EB8\u5BF9\u51C6\u6444\u50CF\u5934\uFF0C\u6216\u6309\u5370\u5237\u5185\u5BB9\u539F\u6837\u8F93\u5165\u4EE3\u7801\u3002\u8F93\u5165\u4F60\u7684\u5BC6\u7801\uFF0C\u7136\u540E\u4E0B\u8F7D\u94B1\u5305\u6587\u4EF6\u3002\u5728 browsercoin.org/app \u6253\u5F00\u8BBE\u7F6E\uFF08Settings\uFF09\uFF0C\u9009\u62E9\u300CImport key\u2026\u300D",
+      "To get your coins back Open BRC Vault and choose Restore. Choose Scan paper backup and hold this sheet up to the camera. Or type every line of the private key code, with BRCKEY1: and the checks in brackets, or the 24 recovery words. Download the wallet file. At browsercoin.org/app, open Settings and choose Import key\u2026 In the BRC Wallet Android app, import the 24 recovery words instead.": "\u5982\u4F55\u53D6\u56DE\u4F60\u7684\u5E01 \u6253\u5F00 BRC Vault\uFF0C\u9009\u62E9\u300C\u6062\u590D\u300D\u3002\u9009\u62E9\u300C\u626B\u63CF\u7EB8\u8D28\u5907\u4EFD\u300D\uFF0C\u628A\u8FD9\u5F20\u7EB8\u5BF9\u51C6\u6444\u50CF\u5934\u3002\u6216\u8005\u9010\u884C\u8F93\u5165\u79C1\u94A5\u4EE3\u7801\uFF08\u5305\u62EC BRCKEY1: \u548C\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\uFF09\uFF0C\u6216\u8F93\u5165 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002\u4E0B\u8F7D\u94B1\u5305\u6587\u4EF6\u3002\u5728 browsercoin.org/app \u6253\u5F00\u8BBE\u7F6E\uFF08Settings\uFF09\uFF0C\u9009\u62E9\u300CImport key\u2026\u300D\u3002\u5982\u679C\u7528\u7684\u662F BRC Wallet Android \u5E94\u7528\uFF0C\u8BF7\u6539\u4E3A\u5BFC\u5165 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002",
+      "Independent tools by": "\u72EC\u7ACB\u5DE5\u5177\uFF0C\u4F5C\u8005\uFF1A",
+      ". Not part of the official BrowserCoin project. \xB7": "\u3002\u4E0D\u5C5E\u4E8E BrowserCoin \u5B98\u65B9\u9879\u76EE\u3002\xB7",
+      "only BRC Vault (this page) ever asks for a key that holds coins, and only to back it up on your device, best with Wi-Fi off. If anything else asks for your key, it isn't us.": "\u53EA\u6709 BRC Vault\uFF08\u672C\u9875\uFF09\u4F1A\u5411\u4F60\u8981\u5B58\u6709\u5E01\u7684\u79C1\u94A5\uFF0C\u800C\u4E14\u53EA\u662F\u4E3A\u4E86\u5728\u4F60\u7684\u8BBE\u5907\u4E0A\u5907\u4EFD\u5B83\uFF0C\u6700\u597D\u5148\u5173\u95ED Wi-Fi\u3002\u5982\u679C\u6709\u5176\u4ED6\u4EFB\u4F55\u5730\u65B9\u5411\u4F60\u8981\u79C1\u94A5\uFF0C\u90A3\u90FD\u4E0D\u662F\u6211\u4EEC\u3002",
+      "Password-protected files from the BRC Wallet desktop app (": "\u6765\u81EA BRC Wallet \u684C\u9762\u5E94\u7528\u7684\u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u6587\u4EF6\uFF08",
+      ") open in Restore. They use scrypt with the password exactly as typed and AES-256-GCM with a separate": "\uFF09\u53EF\u4EE5\u5728\u300C\u6062\u590D\u300D\u4E2D\u6253\u5F00\u3002\u5B83\u4EEC\u4F7F\u7528 scrypt\uFF08\u5BC6\u7801\u6309\u8F93\u5165\u539F\u6837\u5904\u7406\uFF09\u548C AES-256-GCM\uFF0C\u5E76\u5E26\u6709\u5355\u72EC\u7684",
+      "; the same setting limits apply.": "\uFF1B\u540C\u6837\u7684\u53C2\u6570\u9650\u5236\u4E5F\u9002\u7528\u3002",
+      "The paper code is the same backup on one line, in upper case:": "\u7EB8\u8D28\u4EE3\u7801\u662F\u540C\u4E00\u4EFD\u5907\u4EFD\uFF0C\u5199\u6210\u4E00\u884C\uFF0C\u5168\u90E8\u5927\u5199\uFF1A",
+      ", and that is exactly what the QR code holds. Phone camera apps deliberately can't do anything with it: they don't recognise the": "\uFF0CQR \u7801\u91CC\u5B58\u7684\u6B63\u662F\u8FD9\u4E2A\u3002\u624B\u673A\u76F8\u673A\u5E94\u7528\u7279\u610F\u65E0\u6CD5\u5904\u7406\u5B83\uFF1A\u5B83\u4EEC\u4E0D\u8BA4\u8BC6",
+      "prefix, so they never offer to search the web for it. Scan it with BRC Vault's own scanner instead, which reads the camera inside the page and sends nothing anywhere. On paper it's printed one part per line, each followed by a check in brackets: the first 4 hex characters of SHA-256 of that line with spaces removed. A typo is caught and the line named before the slow password step. An unprotected key is printed as": "\u524D\u7F00\uFF0C\u6240\u4EE5\u6C38\u8FDC\u4E0D\u4F1A\u63D0\u793A\u4F60\u4E0A\u7F51\u641C\u7D22\u5B83\u3002\u8BF7\u6539\u7528 BRC Vault \u81EA\u5E26\u7684\u626B\u63CF\u5668\uFF0C\u5B83\u5728\u9875\u9762\u5185\u8BFB\u53D6\u6444\u50CF\u5934\uFF0C\u4E0D\u53D1\u9001\u4EFB\u4F55\u5185\u5BB9\u3002\u5728\u7EB8\u4E0A\uFF0C\u6BCF\u90E8\u5206\u5370\u4E00\u884C\uFF0C\u540E\u9762\u8DDF\u7740\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\uFF1A\u5373\u8BE5\u884C\u53BB\u6389\u7A7A\u683C\u540E SHA-256 \u7684\u524D 4 \u4E2A\u5341\u516D\u8FDB\u5236\u5B57\u7B26\u3002\u8F93\u9519\u7684\u8BDD\uFF0C\u4F1A\u5728\u7F13\u6162\u7684\u5BC6\u7801\u6B65\u9AA4\u4E4B\u524D\u88AB\u53D1\u73B0\uFF0C\u5E76\u6307\u51FA\u662F\u54EA\u4E00\u884C\u3002\u672A\u52A0\u5BC6\u7684\u79C1\u94A5\u6253\u5370\u4E3A",
+      ", where CHECK is the first 8 characters of the address, so it can't be mistaken for an address and a typo in the key is caught.": "\uFF0C\u5176\u4E2D CHECK \u662F\u5730\u5740\u7684\u524D 8 \u4E2A\u5B57\u7B26\uFF0C\u56E0\u6B64\u4E0D\u4F1A\u88AB\u8BEF\u8BA4\u4E3A\u5730\u5740\uFF0C\u79C1\u94A5\u4E2D\u7684\u8F93\u5165\u9519\u8BEF\u4E5F\u80FD\u88AB\u53D1\u73B0\u3002",
+      "Key = scrypt(password normalized to NFKC, salt, N = 2^logN, r, p, 32). Ciphertext = AES-256-GCM(key, iv, private key) with associated data": "\u5BC6\u94A5 = scrypt(\u7ECF NFKC \u89C4\u8303\u5316\u7684\u5BC6\u7801, salt, N = 2^logN, r, p, 32)\u3002\u5BC6\u6587 = AES-256-GCM(\u5BC6\u94A5, iv, \u79C1\u94A5)\uFF0C\u5173\u8054\u6570\u636E\u4E3A",
+      ", so changing any field makes decryption fail.": "\uFF0C\u56E0\u6B64\u6539\u52A8\u4EFB\u4F55\u5B57\u6BB5\u90FD\u4F1A\u5BFC\u81F4\u89E3\u5BC6\u5931\u8D25\u3002",
+      ", r = 8, p = 1, which needs 128 MB of memory per guess), then the 32-byte private key is encrypted with AES-256-GCM. Every backup is decrypted once as a self-check before you can save it, and every restored key is checked against its address. Backups are fully validated when loaded, and only settings from N = 2": ", r = 8, p = 1\uFF0C\u6BCF\u6B21\u731C\u6D4B\u9700\u8981 128 MB \u5185\u5B58\uFF09\uFF0C\u7136\u540E\u7528 AES-256-GCM \u52A0\u5BC6 32 \u5B57\u8282\u7684\u79C1\u94A5\u3002\u6BCF\u4EFD\u5907\u4EFD\u5728\u4F60\u4FDD\u5B58\u4E4B\u524D\u90FD\u4F1A\u5148\u89E3\u5BC6\u4E00\u6B21\u4F5C\u4E3A\u81EA\u68C0\uFF0C\u6BCF\u4E2A\u6062\u590D\u51FA\u6765\u7684\u79C1\u94A5\u90FD\u4F1A\u4E0E\u5B83\u7684\u5730\u5740\u6838\u5BF9\u3002\u5907\u4EFD\u5728\u52A0\u8F7D\u65F6\u4F1A\u7ECF\u8FC7\u5B8C\u6574\u6821\u9A8C\uFF0C\u53EA\u63A5\u53D7 N = 2",
+      "These words are the wallet itself, with no password.": "\u8FD9\u4E9B\u52A9\u8BB0\u8BCD\u5C31\u662F\u94B1\u5305\u672C\u8EAB\uFF0C\u6CA1\u6709\u5BC6\u7801\u4FDD\u62A4\u3002",
+      "Only open this somewhere private, and don't take a screenshot.": "\u8BF7\u53EA\u5728\u79C1\u5BC6\u7684\u5730\u65B9\u6253\u5F00\uFF0C\u4E0D\u8981\u622A\u56FE\u3002",
+      "I understand that": "\u6211\u660E\u767D\uFF1A",
+      "this file into BrowserCoin replaces the wallet in that browser. That wallet is empty, or I've already exported it.": "\u6B64\u6587\u4EF6\u5230 BrowserCoin \u4F1A\u66FF\u6362\u8BE5\u6D4F\u89C8\u5668\u4E2D\u7684\u94B1\u5305\u3002\u8BE5\u94B1\u5305\u662F\u7A7A\u7684\uFF0C\u6216\u8005\u6211\u5DF2\u7ECF\u5BFC\u51FA\u4E86\u5B83\u3002",
+      "to paste. It's read right away.": "\u7C98\u8D34\uFF0C\u5185\u5BB9\u4F1A\u7ACB\u5373\u8BFB\u53D6\u3002",
+      "or paste one": "\u6216\u7C98\u8D34\u4E00\u4E2A",
+      "with your camera": "\u7528\u6444\u50CF\u5934",
+      "or drag it here": "\u6216\u62D6\u5230\u8FD9\u91CC",
+      "Locked with your password": "\u5DF2\u7528\u4F60\u7684\u5BC6\u7801\u52A0\u5BC6",
+      "One press makes the key, locks it with your password and test-opens the backup.": "\u6309\u4E00\u4E0B\u5C31\u4F1A\u751F\u6210\u79C1\u94A5\uFF0C\u7528\u4F60\u7684\u5BC6\u7801\u52A0\u5BC6\uFF0C\u5E76\u8BD5\u7740\u6253\u5F00\u5907\u4EFD\u8FDB\u884C\u68C0\u67E5\u3002",
+      ": nothing else will ever hold this key.": "\uFF1A\u5176\u4ED6\u4EFB\u4F55\u5730\u65B9\u90FD\u4E0D\u4F1A\u4FDD\u5B58\u8FD9\u4E2A\u79C1\u94A5\u3002",
+      "Opens sealed letters and signs. Not for coins. (BRC Post can also make one for you.)": "\u7528\u4E8E\u6253\u5F00\u5BC6\u5C01\u4FE1\u548C\u7B7E\u540D\uFF0C\u4E0D\u7528\u4E8E\u5B58\u5E01\u3002\uFF08BRC Post \u4E5F\u53EF\u4EE5\u5E2E\u4F60\u521B\u5EFA\u4E00\u4E2A\u3002\uFF09",
+      "A new BrowserCoin wallet: savings, a second wallet, a prize pool. To spend from it later, you swap it into the BrowserCoin app, which holds one wallet at a time.": "\u4E00\u4E2A\u65B0\u7684 BrowserCoin \u94B1\u5305\uFF1A\u53EF\u7528\u4E8E\u50A8\u84C4\u3001\u4F5C\u4E3A\u7B2C\u4E8C\u4E2A\u94B1\u5305\u6216\u5956\u6C60\u3002\u4EE5\u540E\u8981\u4ECE\u4E2D\u82B1\u8D39\uFF0C\u9700\u8981\u628A\u5B83\u6362\u5165 BrowserCoin \u5E94\u7528\uFF0C\u8BE5\u5E94\u7528\u4E00\u6B21\u53EA\u80FD\u653E\u4E00\u4E2A\u94B1\u5305\u3002",
+      "A brand-new wallet,": "\u4E00\u4E2A\u5168\u65B0\u7684\u94B1\u5305\uFF0C",
+      ". Its key is created on this page when you press the button, locked with your password straight away, and never shown or saved unlocked. This file is the only copy of the new wallet.": "\u3002\u6309\u4E0B\u6309\u94AE\u65F6\uFF0C\u5B83\u7684\u79C1\u94A5\u4F1A\u5728\u672C\u9875\u4E0A\u751F\u6210\uFF0C\u5E76\u7ACB\u5373\u7528\u4F60\u7684\u5BC6\u7801\u52A0\u5BC6\uFF0C\u7EDD\u4E0D\u4F1A\u4EE5\u672A\u52A0\u5BC6\u7684\u5F62\u5F0F\u663E\u793A\u6216\u4FDD\u5B58\u3002\u8FD9\u4E2A\u6587\u4EF6\u662F\u65B0\u94B1\u5305\u552F\u4E00\u7684\u526F\u672C\u3002",
+      "This prints the private key itself, with no password.": "\u8FD9\u4F1A\u6253\u5370\u79C1\u94A5\u672C\u8EAB\uFF0C\u6CA1\u6709\u5BC6\u7801\u4FDD\u62A4\u3002",
+      "Only use it if the paper will be locked away, for example in a safe.": "\u53EA\u6709\u5F53\u8FD9\u5F20\u7EB8\u4F1A\u88AB\u9501\u8D77\u6765\u4FDD\u7BA1\uFF08\u4F8B\u5982\u653E\u8FDB\u4FDD\u9669\u7BB1\uFF09\u65F6\u624D\u4F7F\u7528\u3002",
+      "They look exactly the same. If it's your key, it opens wallet": "\u5B83\u4EEC\u770B\u8D77\u6765\u5B8C\u5168\u4E00\u6837\u3002\u5982\u679C\u662F\u4F60\u7684\u79C1\u94A5\uFF0C\u5B83\u4F1A\u6253\u5F00\u94B1\u5305",
+      "file text or a key": "\u6587\u4EF6\u5185\u5BB9\u6216\u79C1\u94A5",
+      "Lock your wallet with a password, print a paper copy, and restore it whenever you need to. Or start a new wallet that is backed up from the moment it exists.": "\u7528\u5BC6\u7801\u9501\u4F4F\u4F60\u7684\u94B1\u5305\uFF0C\u6253\u5370\u4E00\u4EFD\u7EB8\u8D28\u526F\u672C\uFF0C\u9700\u8981\u65F6\u968F\u65F6\u6062\u590D\u3002\u6216\u8005\u521B\u5EFA\u4E00\u4E2A\u4ECE\u8BDE\u751F\u8D77\u5C31\u5DF2\u5907\u4EFD\u7684\u65B0\u94B1\u5305\u3002",
+      "Switch to English": "\u5207\u6362\u5230\u82F1\u6587",
+      "Backup read {0}": "\u5DF2\u8BFB\u53D6\u5907\u4EFD {0}",
+      "Wallet {0}": "\u94B1\u5305 {0}",
+      "Wallet {0} {1}": "\u94B1\u5305 {0} {1}",
+      "Start with your wallet file: at {0}, open {1} and choose {2} You can also paste a private key, or the 24 recovery words from the BRC Wallet Android app. Starting from scratch? Use {3}.": "\u5148\u51C6\u5907\u597D\u4F60\u7684\u94B1\u5305\u6587\u4EF6\uFF1A\u5728 {0} \u6253\u5F00 {1}\uFF08\u8BBE\u7F6E\uFF09\uFF0C\u9009\u62E9 {2}\u3002\u4E5F\u53EF\u4EE5\u7C98\u8D34\u79C1\u94A5\uFF0C\u6216 BRC Wallet Android \u5E94\u7528\u91CC\u7684 24 \u4E2A\u52A9\u8BB0\u8BCD\u3002\u4ECE\u96F6\u5F00\u59CB\uFF1F\u8BF7\u4F7F\u7528{3}\u3002",
+      "Choose your backup file": "\u9009\u62E9\u4F60\u7684\u5907\u4EFD\u6587\u4EF6",
+      "Choose your wallet file": "\u9009\u62E9\u4F60\u7684\u94B1\u5305\u6587\u4EF6",
+      "Paste the wallet file's contents, a private key, or 24 recovery words": "\u7C98\u8D34\u94B1\u5305\u6587\u4EF6\u5185\u5BB9\u3001\u79C1\u94A5\u6216 24 \u4E2A\u52A9\u8BB0\u8BCD",
+      "Paste wallet file contents, a private key, or recovery words": "\u7C98\u8D34\u94B1\u5305\u6587\u4EF6\u5185\u5BB9\u3001\u79C1\u94A5\u6216\u52A9\u8BB0\u8BCD",
+      "Type or paste a paper backup code": "\u8F93\u5165\u6216\u7C98\u8D34\u7EB8\u8D28\u5907\u4EFD\u7801"
+    },
+    p: [
+      [
+        "%4 Keep private Locked backup code Useless without your password. Scan it with BRC Vault, or type each line with its check in brackets. Phone camera apps can't read it, on purpose. %5",
+        "%4 \u8BF7\u4FDD\u5BC6 \u5DF2\u7528\u5BC6\u7801\u52A0\u5BC6\u7684\u5907\u4EFD\u4EE3\u7801 \u6CA1\u6709\u4F60\u7684\u5BC6\u7801\u5C31\u65E0\u6CD5\u4F7F\u7528\u3002\u7528 BRC Vault \u626B\u63CF\uFF0C\u6216\u9010\u884C\u8F93\u5165\uFF0C\u6BCF\u884C\u5E26\u4E0A\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\u3002\u624B\u673A\u76F8\u673A\u5E94\u7528\u8BFB\u4E0D\u4E86\u5B83\uFF0C\u8FD9\u662F\u6709\u610F\u8BBE\u8BA1\u7684\u3002%5"
+      ],
+      [
+        "The print window didn't open. Press %1 to print this sheet. If that doesn't work either, open brc-vault.html directly in your browser, not in an app's preview.",
+        "\u6253\u5370\u7A97\u53E3\u6CA1\u6709\u6253\u5F00\u3002\u6309 %1 \u6253\u5370\u8FD9\u4E00\u9875\u3002\u5982\u679C\u8FD8\u662F\u4E0D\u884C\uFF0C\u8BF7\u76F4\u63A5\u5728\u6D4F\u89C8\u5668\u4E2D\u6253\u5F00 brc-vault.html\uFF0C\u800C\u4E0D\u662F\u5728\u67D0\u4E2A\u5E94\u7528\u7684\u9884\u89C8\u91CC\u6253\u5F00\u3002"
+      ],
+      [
+        "%6 About the password It is not on this page and cannot be recovered. If it is forgotten, these coins are gone. Store it separately from this sheet.",
+        "%6 \u5173\u4E8E\u5BC6\u7801 \u5BC6\u7801\u4E0D\u5728\u8FD9\u5F20\u7EB8\u4E0A\uFF0C\u4E5F\u65E0\u6CD5\u627E\u56DE\u3002\u4E00\u65E6\u5FD8\u8BB0\uFF0C\u8FD9\u4E9B\u5E01\u5C31\u6CA1\u4E86\u3002\u8BF7\u628A\u5BC6\u7801\u548C\u8FD9\u5F20\u7EB8\u5206\u5F00\u4FDD\u5B58\u3002"
+      ],
+      [
+        "%4 Never share Private key This is the wallet itself. Type every line with its check in brackets; the last line checks the key against the address. %5",
+        "%4 \u5207\u52FF\u5206\u4EAB \u79C1\u94A5 \u8FD9\u5C31\u662F\u94B1\u5305\u672C\u8EAB\u3002\u9010\u884C\u8F93\u5165\uFF0C\u6BCF\u884C\u5E26\u4E0A\u62EC\u53F7\u91CC\u7684\u6821\u9A8C\u7801\uFF1B\u6700\u540E\u4E00\u884C\u4F1A\u6838\u5BF9\u79C1\u94A5\u4E0E\u5730\u5740\u662F\u5426\u5339\u914D\u3002%5"
+      ],
+      [
+        "Never share 24 recovery words The same wallet as standard recovery words. They restore in BRC Vault and in the BRC Wallet Android app. %6",
+        "\u5207\u52FF\u5206\u4EAB 24 \u4E2A\u52A9\u8BB0\u8BCD \u4E0E\u6807\u51C6\u52A9\u8BB0\u8BCD\u662F\u540C\u4E00\u4E2A\u94B1\u5305\u3002\u53EF\u4EE5\u5728 BRC Vault \u548C BRC Wallet Android \u5E94\u7528\u4E2D\u6062\u590D\u3002%6"
+      ],
+      [
+        "%2 Safe to share Wallet address Use it to receive coins or look up the balance. This is not a key and can't restore the wallet. %3",
+        "%2 \u53EF\u4EE5\u5206\u4EAB \u94B1\u5305\u5730\u5740 \u7528\u4E8E\u6536\u6B3E\u6216\u67E5\u8BE2\u4F59\u989D\u3002\u8FD9\u4E0D\u662F\u79C1\u94A5\uFF0C\u65E0\u6CD5\u6062\u590D\u94B1\u5305\u3002%3"
+      ],
+      [
+        "Line %1 of the code has a typo: it doesn't match its check [%2]. Compare that line with the paper, watching for 0/D and 8/B.",
+        "\u4EE3\u7801\u7B2C %1 \u884C\u6709\u8F93\u5165\u9519\u8BEF\uFF1A\u4E0E\u5B83\u7684\u6821\u9A8C [%2] \u4E0D\u7B26\u3002\u8BF7\u628A\u8FD9\u4E00\u884C\u548C\u7EB8\u4E0A\u7684\u5185\u5BB9\u5BF9\u7167\uFF0C\u7559\u610F 0/D \u548C 8/B\u3002"
+      ],
+      [
+        "%2 Safe to share Wallet address Use it to receive coins. This is not a key and can't restore the wallet. %3",
+        "%2 \u53EF\u4EE5\u5206\u4EAB \u94B1\u5305\u5730\u5740 \u7528\u4E8E\u6536\u6B3E\u3002\u8FD9\u4E0D\u662F\u79C1\u94A5\uFF0C\u65E0\u6CD5\u6062\u590D\u94B1\u5305\u3002%3"
+      ],
+      [
+        "This BRC Wallet file has a version (%1) BRC Vault doesn't know; it reads version 2.",
+        "\u8FD9\u4E2A BRC Wallet \u6587\u4EF6\u7684\u7248\u672C\uFF08%1\uFF09BRC Vault \u65E0\u6CD5\u8BC6\u522B\uFF1B\u5B83\u53EA\u80FD\u8BFB\u53D6\u7248\u672C 2\u3002"
+      ],
+      [
+        "Word %1 isn't on the recovery word list. Check its spelling against the paper.",
+        "\u7B2C %1 \u4E2A\u8BCD\u4E0D\u5728\u52A9\u8BB0\u8BCD\u5217\u8868\u4E2D\u3002\u8BF7\u5BF9\u7167\u7EB8\u4E0A\u7684\u5185\u5BB9\u68C0\u67E5\u62FC\u5199\u3002"
+      ],
+      [
+        "with r = %N1 p = %N2 are accepted, so a crafted backup can't freeze the page.",
+        "\u4E14 r = %N1 p = %N2 \u7684\u53C2\u6570\uFF0C\u56E0\u6B64\u6076\u610F\u6784\u9020\u7684\u5907\u4EFD\u65E0\u6CD5\u8BA9\u9875\u9762\u5361\u6B7B\u3002"
+      ],
+      [
+        "At least %1 characters. A short sentence you'll remember works well.",
+        "\u81F3\u5C11 %1 \u4E2A\u5B57\u7B26\u3002\u7528\u4E00\u53E5\u4F60\u8BB0\u5F97\u4F4F\u7684\u77ED\u53E5\u5C31\u5F88\u597D\u3002"
+      ],
+      [
+        "This backup is version %1; this copy of BRC Vault reads version %2.",
+        "\u8FD9\u4E2A\u5907\u4EFD\u662F\u7248\u672C %1\uFF1B\u5F53\u524D\u8FD9\u4EFD BRC Vault \u8BFB\u53D6\u7684\u662F\u7248\u672C %2\u3002"
+      ],
+      [
+        "That is %1 words. BrowserCoin recovery words are a list of 24.",
+        "\u8FD9\u662F %1 \u4E2A\u8BCD\u3002BrowserCoin \u52A9\u8BB0\u8BCD\u4E00\u5171\u662F 24 \u4E2A\u3002"
+      ],
+      [
+        "The %1 in this backup is damaged (expected %2 hex characters).",
+        "\u6B64\u5907\u4EFD\u4E2D\u7684%1\u5DF2\u635F\u574F\uFF08\u5E94\u4E3A %2 \u4E2A\u5341\u516D\u8FDB\u5236\u5B57\u7B26\uFF09\u3002"
+      ],
+      [
+        "Your password is stretched with scrypt (N = %N1",
+        "\u4F60\u7684\u5BC6\u7801\u4F1A\u7528 scrypt \u8FDB\u884C\u52A0\u5F3A\uFF08N = %N1"
+      ],
+      [
+        "Expected %1 bytes (%2 hex characters), got %3.",
+        "\u5E94\u4E3A %1 \u5B57\u8282\uFF08%2 \u4E2A\u5341\u516D\u8FDB\u5236\u5B57\u7B26\uFF09\uFF0C\u5B9E\u9645\u4E3A %3\u3002"
+      ],
+      [
+        "The %1 in this backup code are damaged.",
+        "\u6B64\u5907\u4EFD\u7801\u4E2D\u7684%1\u5DF2\u635F\u574F\u3002"
+      ],
+      [
+        `The receipt's "%1:" line is missing.`,
+        '\u56DE\u6267\u4E2D\u7F3A\u5C11 "%1:" \u8FD9\u4E00\u884C\u3002'
+      ],
+      [
+        "Use at least %1 characters.",
+        "\u8BF7\u81F3\u5C11\u4F7F\u7528 %1 \u4E2A\u5B57\u7B26\u3002"
+      ],
+      [
+        "Made %1Stored at%2",
+        "\u5236\u4F5C\u4E8E %1\u5B58\u653E\u4E8E%2"
+      ],
+      [
+        "copy printed %1",
+        "\u5DF2\u6253\u5370\u526F\u672C %1"
+      ]
+    ]
+  };
+
   // src/app.js
   var $ = (sel, root = document) => root.querySelector(sel);
   var $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -7659,6 +8500,17 @@ zoo`.split("\n");
   }
   function setStep(id, state) {
     $(id).dataset.state = state;
+  }
+  var LOADED_LABELS = /* @__PURE__ */ new Set(["Wallet file", "Recovery words", "Pasted private key", "Pasted backup code", "Pasted wallet file", "Pasted key", "Wallet from Restore"]);
+  function showName(el, name) {
+    if (LOADED_LABELS.has(name)) {
+      el.textContent = name;
+      return;
+    }
+    const span = document.createElement("span");
+    span.textContent = name;
+    span.translate = false;
+    el.replaceChildren(span);
   }
   function download(filename, text) {
     const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
@@ -7712,7 +8564,7 @@ zoo`.split("\n");
       if (scanPanel) show(scanPanel, mode === "scan");
       show($(`#${prefix}-paste-panel`), mode === "paste");
       show($(`#${prefix}-chip`), mode === "loaded");
-      if (mode === "loaded") $(`#${prefix}-chip-name`).textContent = name || "";
+      if (mode === "loaded") showName($(`#${prefix}-chip-name`), name || "");
       if (mode === "paste") box.focus();
       else box.value = "";
     };
@@ -8960,6 +9812,8 @@ zoo`.split("\n");
     selectTab("new");
     $("#tab-new").scrollIntoView({ block: "start" });
   }
+  var i18n = createI18n({ dict: zh_default });
+  i18n.start();
 })();
 
 </script>

@@ -22,6 +22,17 @@ function setMessage(el, text, tone = 'info') {
 
 function setStep(id, state) { $(id).dataset.state = state; }
 
+// A file's own name is shown exactly as it is, in any language (the 中文 switch skips translate="no").
+// The page's own labels for what was loaded are still translated.
+const LOADED_LABELS = new Set(['Wallet file', 'Recovery words', 'Pasted private key', 'Pasted backup code', 'Pasted wallet file', 'Pasted key', 'Wallet from Restore']);
+function showName(el, name) {
+  if (LOADED_LABELS.has(name)) { el.textContent = name; return; }
+  const span = document.createElement('span');
+  span.textContent = name;
+  span.translate = false;
+  el.replaceChildren(span);
+}
+
 function download(filename, text) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const a = document.createElement('a');
@@ -83,7 +94,7 @@ function wireIntake(prefix, onText, msgEl, isOpen) {
     if (scanPanel) show(scanPanel, mode === 'scan');
     show($(`#${prefix}-paste-panel`), mode === 'paste');
     show($(`#${prefix}-chip`), mode === 'loaded');
-    if (mode === 'loaded') $(`#${prefix}-chip-name`).textContent = name || '';
+    if (mode === 'loaded') showName($(`#${prefix}-chip-name`), name || '');
     if (mode === 'paste') box.focus();
     else box.value = '';
   };
